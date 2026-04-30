@@ -1,0 +1,319 @@
+/* StaffPortal.css */
+
+/* ── Portal shell ────────────────────────────────────────────────────────────── */
+.staff-portal {
+  min-height: 100vh;
+  background: #f0f2f7;
+  display: flex;
+  flex-direction: column;
+  font-family: 'DM Sans', sans-serif;
+}
+
+/* ── Header ──────────────────────────────────────────────────────────────────── */
+.staff-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 28px;
+  height: 60px;
+  background: #0f1623;
+  border-bottom: 1px solid rgba(255,255,255,0.07);
+  flex-shrink: 0;
+  gap: 16px;
+}
+.staff-header-left  { display: flex; align-items: center; }
+.staff-header-right { display: flex; align-items: center; gap: 14px; }
+
+.staff-logo       { display: flex; align-items: center; gap: 10px; }
+.staff-logo-icon  { font-size: 20px; }
+.staff-logo-text  { display: flex; gap: 1px; }
+.staff-logo-smart { font-size: 16px; font-weight: 700; color: #fff;     letter-spacing: 0.04em; }
+.staff-logo-guard { font-size: 16px; font-weight: 700; color: #3b82f6; letter-spacing: 0.04em; }
+
+.staff-role-chip {
+  padding: 2px 10px;
+  border-radius: 999px;
+  font-size: 11px; font-weight: 600;
+  background: rgba(59,130,246,0.15);
+  color: #93c5fd;
+  border: 1px solid rgba(59,130,246,0.25);
+  letter-spacing: 0.02em;
+}
+
+/* Active alert banner in header */
+.staff-alert-banner {
+  display: flex; align-items: center; gap: 8px;
+  padding: 6px 14px;
+  background: rgba(220,38,38,0.15);
+  border: 1px solid rgba(220,38,38,0.35);
+  border-radius: 999px;
+  font-size: 12px; font-weight: 500; color: #fca5a5;
+  animation: staff-banner-pulse 2s ease-in-out infinite;
+}
+@keyframes staff-banner-pulse {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.7; }
+}
+
+.staff-bell { font-size: 16px; }
+.staff-bell--ring { animation: staff-bell-ring 0.5s ease; }
+@keyframes staff-bell-ring {
+  0%, 100% { transform: rotate(0deg); }
+  20%       { transform: rotate(-20deg); }
+  60%       { transform: rotate(20deg); }
+}
+
+.staff-user-chip   { display: flex; align-items: center; gap: 9px; }
+.staff-user-avatar {
+  width: 32px; height: 32px; border-radius: 50%;
+  background: linear-gradient(135deg, #2563eb, #7c3aed);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 13px; font-weight: 700; color: #fff; flex-shrink: 0;
+}
+.staff-user-name { font-size: 13px; font-weight: 600; color: #fff; }
+.staff-user-role { font-size: 10px; color: rgba(255,255,255,0.45); margin-top: 1px; }
+
+.staff-logout-btn {
+  padding: 6px 14px;
+  border: 1px solid rgba(255,255,255,0.15);
+  border-radius: 6px;
+  background: transparent;
+  color: rgba(255,255,255,0.6);
+  font-size: 12px; font-weight: 600;
+  cursor: pointer;
+  font-family: 'DM Sans', sans-serif;
+  transition: all 0.14s;
+}
+.staff-logout-btn:hover { background: rgba(255,255,255,0.08); color: #fff; }
+
+/* ── Main content ────────────────────────────────────────────────────────────── */
+.staff-main {
+  flex: 1;
+  max-width: 860px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 28px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.staff-status-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+.staff-page-title { font-size: 24px; font-weight: 700; color: #0f1623; margin: 0; }
+.staff-page-sub   { font-size: 13px; color: #64748b; margin-top: 5px; }
+
+/* ── KPI row ─────────────────────────────────────────────────────────────────── */
+.staff-kpi-row { display: flex; gap: 10px; }
+.staff-kpi {
+  display: flex; flex-direction: column; align-items: center;
+  padding: 12px 20px; border-radius: 10px;
+  border: 1.5px solid #e2e8f0; background: #fff;
+  min-width: 90px;
+}
+.staff-kpi-val   { font-size: 24px; font-weight: 700; line-height: 1; }
+.staff-kpi-label {
+  font-size: 11px; color: #64748b; margin-top: 4px;
+  text-transform: uppercase; letter-spacing: 0.04em;
+}
+.staff-kpi--red   .staff-kpi-val { color: #dc2626; }
+.staff-kpi--green .staff-kpi-val { color: #16a34a; }
+.staff-kpi--amber .staff-kpi-val { color: #b45309; }
+
+/* ── Filter row ──────────────────────────────────────────────────────────────── */
+.staff-filter-row { display: flex; gap: 4px; }
+.staff-filter-btn {
+  padding: 6px 16px; font-size: 12px; font-weight: 600;
+  border: 1px solid #e2e8f0; border-radius: 6px;
+  background: #fff; color: #64748b;
+  cursor: pointer; transition: all 0.13s;
+  font-family: 'DM Sans', sans-serif;
+}
+.staff-filter-btn:hover { background: #f8fafc; color: #0f1623; }
+.staff-filter-btn--active { background: #0f1623; color: #fff; border-color: #0f1623; }
+
+/* ── Alert list ──────────────────────────────────────────────────────────────── */
+.staff-alert-list { display: flex; flex-direction: column; gap: 10px; }
+
+/* ── Alert card ──────────────────────────────────────────────────────────────── */
+.staff-alert-card {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 18px 20px;
+  background: #fff;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 12px;
+  transition: all 0.15s;
+}
+.staff-alert-card--active {
+  border-color: rgba(220,38,38,0.3);
+  box-shadow: 0 2px 12px rgba(220,38,38,0.08);
+}
+.staff-alert-card:not(.staff-alert-card--active) { opacity: 0.75; }
+
+/* Pulse indicator bar on left edge */
+.staff-alert-pulse {
+  width: 4px; height: 52px;
+  border-radius: 2px;
+  background: #e2e8f0;
+  flex-shrink: 0;
+}
+.staff-alert-pulse--live {
+  background: #dc2626;
+  animation: staff-pulse-bar 1.8s ease-in-out infinite;
+}
+@keyframes staff-pulse-bar {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.35; }
+}
+
+/* Alert body */
+.staff-alert-body { flex: 1; display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.staff-alert-top  { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+
+.staff-live-badge {
+  font-size: 10px; font-weight: 700; letter-spacing: 0.06em; color: #dc2626;
+  animation: staff-pulse-bar 1.8s ease-in-out infinite;
+}
+.staff-alarm-triggered-badge {
+  font-size: 10px; font-weight: 700;
+  padding: 2px 8px; border-radius: 4px;
+  background: rgba(220,38,38,0.1); color: #dc2626;
+  border: 1px solid rgba(220,38,38,0.2);
+}
+.staff-alert-id {
+  font-size: 11px; color: #94a3b8;
+  font-family: 'Space Mono', monospace;
+}
+
+/* Location — displayed large per spec (primary info for staff) */
+.staff-alert-location {
+  display: flex; align-items: center; gap: 7px;
+  font-size: 16px; font-weight: 700; color: #0f1623;
+}
+.staff-location-name { font-size: 16px; }
+
+.staff-alert-time {
+  display: flex; align-items: center; gap: 7px;
+  font-size: 13px; color: #64748b;
+}
+
+/* Alert actions */
+.staff-alert-actions {
+  display: flex; flex-direction: column; gap: 8px;
+  align-items: flex-end; flex-shrink: 0;
+}
+
+.staff-btn {
+  padding: 8px 18px; font-size: 12px; font-weight: 700;
+  border-radius: 7px; cursor: pointer; transition: all 0.14s;
+  font-family: 'DM Sans', sans-serif; white-space: nowrap;
+  min-width: 140px; text-align: center;
+}
+.staff-btn:disabled { opacity: 0.5; cursor: default; }
+
+.staff-btn--ack {
+  border: 1.5px solid rgba(22,163,74,0.3);
+  background: rgba(22,163,74,0.07); color: #16a34a;
+}
+.staff-btn--ack:hover:not(:disabled) {
+  background: #16a34a; border-color: #16a34a; color: #fff;
+  box-shadow: 0 3px 10px rgba(22,163,74,0.25);
+}
+
+.staff-btn--alarm {
+  border: 1.5px solid rgba(220,38,38,0.3);
+  background: rgba(220,38,38,0.07); color: #dc2626;
+}
+.staff-btn--alarm:hover {
+  background: #dc2626; border-color: #dc2626; color: #fff;
+  box-shadow: 0 3px 10px rgba(220,38,38,0.25);
+}
+
+.staff-acked-label {
+  font-size: 12px; font-weight: 700; color: #16a34a;
+  display: flex; align-items: center; gap: 4px;
+}
+.staff-alarm-label {
+  font-size: 12px; font-weight: 700; color: #dc2626;
+  display: flex; align-items: center; gap: 4px;
+}
+
+/* ── Empty state ─────────────────────────────────────────────────────────────── */
+.staff-empty {
+  text-align: center; padding: 60px 24px;
+  display: flex; flex-direction: column; align-items: center; gap: 10px;
+  background: #fff; border-radius: 12px;
+  border: 1.5px dashed #e2e8f0; color: #64748b;
+}
+.staff-empty-title { font-size: 16px; font-weight: 700; color: #0f1623; margin: 0; }
+.staff-empty-sub   { font-size: 13px; margin: 0; max-width: 340px; }
+
+/* ── Access restriction notice ───────────────────────────────────────────────── */
+.staff-access-notice {
+  display: flex; align-items: center; gap: 10px;
+  padding: 12px 16px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  font-size: 12px; color: #64748b;
+}
+
+/* ── Alarm confirm modal ─────────────────────────────────────────────────────── */
+.staff-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.6);
+  z-index: 9000; display: flex; align-items: center; justify-content: center; padding: 24px;
+}
+.staff-alarm-modal {
+  background: #fff; border-radius: 16px;
+  max-width: 420px; width: 100%;
+  padding: 32px 28px; text-align: center;
+  box-shadow: 0 24px 80px rgba(0,0,0,0.35);
+}
+.staff-alarm-icon {
+  font-size: 52px; margin-bottom: 12px;
+  display: block;
+  animation: staff-bell-ring 0.8s ease infinite;
+}
+.staff-alarm-title  { font-size: 20px; font-weight: 800; color: #0f1623; margin: 0 0 10px; }
+.staff-alarm-body   { font-size: 14px; color: #64748b; margin: 0 0 10px; }
+.staff-alarm-camera {
+  font-size: 15px; font-weight: 700; color: #0f1623;
+  background: #f0f2f7; border-radius: 8px;
+  padding: 10px 16px; margin-bottom: 12px;
+}
+.staff-alarm-sub    { font-size: 12px; color: #94a3b8; margin: 0 0 24px; line-height: 1.5; }
+.staff-alarm-actions { display: flex; flex-direction: column; gap: 10px; }
+
+.staff-alarm-btn {
+  padding: 12px; font-size: 14px; font-weight: 700; border-radius: 8px;
+  cursor: pointer; transition: all 0.14s; font-family: 'DM Sans', sans-serif;
+}
+.staff-alarm-btn--confirm {
+  background: #dc2626; border: none; color: #fff;
+}
+.staff-alarm-btn--confirm:hover {
+  background: #b91c1c;
+  box-shadow: 0 4px 14px rgba(220,38,38,0.35);
+}
+.staff-alarm-btn--cancel {
+  background: #f1f5f9; border: 1px solid #e2e8f0; color: #64748b;
+}
+.staff-alarm-btn--cancel:hover { background: #e2e8f0; }
+
+/* ── Responsive ──────────────────────────────────────────────────────────────── */
+@media (max-width: 640px) {
+  .staff-header { padding: 0 16px; flex-wrap: wrap; height: auto; padding-top: 10px; padding-bottom: 10px; }
+  .staff-main   { padding: 20px 16px; }
+  .staff-alert-card { flex-wrap: wrap; }
+  .staff-alert-actions { width: 100%; flex-direction: row; justify-content: flex-end; }
+  .staff-kpi-row { gap: 6px; }
+  .staff-kpi { min-width: 70px; padding: 10px 12px; }
+  .staff-alert-location { font-size: 14px; }
+}

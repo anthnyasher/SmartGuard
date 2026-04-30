@@ -1,0 +1,39 @@
+# Python / Django
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+db.sqlite3
+.venv/
+venv/
+ENV/
+env/
+.env
+
+# Node / React (Frontend)
+node_modules/
+dist/
+build/
+.npm/
+smartguard-frontend/node_modules/
+smartguard-frontend/dist/
+
+# Logs and Media
+*.log
+media/
+snapshots/
+smartguard_backend/media/
+
+# YOLO / Machine Learning
+*.pt
+*.onnx
+runs/
+datasets/
+yolov8n.pt
+
+# IDEs / OS / Other
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+.aider*

@@ -1,0 +1,175 @@
+/* OpsDashboard.css */
+
+/* ── KPI strip — clickable filter tiles ─────────────────────────────────────── */
+.ops-kpi-strip {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.ops-kpi {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  border-radius: var(--radius-md);
+  border: 1.5px solid var(--border);
+  background: var(--bg-surface);
+  cursor: pointer;
+  transition: all 0.15s;
+  text-align: left;
+}
+.ops-kpi:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(0,0,0,0.07); }
+.ops-kpi--active { box-shadow: 0 0 0 2px var(--accent-blue); border-color: var(--accent-blue); }
+
+.ops-kpi-icon {
+  font-size: 18px;
+  width: 36px; height: 36px;
+  display: flex; align-items: center; justify-content: center;
+  border-radius: 8px;
+  flex-shrink: 0;
+}
+.ops-kpi-val   { font-size: 22px; font-weight: 700; line-height: 1; color: var(--text-primary); }
+.ops-kpi-label { font-size: 11px; color: var(--text-muted); margin-top: 3px; }
+
+.ops-kpi--red   .ops-kpi-icon { background: rgba(220,38,38,0.1);  color: #dc2626; }
+.ops-kpi--red   .ops-kpi-val  { color: #dc2626; }
+.ops-kpi--blue  .ops-kpi-icon { background: rgba(37,99,235,0.1);  color: #2563eb; }
+.ops-kpi--green .ops-kpi-icon { background: rgba(22,163,74,0.1);  color: #16a34a; }
+.ops-kpi--amber .ops-kpi-icon { background: rgba(180,83,9,0.1);   color: #b45309; }
+.ops-kpi--gray  .ops-kpi-icon { background: var(--bg-elevated);   color: var(--text-muted); }
+
+/* ── Nav badge (unread count) ────────────────────────────────────────────────── */
+.sg-nav-badge {
+  margin-left: auto;
+  min-width: 18px; height: 18px;
+  background: #dc2626;
+  color: #fff;
+  font-size: 10px; font-weight: 700;
+  border-radius: 999px;
+  display: flex; align-items: center; justify-content: center;
+  padding: 0 5px;
+}
+
+/* ── Page grid ───────────────────────────────────────────────────────────────── */
+.ops-grid {
+  display: grid;
+  grid-template-columns: 1fr 300px;
+  gap: 14px;
+  align-items: start;
+}
+.ops-col-main { display: flex; flex-direction: column; gap: 14px; }
+.ops-col-side { display: flex; flex-direction: column; gap: 14px; position: sticky; top: 16px; }
+
+/* ── Card actions row ────────────────────────────────────────────────────────── */
+.sg-card-actions {
+  display: flex; align-items: center; gap: 12px;
+}
+
+/* ── Zone chip in topbar ─────────────────────────────────────────────────────── */
+.ops-zone-chip {
+  display: flex; align-items: center; gap: 6px;
+  padding: 5px 12px;
+  background: rgba(37,99,235,0.06);
+  border: 1px solid rgba(37,99,235,0.18);
+  border-radius: 999px;
+  font-size: 12px; font-weight: 600;
+  color: var(--accent-blue);
+}
+
+/* ── Zone panel in sidebar ───────────────────────────────────────────────────── */
+.ops-zone-panel {
+  padding: 14px 16px;
+  border-top: 1px solid rgba(255,255,255,0.06);
+  margin: auto 0 0;
+}
+.ops-zone-title {
+  font-size: 9px; font-weight: 700; letter-spacing: 0.08em;
+  color: rgba(255,255,255,0.35); text-transform: uppercase;
+  margin-bottom: 10px;
+}
+.ops-zone-row {
+  display: flex; align-items: center; gap: 8px;
+  padding: 5px 0;
+}
+.ops-zone-dot {
+  width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0;
+}
+.ops-zone-dot--online  { background: #16a34a; box-shadow: 0 0 4px rgba(22,163,74,0.6); }
+.ops-zone-dot--offline { background: #dc2626; }
+.ops-zone-name { font-size: 11px; color: rgba(255,255,255,0.65); }
+
+/* ── Camera health rows ──────────────────────────────────────────────────────── */
+.ops-cam-row {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 7px 0; border-bottom: 1px solid var(--border-subtle);
+}
+.ops-cam-row:last-of-type { border-bottom: none; }
+.ops-cam-info { display: flex; align-items: center; gap: 8px; }
+.ops-cam-name { font-size: 11px; color: var(--text-secondary); font-weight: 500; }
+
+/* ── Trend stats ─────────────────────────────────────────────────────────────── */
+.ops-trend-stats {
+  display: flex; gap: 0;
+  border-top: 1px solid var(--border);
+  margin-top: 10px;
+}
+.ops-trend-stat {
+  flex: 1; padding: 10px 8px; text-align: center;
+  border-right: 1px solid var(--border);
+}
+.ops-trend-stat:last-child { border-right: none; }
+.ops-trend-stat-val   { font-size: 20px; font-weight: 700; line-height: 1; }
+.ops-trend-stat-label { font-size: 10px; color: var(--text-muted); margin-top: 3px; }
+
+/* ── Read-only badge ─────────────────────────────────────────────────────────── */
+.ops-readonly-badge {
+  font-size: 10px; font-weight: 600;
+  padding: 3px 9px; border-radius: 4px;
+  background: var(--bg-elevated); color: var(--text-muted);
+  border: 1px solid var(--border);
+  letter-spacing: 0.02em;
+}
+
+/* ── Notes modal ─────────────────────────────────────────────────────────────── */
+.ops-modal-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.45);
+  z-index: 8000; display: flex; align-items: center; justify-content: center; padding: 24px;
+}
+.ops-modal {
+  background: var(--bg-surface); border-radius: var(--radius-md);
+  width: 100%; max-width: 480px;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.25);
+  overflow: hidden; display: flex; flex-direction: column;
+}
+.ops-modal-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 16px 20px; border-bottom: 1px solid var(--border);
+}
+.ops-modal-title { font-size: 14px; font-weight: 700; color: var(--text-primary); margin: 0; }
+.ops-modal-body  { padding: 20px; }
+.ops-modal-footer{ padding: 0 20px 20px; display: flex; gap: 10px; }
+
+.ops-note-input {
+  width: 100%; padding: 10px 12px;
+  font-size: 13px; font-family: 'DM Sans', sans-serif;
+  border: 1px solid var(--border); border-radius: var(--radius-sm);
+  background: var(--bg-base); color: var(--text-primary);
+  outline: none; resize: vertical; transition: border-color 0.15s;
+  box-sizing: border-box;
+}
+.ops-note-input:focus {
+  border-color: rgba(37,99,235,0.5);
+  box-shadow: 0 0 0 3px rgba(37,99,235,0.08);
+}
+
+/* ── Responsive ──────────────────────────────────────────────────────────────── */
+@media (max-width: 960px) {
+  .ops-grid { grid-template-columns: 1fr; }
+  .ops-kpi-strip { grid-template-columns: repeat(3, 1fr); }
+  .ops-col-side { position: static; }
+}
+@media (max-width: 600px) {
+  .ops-kpi-strip { grid-template-columns: repeat(2, 1fr); }
+}

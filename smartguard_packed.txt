@@ -1,0 +1,4457 @@
+This file is a merged representation of a subset of the codebase, containing specifically included files, combined into a single document by Repomix.
+
+<file_summary>
+This section contains a summary of this file.
+
+<purpose>
+This file contains a packed representation of a subset of the repository's contents that is considered the most important context.
+It is designed to be easily consumable by AI systems for analysis, code review,
+or other automated processes.
+</purpose>
+
+<file_format>
+The content is organized as follows:
+1. This summary section
+2. Repository information
+3. Directory structure
+4. Repository files (if enabled)
+5. Multiple file entries, each consisting of:
+  - File path as an attribute
+  - Full contents of the file
+</file_format>
+
+<usage_guidelines>
+- This file should be treated as read-only. Any changes should be made to the
+  original repository files, not this packed version.
+- When processing this file, use the file path to distinguish
+  between different files in the repository.
+- Be aware that this file may contain sensitive information. Handle it with
+  the same level of security as you would the original repository.
+</usage_guidelines>
+
+<notes>
+- Some files may have been excluded based on .gitignore rules and Repomix's configuration
+- Binary files are not included in this packed representation. Please refer to the Repository Structure section for a complete list of file paths, including binary files
+- Only files matching these patterns are included: **/*.py, **/*.js, **/*.ts, **/*.json, **/*.md
+- Files matching patterns in .gitignore are excluded
+- Files matching default ignore patterns are excluded
+- Files are sorted by Git change count (files with more changes are at the bottom)
+</notes>
+
+</file_summary>
+
+<directory_structure>
+package.json
+settings.json
+smartguard_backend/accounts/__init__.py
+smartguard_backend/accounts/admin.py
+smartguard_backend/accounts/apps.py
+smartguard_backend/accounts/auth_utils.py
+smartguard_backend/accounts/migrations/__init__.py
+smartguard_backend/accounts/migrations/0001_initial.py
+smartguard_backend/accounts/models.py
+smartguard_backend/accounts/permissions.py
+smartguard_backend/accounts/serializers.py
+smartguard_backend/accounts/tests.py
+smartguard_backend/accounts/urls.py
+smartguard_backend/accounts/views.py
+smartguard_backend/alerts/__init__.py
+smartguard_backend/alerts/admin.py
+smartguard_backend/alerts/apps.py
+smartguard_backend/alerts/migrations/__init__.py
+smartguard_backend/alerts/migrations/0001_initial.py
+smartguard_backend/alerts/migrations/0002_alert_acknowledged_alert_acknowledged_at_and_more.py
+smartguard_backend/alerts/migrations/0003_alter_alert_severity.py
+smartguard_backend/alerts/migrations/0004_alert_assigned_to.py
+smartguard_backend/alerts/models.py
+smartguard_backend/alerts/notifications.py
+smartguard_backend/alerts/permissions.py
+smartguard_backend/alerts/serializers.py
+smartguard_backend/alerts/signals.py
+smartguard_backend/alerts/tests.py
+smartguard_backend/alerts/urls.py
+smartguard_backend/alerts/views.py
+smartguard_backend/cameras/__init__.py
+smartguard_backend/cameras/admin.py
+smartguard_backend/cameras/apps.py
+smartguard_backend/cameras/consumers.py
+smartguard_backend/cameras/management/__init__.py
+smartguard_backend/cameras/management/commands/__init__.py
+smartguard_backend/cameras/management/commands/send_fake_detections.py
+smartguard_backend/cameras/migrations/__init__.py
+smartguard_backend/cameras/migrations/0001_initial.py
+smartguard_backend/cameras/migrations/0002 camera stream mjpeg url.py
+smartguard_backend/cameras/migrations/0002_remove_camera_is_active_remove_camera_last_heartbeat_and_more.py
+smartguard_backend/cameras/migrations/0003_camera_is_active_camera_last_heartbeat_and_more.py
+smartguard_backend/cameras/migrations/0004_alter_camera_rtsp_url.py
+smartguard_backend/cameras/migrations/0005_merge_20260227_0244.py
+smartguard_backend/cameras/migrations/0006_alter_camera_rtsp_url.py
+smartguard_backend/cameras/models.py
+smartguard_backend/cameras/permissions.py
+smartguard_backend/cameras/publisher.py
+smartguard_backend/cameras/routing.py
+smartguard_backend/cameras/serializers.py
+smartguard_backend/cameras/stream_view.py
+smartguard_backend/cameras/tests.py
+smartguard_backend/cameras/urls.py
+smartguard_backend/cameras/views.py
+smartguard_backend/detect.py
+smartguard_backend/detection_worker.py
+smartguard_backend/ir/__init__.py
+smartguard_backend/ir/admin.py
+smartguard_backend/ir/apps.py
+smartguard_backend/ir/migrations/__init__.py
+smartguard_backend/ir/models.py
+smartguard_backend/ir/tests.py
+smartguard_backend/ir/views.py
+smartguard_backend/logging_info/__init__.py
+smartguard_backend/logging_info/admin.py
+smartguard_backend/logging_info/apps.py
+smartguard_backend/logging_info/migrations/__init__.py
+smartguard_backend/logging_info/models.py
+smartguard_backend/logging_info/tests.py
+smartguard_backend/logging_info/views.py
+smartguard_backend/manage.py
+smartguard_backend/smartguard_backend/__init__.py
+smartguard_backend/smartguard_backend/asgi.py
+smartguard_backend/smartguard_backend/settings.py
+smartguard_backend/smartguard_backend/urls.py
+smartguard_backend/smartguard_backend/wsgi.py
+smartguard_backend/test_webcam_headless.py
+smartguard_backend/test_webcam.py
+smartguard-frontend/eslint.config.js
+smartguard-frontend/package.json
+smartguard-frontend/README.md
+smartguard-frontend/src/api/alertApi.js
+smartguard-frontend/src/api/authApi.js
+smartguard-frontend/src/api/cameraApi.js
+smartguard-frontend/src/api/usersApi.js
+smartguard-frontend/src/hooks/useAllDetections.js
+smartguard-frontend/src/hooks/useDetectionSocket.js
+smartguard-frontend/vite.config.js
+</directory_structure>
+
+<files>
+This section contains the contents of the repository's files.
+
+<file path="package.json">
+{
+  "dependencies": {
+    "react-router-dom": "^7.13.0"
+  }
+}
+</file>
+
+<file path="settings.json">
+{
+  "env":{
+  
+    "ANTHROPIC_BASE_URL":"https://openrouter.ai/api",
+    "ANTHROPIC_AUTH_TOKEN":"$OPENROUTER_API_KEY",
+    "ANTHROPIC_API_KEY":"",
+    "ANTHROPIC_MODEL":"qwen/qwen3-coder:free"
+
+  }
+}
+</file>
+
+<file path="smartguard_backend/accounts/__init__.py">
+
+</file>
+
+<file path="smartguard_backend/accounts/admin.py">
+from django.contrib import admin
+
+# Register your models here.
+</file>
+
+<file path="smartguard_backend/accounts/apps.py">
+from django.apps import AppConfig
+
+
+class AccountsConfig(AppConfig):
+    name = 'accounts'
+</file>
+
+<file path="smartguard_backend/accounts/auth_utils.py">
+# smartguard_backend/accounts/auth_utils.py
+from django.conf import settings
+from django.core.cache import cache
+
+def _user_key(username: str) -> str:
+    return username.lower().strip()
+
+def is_redis_locked(username: str) -> bool:
+    key = f"login_lock:{_user_key(username)}"
+    return cache.get(key) is not None
+
+def register_redis_failed_attempt(username: str) -> int:
+    base = _user_key(username)
+    key_attempts = f"login_attempts:{base}"
+    key_lock     = f"login_lock:{base}"
+
+    attempts = cache.get(key_attempts, 0) + 1
+    cache.set(key_attempts, attempts, timeout=settings.LOGIN_LOCK_DURATION_SECONDS)
+
+    if attempts >= settings.LOGIN_LOCK_MAX_ATTEMPTS:
+        cache.set(key_lock, "1", timeout=settings.LOGIN_LOCK_DURATION_SECONDS)
+
+    return attempts
+
+def clear_redis_login_counters(username: str) -> None:
+    base = _user_key(username)
+    cache.delete_many([
+        f"login_attempts:{base}",
+        f"login_lock:{base}",
+    ])
+</file>
+
+<file path="smartguard_backend/accounts/migrations/__init__.py">
+
+</file>
+
+<file path="smartguard_backend/accounts/migrations/0001_initial.py">
+# Generated by Django 6.0.2 on 2026-02-19 13:55
+
+import django.contrib.auth.models
+import django.contrib.auth.validators
+import django.utils.timezone
+from django.db import migrations, models
+
+
+class Migration(migrations.Migration):
+
+    initial = True
+
+    dependencies = [
+        ('auth', '0012_alter_user_first_name_max_length'),
+    ]
+
+    operations = [
+        migrations.CreateModel(
+            name='CustomUser',
+            fields=[
+                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('password', models.CharField(max_length=128, verbose_name='password')),
+                ('last_login', models.DateTimeField(blank=True, null=True, verbose_name='last login')),
+                ('is_superuser', models.BooleanField(default=False, help_text='Designates that this user has all permissions without explicitly assigning them.', verbose_name='superuser status')),
+                ('username', models.CharField(error_messages={'unique': 'A user with that username already exists.'}, help_text='Required. 150 characters or fewer. Letters, digits and @/./+/-/_ only.', max_length=150, unique=True, validators=[django.contrib.auth.validators.UnicodeUsernameValidator()], verbose_name='username')),
+                ('first_name', models.CharField(blank=True, max_length=150, verbose_name='first name')),
+                ('last_name', models.CharField(blank=True, max_length=150, verbose_name='last name')),
+                ('email', models.EmailField(blank=True, max_length=254, verbose_name='email address')),
+                ('is_staff', models.BooleanField(default=False, help_text='Designates whether the user can log into this admin site.', verbose_name='staff status')),
+                ('is_active', models.BooleanField(default=True, help_text='Designates whether this user should be treated as active. Unselect this instead of deleting accounts.', verbose_name='active')),
+                ('date_joined', models.DateTimeField(default=django.utils.timezone.now, verbose_name='date joined')),
+                ('role', models.CharField(choices=[('ADMIN', 'Admin'), ('OPS_MANAGER', 'Operations Manager'), ('STAFF', 'Staff')], default='STAFF', max_length=20)),
+                ('is_locked', models.BooleanField(default=False)),
+                ('failed_login_attempts', models.IntegerField(default=0)),
+                ('last_failed_login', models.DateTimeField(blank=True, null=True)),
+                ('groups', models.ManyToManyField(blank=True, help_text='The groups this user belongs to. A user will get all permissions granted to each of their groups.', related_name='user_set', related_query_name='user', to='auth.group', verbose_name='groups')),
+                ('user_permissions', models.ManyToManyField(blank=True, help_text='Specific permissions for this user.', related_name='user_set', related_query_name='user', to='auth.permission', verbose_name='user permissions')),
+            ],
+            options={
+                'verbose_name': 'user',
+                'verbose_name_plural': 'users',
+                'abstract': False,
+            },
+            managers=[
+                ('objects', django.contrib.auth.models.UserManager()),
+            ],
+        ),
+    ]
+</file>
+
+<file path="smartguard_backend/accounts/models.py">
+# accounts/models.py
+
+from django.contrib.auth.models import AbstractUser
+from django.db import models
+from django.utils import timezone
+from datetime import timedelta
+
+
+class CustomUser(AbstractUser):
+    ROLE_CHOICES = [
+        ('ADMIN',       'Admin'),
+        ('OPS_MANAGER', 'Operations Manager'),
+        ('STAFF',       'Staff'),
+    ]
+
+    role                  = models.CharField(max_length=20, choices=ROLE_CHOICES, default='STAFF')
+    is_locked             = models.BooleanField(default=False)
+    failed_login_attempts = models.IntegerField(default=0)
+    last_failed_login     = models.DateTimeField(null=True, blank=True)
+
+    # ── Constants ──────────────────────────────────────────────────────────
+    MAX_ATTEMPTS    = 5   # failures before lockout
+    LOCKOUT_MINUTES = 2   # how long the lockout lasts
+
+    def __str__(self):
+        return f"{self.email} - {self.get_role_display()}"
+
+    # ── Lockout helpers ────────────────────────────────────────────────────
+
+    def is_locked_out(self):
+        """
+        Returns True if this user is currently locked out.
+        A lockout expires LOCKOUT_MINUTES after the last failed attempt.
+        """
+        if not self.is_locked:
+            return False
+        if self.last_failed_login is None:
+            # Locked flag set but no timestamp — unlock defensively
+            self._clear_lockout()
+            return False
+
+        unlock_at = self.last_failed_login + timedelta(minutes=self.LOCKOUT_MINUTES)
+        if timezone.now() >= unlock_at:
+            # Lockout window has passed — auto-unlock
+            self._clear_lockout()
+            return False
+
+        return True
+
+    def seconds_until_unlock(self):
+        """
+        Returns how many seconds remain in the lockout window.
+        Returns 0 if not locked out.
+        """
+        if not self.is_locked or self.last_failed_login is None:
+            return 0
+        unlock_at = self.last_failed_login + timedelta(minutes=self.LOCKOUT_MINUTES)
+        remaining = (unlock_at - timezone.now()).total_seconds()
+        return max(0, int(remaining))
+
+    def record_failed_attempt(self):
+        """
+        Increment failure counter and lock if threshold reached.
+        Always updates last_failed_login so the window slides correctly.
+        """
+        self.failed_login_attempts += 1
+        self.last_failed_login = timezone.now()
+        if self.failed_login_attempts >= self.MAX_ATTEMPTS:
+            self.is_locked = True
+        self.save(update_fields=['failed_login_attempts', 'last_failed_login', 'is_locked'])
+
+    def record_successful_login(self):
+        """Reset all lockout fields on a successful login."""
+        self._clear_lockout()
+
+    def attempts_remaining(self):
+        """How many more failures before lockout triggers."""
+        return max(0, self.MAX_ATTEMPTS - self.failed_login_attempts)
+
+    # ── Private ────────────────────────────────────────────────────────────
+
+    def _clear_lockout(self):
+        self.is_locked             = False
+        self.failed_login_attempts = 0
+        self.last_failed_login     = None
+        self.save(update_fields=['is_locked', 'failed_login_attempts', 'last_failed_login'])
+</file>
+
+<file path="smartguard_backend/accounts/permissions.py">
+# accounts/permissions.py
+
+from rest_framework.permissions import BasePermission
+
+
+class IsAdminRole(BasePermission):
+    """
+    Grants access only to authenticated users with role='ADMIN'.
+    Used to protect user management endpoints from OPS_MANAGER and STAFF.
+    """
+
+    message = "Only Administrators can access user management."
+
+    def has_permission(self, request, view):
+        return (
+            request.user is not None
+            and request.user.is_authenticated
+            and getattr(request.user, "role", None) == "ADMIN"
+        )
+</file>
+
+<file path="smartguard_backend/accounts/serializers.py">
+# accounts/serializers.py
+
+from rest_framework import serializers
+from django.contrib.auth import get_user_model
+
+User = get_user_model()
+
+
+# ── Existing serializers (kept unchanged) ─────────────────────────────────────
+
+class UserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ["id", "username", "email", "first_name", "last_name", "role", "is_locked"]
+        read_only_fields = ["id", "is_locked"]
+
+
+class RegisterSerializer(serializers.ModelSerializer):
+    password = serializers.CharField(write_only=True)
+
+    class Meta:
+        model = User
+        fields = ["username", "email", "first_name", "last_name", "password", "role"]
+
+    def create(self, validated_data):
+        user = User.objects.create_user(
+            username=validated_data["username"],
+            email=validated_data["email"],
+            first_name=validated_data.get("first_name", ""),
+            last_name=validated_data.get("last_name", ""),
+            password=validated_data["password"],
+        )
+        user.role = validated_data.get("role", "STAFF")
+        user.save()
+        return user
+
+
+# ── Admin user management serializers ─────────────────────────────────────────
+
+class AdminUserListSerializer(serializers.ModelSerializer):
+    """
+    Full read-only view of a user for the admin panel table.
+    Includes display_name, login history, and lockout state.
+    """
+    display_name = serializers.SerializerMethodField()
+    failed_logins = serializers.IntegerField(
+        source="failed_login_attempts", read_only=True
+    )
+
+    class Meta:
+        model = User
+        fields = [
+            "id",
+            "username",
+            "email",
+            "first_name",
+            "last_name",
+            "display_name",
+            "role",
+            "is_active",
+            "is_locked",
+            "failed_logins",
+            "last_login",
+            "date_joined",
+        ]
+        read_only_fields = fields  # list serializer is read-only
+
+    def get_display_name(self, obj):
+        name = f"{obj.first_name} {obj.last_name}".strip()
+        return name if name else obj.username
+
+
+class AdminUserCreateSerializer(serializers.ModelSerializer):
+    """
+    Validates and creates a new user from the Admin panel.
+    Password is required, hashed via bcrypt (set in settings.PASSWORD_HASHERS).
+    """
+    password = serializers.CharField(write_only=True, min_length=8)
+
+    class Meta:
+        model = User
+        fields = [
+            "username",
+            "email",
+            "first_name",
+            "last_name",
+            "password",
+            "role",
+            "is_active",
+        ]
+
+    def validate_username(self, value):
+        if User.objects.filter(username__iexact=value).exists():
+            raise serializers.ValidationError(
+                "A user with this username already exists."
+            )
+        return value
+
+    def validate_email(self, value):
+        if value and User.objects.filter(email__iexact=value).exists():
+            raise serializers.ValidationError(
+                "A user with this email address already exists."
+            )
+        return value
+
+    def validate_password(self, value):
+        if len(value) < 8:
+            raise serializers.ValidationError(
+                "Password must be at least 8 characters."
+            )
+        return value
+
+    def create(self, validated_data):
+        password = validated_data.pop("password")
+        # Build the user object (no save yet)
+        user = User(**validated_data)
+        # set_password hashes via PASSWORD_HASHERS (bcrypt)
+        user.set_password(password)
+        user.save()
+        return user
+
+
+class AdminUserUpdateSerializer(serializers.ModelSerializer):
+    """
+    Partial update of a user from the Admin panel.
+    Does NOT expose password — use the reset-password endpoint instead.
+    Username and email uniqueness checks exclude the user being edited.
+    """
+
+    class Meta:
+        model = User
+        fields = [
+            "username",
+            "email",
+            "first_name",
+            "last_name",
+            "role",
+            "is_active",
+        ]
+
+    def validate_username(self, value):
+        user = self.instance
+        if (
+            User.objects.filter(username__iexact=value)
+            .exclude(pk=user.pk)
+            .exists()
+        ):
+            raise serializers.ValidationError(
+                "A user with this username already exists."
+            )
+        return value
+
+    def validate_email(self, value):
+        user = self.instance
+        if (
+            value
+            and User.objects.filter(email__iexact=value)
+            .exclude(pk=user.pk)
+            .exists()
+        ):
+            raise serializers.ValidationError(
+                "A user with this email address already exists."
+            )
+        return value
+
+
+class AdminPasswordResetSerializer(serializers.Serializer):
+    """
+    Admin-initiated password reset. No old-password check required.
+    """
+    password = serializers.CharField(write_only=True, min_length=8)
+    confirm_password = serializers.CharField(write_only=True, min_length=8)
+
+    def validate(self, attrs):
+        if attrs["password"] != attrs["confirm_password"]:
+            raise serializers.ValidationError(
+                {"confirm_password": "Passwords do not match."}
+            )
+        return attrs
+</file>
+
+<file path="smartguard_backend/accounts/tests.py">
+from django.test import TestCase
+
+# Create your tests here.
+</file>
+
+<file path="smartguard_backend/accounts/urls.py">
+# accounts/urls.py
+
+from django.urls import path
+from rest_framework_simplejwt.views import TokenRefreshView
+
+from .views import (
+    login_view,
+    RegisterView,
+    UserProfileView,
+    UsersListCreateView,
+    UserDetailView,
+    reset_user_password,
+    unlock_user_account,
+    toggle_user_active,
+)
+
+urlpatterns = [
+    # ── Auth ──────────────────────────────────────────────────────────────────
+    path("auth/login/",    login_view,                 name="login"),
+    path("auth/refresh/",  TokenRefreshView.as_view(), name="token-refresh"),
+    path("auth/register/", RegisterView.as_view(),     name="register"),
+    path("auth/me/",       UserProfileView.as_view(),  name="user-profile"),
+
+    # ── Admin: User Management ────────────────────────────────────────────────
+    path("users/",                          UsersListCreateView.as_view(), name="user-list-create"),
+    path("users/<int:pk>/",                 UserDetailView.as_view(),      name="user-detail"),
+    path("users/<int:pk>/reset-password/",  reset_user_password,           name="user-reset-password"),
+    path("users/<int:pk>/unlock/",          unlock_user_account,           name="user-unlock"),
+    path("users/<int:pk>/toggle-active/",   toggle_user_active,            name="user-toggle-active"),
+]
+</file>
+
+<file path="smartguard_backend/accounts/views.py">
+# accounts/views.py
+
+from django.contrib.auth import get_user_model
+from django.shortcuts import get_object_or_404
+from django.utils import timezone
+
+from rest_framework import generics, status
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.response import Response
+from rest_framework_simplejwt.tokens import RefreshToken
+
+from .serializers import (
+    UserSerializer,
+    RegisterSerializer,
+    AdminUserListSerializer,
+    AdminUserCreateSerializer,
+    AdminUserUpdateSerializer,
+    AdminPasswordResetSerializer,
+)
+from .permissions import IsAdminRole
+
+User = get_user_model()
+
+
+# ── Helpers ────────────────────────────────────────────────────────────────────
+
+def get_client_ip(request):
+    """Extract real client IP, respecting X-Forwarded-For from Nginx."""
+    x_forwarded = request.META.get("HTTP_X_FORWARDED_FOR")
+    if x_forwarded:
+        return x_forwarded.split(",")[0].strip()
+    return request.META.get("REMOTE_ADDR")
+
+
+# ── Auth Views ─────────────────────────────────────────────────────────────────
+
+@api_view(["POST"])
+@permission_classes([AllowAny])
+def login_view(request):
+    """
+    POST /api/auth/login/
+    Body: { "username": "...", "password": "..." }
+
+    Security:
+      - 5 failed attempts within 2 minutes → lockout
+      - Lockout auto-expires after 2 minutes
+      - Returns seconds_remaining on lockout
+      - Returns attempts_remaining on each failure
+      - Updates last_login timestamp on success
+    """
+    identifier = request.data.get("username", "").strip()
+    password   = request.data.get("password", "")
+
+    if not identifier or not password:
+        return Response(
+            {"detail": "Username and password are required."},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    # ── 1. Find user by username OR email ──────────────────────────────────
+    user = None
+    try:
+        user = User.objects.get(username=identifier)
+    except User.DoesNotExist:
+        try:
+            user = User.objects.get(email=identifier)
+        except User.DoesNotExist:
+            pass
+
+    # ── 2. Check lockout BEFORE verifying password ─────────────────────────
+    if user is not None and user.is_locked_out():
+        return Response(
+            {
+                "detail":            "Account temporarily locked due to too many failed attempts.",
+                "locked":            True,
+                "seconds_remaining": user.seconds_until_unlock(),
+            },
+            status=status.HTTP_429_TOO_MANY_REQUESTS,
+        )
+
+    # ── 3. Verify password ──────────────────────────────────────────────────
+    if user is None or not user.check_password(password):
+        if user is not None:
+            user.record_failed_attempt()
+            if user.is_locked_out():
+                return Response(
+                    {
+                        "detail":            "Account temporarily locked due to too many failed attempts.",
+                        "locked":            True,
+                        "seconds_remaining": user.seconds_until_unlock(),
+                    },
+                    status=status.HTTP_429_TOO_MANY_REQUESTS,
+                )
+            return Response(
+                {
+                    "detail":             "Invalid credentials.",
+                    "locked":             False,
+                    "attempts_remaining": user.attempts_remaining(),
+                },
+                status=status.HTTP_401_UNAUTHORIZED,
+            )
+
+        return Response(
+            {
+                "detail":             "Invalid credentials.",
+                "locked":             False,
+                "attempts_remaining": None,
+            },
+            status=status.HTTP_401_UNAUTHORIZED,
+        )
+
+    # ── 4. Check account is active ──────────────────────────────────────────
+    if not user.is_active:
+        return Response(
+            {"detail": "This account has been disabled. Contact your administrator."},
+            status=status.HTTP_403_FORBIDDEN,
+        )
+
+    # ── 5. Success — reset lockout, update last_login, issue JWT ───────────
+    user.record_successful_login()
+
+    # Update last_login (Django's built-in auth.login() does this
+    # automatically; since we use JWT directly we must do it manually)
+    user.last_login = timezone.now()
+    user.save(update_fields=["last_login"])
+
+    refresh = RefreshToken.for_user(user)
+    return Response(
+        {
+            "access":  str(refresh.access_token),
+            "refresh": str(refresh),
+        },
+        status=status.HTTP_200_OK,
+    )
+
+
+class RegisterView(generics.CreateAPIView):
+    """POST /api/auth/register/ — creates a new user."""
+    queryset           = User.objects.all()
+    serializer_class   = RegisterSerializer
+    permission_classes = [AllowAny]
+
+
+class UserProfileView(generics.RetrieveAPIView):
+    """GET /api/auth/me/ — returns the current user's profile."""
+    serializer_class   = UserSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_object(self):
+        return self.request.user
+
+
+# ── Admin: User Management ─────────────────────────────────────────────────────
+
+class UsersListCreateView(generics.ListCreateAPIView):
+    """
+    GET  /api/users/  — list all users (Admin only)
+    POST /api/users/  — create a new user (Admin only)
+
+    Supports ?search=<str> and ?role=<ADMIN|OPS_MANAGER|STAFF> query params.
+    """
+    permission_classes = [IsAuthenticated, IsAdminRole]
+
+    def get_queryset(self):
+        qs = User.objects.all().order_by("id")
+
+        search = self.request.query_params.get("search", "").strip()
+        if search:
+            from django.db.models import Q
+            qs = qs.filter(
+                Q(username__icontains=search)
+                | Q(email__icontains=search)
+                | Q(first_name__icontains=search)
+                | Q(last_name__icontains=search)
+            )
+
+        role = self.request.query_params.get("role", "").strip().upper()
+        if role and role != "ALL":
+            qs = qs.filter(role=role)
+
+        return qs
+
+    def get_serializer_class(self):
+        if self.request.method == "POST":
+            return AdminUserCreateSerializer
+        return AdminUserListSerializer
+
+    def create(self, request, *args, **kwargs):
+        serializer = AdminUserCreateSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        user = serializer.save()
+        # Return the full user representation after creation
+        return Response(
+            AdminUserListSerializer(user).data,
+            status=status.HTTP_201_CREATED,
+        )
+
+
+class UserDetailView(generics.RetrieveUpdateDestroyAPIView):
+    """
+    GET    /api/users/<id>/  — retrieve a single user (Admin only)
+    PATCH  /api/users/<id>/  — partial update (Admin only)
+    DELETE /api/users/<id>/  — hard delete (Admin only)
+
+    Admin cannot delete or deactivate themselves.
+    """
+    permission_classes = [IsAuthenticated, IsAdminRole]
+    queryset           = User.objects.all()
+
+    def get_serializer_class(self):
+        if self.request.method in ("PATCH", "PUT"):
+            return AdminUserUpdateSerializer
+        return AdminUserListSerializer
+
+    def update(self, request, *args, **kwargs):
+        partial = kwargs.pop("partial", False)
+        instance = self.get_object()
+        serializer = AdminUserUpdateSerializer(
+            instance, data=request.data, partial=partial
+        )
+        serializer.is_valid(raise_exception=True)
+        user = serializer.save()
+        return Response(AdminUserListSerializer(user).data)
+
+    def destroy(self, request, *args, **kwargs):
+        user = self.get_object()
+        if user.pk == request.user.pk:
+            return Response(
+                {"detail": "You cannot delete your own account."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        user.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+@api_view(["POST"])
+@permission_classes([IsAuthenticated, IsAdminRole])
+def reset_user_password(request, pk):
+    """
+    POST /api/users/<id>/reset-password/
+    Body: { "password": "...", "confirm_password": "..." }
+    Allows Admin to set a new password for any user without knowing the old one.
+    """
+    user = get_object_or_404(User, pk=pk)
+    serializer = AdminPasswordResetSerializer(data=request.data)
+    serializer.is_valid(raise_exception=True)
+
+    user.set_password(serializer.validated_data["password"])
+    user.save(update_fields=["password"])
+
+    # If the user was locked, unlock them now that password is reset
+    if user.is_locked:
+        user._clear_lockout()
+
+    return Response(
+        {"detail": f"Password for '{user.username}' has been reset successfully."},
+        status=status.HTTP_200_OK,
+    )
+
+
+@api_view(["POST"])
+@permission_classes([IsAuthenticated, IsAdminRole])
+def unlock_user_account(request, pk):
+    """
+    POST /api/users/<id>/unlock/
+    Clears the lockout state for the given user.
+    """
+    user = get_object_or_404(User, pk=pk)
+    if not user.is_locked and user.failed_login_attempts == 0:
+        return Response(
+            {"detail": f"User '{user.username}' is not currently locked."},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+    user._clear_lockout()
+    return Response(
+        {"detail": f"User '{user.username}' has been unlocked successfully."},
+        status=status.HTTP_200_OK,
+    )
+
+
+@api_view(["POST"])
+@permission_classes([IsAuthenticated, IsAdminRole])
+def toggle_user_active(request, pk):
+    """
+    POST /api/users/<id>/toggle-active/
+    Flips the is_active flag for the given user.
+    Admin cannot deactivate themselves.
+    """
+    user = get_object_or_404(User, pk=pk)
+    if user.pk == request.user.pk:
+        return Response(
+            {"detail": "You cannot deactivate your own account."},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+    user.is_active = not user.is_active
+    user.save(update_fields=["is_active"])
+    state = "activated" if user.is_active else "deactivated"
+    return Response(
+        {
+            "detail": f"User '{user.username}' has been {state}.",
+            "is_active": user.is_active,
+        },
+        status=status.HTTP_200_OK,
+    )
+</file>
+
+<file path="smartguard_backend/alerts/__init__.py">
+
+</file>
+
+<file path="smartguard_backend/alerts/admin.py">
+from django.contrib import admin
+
+# Register your models here.
+</file>
+
+<file path="smartguard_backend/alerts/apps.py">
+from django.apps import AppConfig
+
+class AlertsConfig(AppConfig):
+    name = "alerts"
+
+    def ready(self):
+        import alerts.signals  # noqa
+</file>
+
+<file path="smartguard_backend/alerts/migrations/__init__.py">
+
+</file>
+
+<file path="smartguard_backend/alerts/migrations/0001_initial.py">
+# Generated by Django 6.0.2 on 2026-02-19 16:09
+
+import django.db.models.deletion
+from django.conf import settings
+from django.db import migrations, models
+
+
+class Migration(migrations.Migration):
+
+    initial = True
+
+    dependencies = [
+        ('cameras', '0001_initial'),
+        migrations.swappable_dependency(settings.AUTH_USER_MODEL),
+    ]
+
+    operations = [
+        migrations.CreateModel(
+            name='Alert',
+            fields=[
+                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('behavior_type', models.CharField(choices=[('LOITERING', 'Loitering'), ('CONCEALMENT', 'Concealment'), ('RAPID_EXIT', 'Rapid Exit')], max_length=20)),
+                ('confidence', models.FloatField()),
+                ('severity', models.CharField(default='MEDIUM', max_length=20)),
+                ('status', models.CharField(choices=[('NEW', 'New'), ('REVIEWED', 'Reviewed'), ('ESCALATED', 'Escalated'), ('FALSE_POSITIVE', 'False Positive')], default='NEW', max_length=20)),
+                ('created_at', models.DateTimeField(auto_now_add=True)),
+                ('reviewed_at', models.DateTimeField(blank=True, null=True)),
+                ('notes', models.TextField(blank=True)),
+                ('camera', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='cameras.camera')),
+                ('reviewed_by', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, to=settings.AUTH_USER_MODEL)),
+            ],
+        ),
+    ]
+</file>
+
+<file path="smartguard_backend/alerts/migrations/0002_alert_acknowledged_alert_acknowledged_at_and_more.py">
+# Generated by Django 6.0.2 on 2026-02-19 16:48
+
+import django.db.models.deletion
+from django.conf import settings
+from django.db import migrations, models
+
+
+class Migration(migrations.Migration):
+
+    dependencies = [
+        ('alerts', '0001_initial'),
+        migrations.swappable_dependency(settings.AUTH_USER_MODEL),
+    ]
+
+    operations = [
+        migrations.AddField(
+            model_name='alert',
+            name='acknowledged',
+            field=models.BooleanField(default=False),
+        ),
+        migrations.AddField(
+            model_name='alert',
+            name='acknowledged_at',
+            field=models.DateTimeField(blank=True, null=True),
+        ),
+        migrations.AddField(
+            model_name='alert',
+            name='acknowledged_by',
+            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='acknowledged_alerts', to=settings.AUTH_USER_MODEL),
+        ),
+        migrations.AddField(
+            model_name='alert',
+            name='alert_category',
+            field=models.CharField(choices=[('SHOPLIFTING', 'Shoplifting / Behavioral'), ('SYSTEM_SECURITY', 'System / Cybersecurity')], default='SHOPLIFTING', max_length=30),
+        ),
+        migrations.AlterField(
+            model_name='alert',
+            name='reviewed_by',
+            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='reviewed_alerts', to=settings.AUTH_USER_MODEL),
+        ),
+        migrations.AlterField(
+            model_name='alert',
+            name='status',
+            field=models.CharField(choices=[('NEW', 'New'), ('REVIEWED', 'Reviewed'), ('ESCALATED', 'Escalated'), ('FALSE_POSITIVE', 'False Positive'), ('CLOSED', 'Closed')], default='NEW', max_length=20),
+        ),
+    ]
+</file>
+
+<file path="smartguard_backend/alerts/migrations/0003_alter_alert_severity.py">
+# Generated by Django 6.0.2 on 2026-02-19 18:02
+
+from django.db import migrations, models
+
+
+class Migration(migrations.Migration):
+
+    dependencies = [
+        ('alerts', '0002_alert_acknowledged_alert_acknowledged_at_and_more'),
+    ]
+
+    operations = [
+        migrations.AlterField(
+            model_name='alert',
+            name='severity',
+            field=models.CharField(choices=[('LOW', 'Low'), ('MEDIUM', 'Medium'), ('HIGH', 'High'), ('CRITICAL', 'Critical')], default='MEDIUM', max_length=10),
+        ),
+    ]
+</file>
+
+<file path="smartguard_backend/alerts/migrations/0004_alert_assigned_to.py">
+# Generated by Django 6.0.2 on 2026-02-24 15:51
+
+import django.db.models.deletion
+from django.conf import settings
+from django.db import migrations, models
+
+
+class Migration(migrations.Migration):
+
+    dependencies = [
+        ('alerts', '0003_alter_alert_severity'),
+        migrations.swappable_dependency(settings.AUTH_USER_MODEL),
+    ]
+
+    operations = [
+        migrations.AddField(
+            model_name='alert',
+            name='assigned_to',
+            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='assigned_alerts', to=settings.AUTH_USER_MODEL),
+        ),
+    ]
+</file>
+
+<file path="smartguard_backend/alerts/models.py">
+from django.db import models
+from django.contrib.auth import get_user_model
+from cameras.models import Camera
+
+User = get_user_model()
+
+
+class Alert(models.Model):
+    BEHAVIOR_CHOICES = [
+        ("LOITERING", "Loitering"),
+        ("CONCEALMENT", "Concealment"),
+        ("RAPID_EXIT", "Rapid Exit"),
+    ]
+
+    SEVERITY_CHOICES = [
+        ("LOW", "Low"),
+        ("MEDIUM", "Medium"),
+        ("HIGH", "High"),
+        ("CRITICAL", "Critical"),
+    ]
+
+    STATUS_CHOICES = [
+        ("NEW", "New"),
+        ("REVIEWED", "Reviewed"),
+        ("ESCALATED", "Escalated"),
+        ("FALSE_POSITIVE", "False Positive"),
+        ("CLOSED", "Closed"),
+    ]
+
+    ALERT_CATEGORY_CHOICES = [
+        ("SHOPLIFTING", "Shoplifting / Behavioral"),
+        ("SYSTEM_SECURITY", "System / Cybersecurity"),
+    ]
+
+    camera = models.ForeignKey(Camera, on_delete=models.CASCADE)
+    behavior_type = models.CharField(max_length=20, choices=BEHAVIOR_CHOICES)
+    confidence = models.FloatField()
+
+    severity = models.CharField(
+        max_length=10,
+        choices=SEVERITY_CHOICES,
+        default="MEDIUM",
+    )
+
+    status = models.CharField(
+        max_length=20,
+        choices=STATUS_CHOICES,
+        default="NEW",
+    )
+    alert_category = models.CharField(
+        max_length=30,
+        choices=ALERT_CATEGORY_CHOICES,
+        default="SHOPLIFTING",
+    )
+
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    # NEW: who this alert is assigned to
+    assigned_to = models.ForeignKey(
+        User,
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="assigned_alerts",
+    )
+
+    acknowledged = models.BooleanField(default=False)
+    acknowledged_at = models.DateTimeField(null=True, blank=True)
+    acknowledged_by = models.ForeignKey(
+        User,
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="acknowledged_alerts",
+    )
+
+    reviewed_by = models.ForeignKey(
+        User,
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="reviewed_alerts",
+    )
+    reviewed_at = models.DateTimeField(null=True, blank=True)
+
+    notes = models.TextField(blank=True)
+
+    def __str__(self):
+        return f"{self.behavior_type} - {self.camera.name} ({self.created_at})"
+
+def create_alert_from_detection(camera, behavior_type, raw_confidence):
+    severity = map_confidence_to_severity(behavior_type, raw_confidence)
+
+    alert = Alert.objects.create(
+        camera=camera,
+        behavior_type=behavior_type,
+        confidence=raw_confidence,
+        severity=severity,
+        alert_category="SHOPLIFTING",
+        status="NEW",
+    )
+    return alert
+
+def map_confidence_to_severity(behavior_type, c):
+    if behavior_type == "CONCEALMENT":
+        if c >= 0.95: return "CRITICAL"
+        if c >= 0.85: return "HIGH"
+        if c >= 0.70: return "MEDIUM"
+        return "LOW"
+
+    if behavior_type == "LOITERING":
+        if c >= 0.90: return "HIGH"
+        if c >= 0.70: return "MEDIUM"
+        return "LOW"
+
+    if behavior_type == "RAPID_EXIT":
+        if c >= 0.92: return "CRITICAL"
+        if c >= 0.80: return "HIGH"
+        if c >= 0.65: return "MEDIUM"
+        return "LOW"
+
+    # Generic fallback for SHOPLIFTING or any unrecognised behavior
+    if c >= 0.90: return "HIGH"
+    if c >= 0.70: return "MEDIUM"
+    return "LOW"
+    # other behaviors...
+</file>
+
+<file path="smartguard_backend/alerts/notifications.py">
+from twilio.rest import Client
+from django.conf import settings
+from django.core.mail import send_mail
+from django.conf import settings
+
+def send_sms(to_number: str, body: str):
+    if not (settings.TWILIO_ACCOUNT_SID and settings.TWILIO_AUTH_TOKEN and settings.TWILIO_FROM_NUMBER):
+        return None
+
+    client = Client(settings.TWILIO_ACCOUNT_SID, settings.TWILIO_AUTH_TOKEN)
+    message = client.messages.create(
+        from_=settings.TWILIO_FROM_NUMBER,
+        to=to_number,  # +639XXXXXXXXX
+        body=body,
+    )
+    return message.sid
+
+
+def send_email_notification(subject, message, to_list):
+    send_mail(
+        subject,
+        message,
+        settings.DEFAULT_FROM_EMAIL,
+        to_list,
+        fail_silently=False,
+    )
+</file>
+
+<file path="smartguard_backend/alerts/permissions.py">
+from rest_framework.permissions import BasePermission, SAFE_METHODS
+
+
+class AlertPermission(BasePermission):
+    """
+    Admin and Operations Manager:
+      - Read + write all alerts.
+    Staff:
+      - Read all shoplifting alerts.
+      - PATCH only for acknowledgement/notes (serializer enforces field limits).
+    """
+
+    def has_permission(self, request, view):
+        user = request.user
+
+        if not user or not user.is_authenticated:
+            return False
+
+        # Everyone logged-in can read
+        if request.method in SAFE_METHODS:
+            return True
+
+        # Staff can PATCH (acknowledge) but not POST/DELETE
+        if user.role == "STAFF":
+            return request.method == "PATCH"
+
+        # Admin and Ops Manager: full write
+        return user.role in ["ADMIN", "OPERATIONS_MANAGER"]
+</file>
+
+<file path="smartguard_backend/alerts/serializers.py">
+from rest_framework import serializers
+from django.utils import timezone
+from .models import Alert
+from cameras.models import Camera
+
+
+class DetectionAlertInputSerializer(serializers.Serializer):
+    camera_id = serializers.IntegerField()
+    behavior_type = serializers.CharField()
+    confidence = serializers.FloatField()
+    severity = serializers.ChoiceField(choices=["LOW", "MEDIUM", "HIGH", "CRITICAL"])
+    alert_category = serializers.CharField()  # e.g., "SHOPLIFTING"
+
+    def create(self, validated_data):
+        camera_id = validated_data.pop("camera_id")
+        camera = Camera.objects.get(id=camera_id)
+
+        alert = Alert.objects.create(
+            camera=camera,
+            **validated_data,
+            status="NEW",
+        )
+        return alert
+class AlertSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Alert
+        fields = [
+            'id',
+            'camera',
+            'behavior_type',
+            'confidence',
+            'severity',
+            'status',
+            'alert_category',
+            'created_at',
+            'acknowledged',
+            'acknowledged_at',
+            'acknowledged_by',
+            'reviewed_by',
+            'reviewed_at',
+            'notes',
+            'assigned_to', 
+        ]
+        read_only_fields = [
+            'id',
+            'created_at',
+            'acknowledged_at',
+            'acknowledged_by',
+            'reviewed_by',
+            'reviewed_at',
+        ]
+
+    def update(self, instance, validated_data):
+        request = self.context.get("request")
+        if request is None or not hasattr(request, "user"):
+            raise serializers.ValidationError(
+                {"detail": "Request user is required."}
+            )
+
+        user = request.user
+
+        # If Staff, only allow acknowledge + notes
+        if user.role == "STAFF":
+            allowed_fields = {'acknowledged', 'notes'}
+            for field in list(validated_data.keys()):
+                if field not in allowed_fields:
+                    raise serializers.ValidationError(
+                        {"detail": "Staff can only acknowledge alerts and add notes."}
+                    )
+
+            if 'acknowledged' in validated_data:
+                if validated_data['acknowledged'] and not instance.acknowledged:
+                    instance.acknowledged = True
+                    instance.acknowledged_at = timezone.now()
+                    instance.acknowledged_by = user
+
+            if 'notes' in validated_data:
+                instance.notes = validated_data['notes']
+
+            instance.save()
+            return instance
+
+        # Non‑Staff (Admin / Operations Manager) – full update
+        if 'acknowledged' in validated_data and validated_data['acknowledged'] and not instance.acknowledged:
+            instance.acknowledged = True
+            instance.acknowledged_at = timezone.now()
+            instance.acknowledged_by = user
+
+        return super().update(instance, validated_data)
+</file>
+
+<file path="smartguard_backend/alerts/signals.py">
+# alerts/signals.py
+
+from django.db.models.signals import post_save
+from django.dispatch import receiver
+
+from .models import Alert
+from .notifications import send_email_notification
+from accounts.models import CustomUser
+
+
+@receiver(post_save, sender=Alert)
+def email_on_critical_alert(sender, instance: Alert, created, **kwargs):
+    """
+    Send email notifications to Staff / Operations Manager users when
+    a HIGH or CRITICAL SHOPLIFTING alert is created.
+    """
+    # Only on first creation, not on updates
+    if not created:
+        return
+
+    # Only for shoplifting alerts
+    # Only for high-severity alerts
+    if instance.severity not in ["HIGH", "CRITICAL"]:
+        return
+
+    # Collect recipient emails from active Staff and Operations Managers
+       # Build subject
+       # Build subject
+    subject = f"[SmartGuard] {instance.severity} {instance.behavior_type.replace('_', ' ').title()} Alert"
+
+    # Split recipients by role
+    staff_emails = list(
+        CustomUser.objects.filter(
+            role="STAFF", is_active=True
+        ).exclude(email="").values_list("email", flat=True)
+    )
+
+    ops_emails = list(
+        CustomUser.objects.filter(
+            role="OPERATIONS_MANAGER", is_active=True
+        ).exclude(email="").values_list("email", flat=True)
+    )
+
+    admin_emails = list(
+        CustomUser.objects.filter(
+            role="ADMIN", is_active=True
+        ).exclude(email="").values_list("email", flat=True)
+    )
+
+    # If no one to notify, stop
+    if not staff_emails and not ops_emails and not admin_emails:
+        return
+
+    # Shorter message for Staff
+    staff_message = (
+    f"Behavior Detected: {instance.behavior_type.replace('_', ' ').title()}\n"
+    f"Severity: {instance.severity}\n"
+    f"Camera: {instance.camera.name}\n"
+    f"Location: {instance.camera.location}\n"
+    f"Time: {instance.created_at:%Y-%m-%d %H:%M}\n"
+)
+
+    # Detailed message for Admin and Operations Manager
+    management_message = (
+    f"Alert ID: {instance.id}\n"
+    f"Behavior: {instance.behavior_type.replace('_', ' ').title()}\n"
+    f"Camera: {instance.camera.name}\n"
+    f"Location: {instance.camera.location}\n"
+    f"Time: {instance.created_at:%Y-%m-%d %H:%M}\n"
+    f"Confidence: {instance.confidence:.2f}\n"
+    f"Status: {instance.status}\n"
+    f"Open in dashboard: https://your-frontend/alerts/{instance.id}/\n"
+)
+
+    if staff_emails:
+        send_email_notification(subject, staff_message, list(staff_emails))
+
+    # Ops + Admin get the same detailed message
+    management_recipients = list(ops_emails) + list(admin_emails)
+    if management_recipients:
+        send_email_notification(subject, management_message, management_recipients)
+</file>
+
+<file path="smartguard_backend/alerts/tests.py">
+from django.test import TestCase
+
+# Create your tests here.
+</file>
+
+<file path="smartguard_backend/alerts/urls.py">
+from django.urls import path
+from .views import AlertListView, AlertDetailView,DetectionAlertCreateView
+
+urlpatterns = [
+    path('alerts/', AlertListView.as_view(), name='alert_list'),
+    path('alerts/<int:pk>/', AlertDetailView.as_view(), name='alert_detail'),
+    path('alerts/detections/', DetectionAlertCreateView.as_view(), name='detection_alert_create'),
+]
+</file>
+
+<file path="smartguard_backend/alerts/views.py">
+from rest_framework import generics, status
+from rest_framework.response import Response
+from rest_framework.views import APIView
+
+from .models import Alert
+from .serializers import AlertSerializer, DetectionAlertInputSerializer
+from .permissions import AlertPermission
+
+
+class DetectionAlertCreateView(APIView):
+    """
+    POST /api/alerts/create/
+    Called by detection_worker.py to persist a new alert.
+    No auth required — worker runs on the same machine.
+    """
+    permission_classes = []
+
+    def post(self, request, *args, **kwargs):
+        serializer = DetectionAlertInputSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        alert = serializer.save()
+        return Response(AlertSerializer(alert).data, status=status.HTTP_201_CREATED)
+
+
+class AlertListView(generics.ListAPIView):
+    """
+    GET /api/alerts/
+    Staff / Ops see SHOPLIFTING only; Admin sees everything.
+    Supports ?severity=HIGH and ?status=NEW query params.
+    """
+    queryset = Alert.objects.select_related(
+        "camera", "acknowledged_by", "reviewed_by", "assigned_to"
+    ).order_by("-created_at")
+    serializer_class   = AlertSerializer
+    permission_classes = [AlertPermission]
+
+    def get_queryset(self):
+        qs   = super().get_queryset()
+        role = getattr(self.request.user, "role", None)
+
+        if role in ("STAFF", "OPERATIONS_MANAGER"):
+            qs = qs.filter(alert_category="SHOPLIFTING")
+
+        severity = self.request.query_params.get("severity")
+        if severity:
+            qs = qs.filter(severity=severity.upper())
+
+        status_filter = self.request.query_params.get("status")
+        if status_filter:
+            qs = qs.filter(status=status_filter.upper())
+
+        return qs
+
+
+class AlertDetailView(generics.RetrieveUpdateAPIView):
+    """
+    GET   /api/alerts/<pk>/  — fetch single alert
+    PATCH /api/alerts/<pk>/  — update status, notes, acknowledgement
+    """
+    queryset = Alert.objects.select_related(
+        "camera", "acknowledged_by", "reviewed_by", "assigned_to"
+    )
+    serializer_class   = AlertSerializer
+    permission_classes = [AlertPermission]
+
+    def get_serializer_context(self):
+        # Ensures request is passed into AlertSerializer.update()
+        context = super().get_serializer_context()
+        context["request"] = self.request
+        return context
+
+    def get_queryset(self):
+        qs   = super().get_queryset()
+        role = getattr(self.request.user, "role", None)
+
+        if role in ("STAFF", "OPERATIONS_MANAGER"):
+            qs = qs.filter(alert_category="SHOPLIFTING")
+
+        return qs
+</file>
+
+<file path="smartguard_backend/cameras/__init__.py">
+
+</file>
+
+<file path="smartguard_backend/cameras/admin.py">
+from django.contrib import admin
+
+# Register your models here.
+</file>
+
+<file path="smartguard_backend/cameras/apps.py">
+from django.apps import AppConfig
+
+
+class CamerasConfig(AppConfig):
+    name = 'cameras'
+</file>
+
+<file path="smartguard_backend/cameras/consumers.py">
+# cameras/consumers.py
+#
+# Responsibilities:
+#   - Accept WebSocket connections from the React dashboard
+#   - Join a per-camera channel group
+#   - Forward detection events pushed by the AI worker to the connected client
+#   - Handle disconnect cleanly
+#
+# The consumer does NOT run YOLOv5, does NOT read RTSP, does NOT touch OpenCV.
+# It only relays messages that the AI worker sends via channel_layer.group_send().
+
+import json
+import logging
+from channels.generic.websocket import AsyncJsonWebsocketConsumer
+from channels.db import database_sync_to_async
+from django.contrib.auth.models import AnonymousUser
+
+logger = logging.getLogger(__name__)
+
+
+class CameraDetectionConsumer(AsyncJsonWebsocketConsumer):
+    """
+    WebSocket endpoint: ws://localhost:8000/ws/cameras/<camera_id>/detections/
+
+    Message format sent to the client:
+    {
+        "type":          "detection",
+        "camera_id":     4,
+        "camera_name":   "Entrance CAM-01",
+        "behavior_type": "SHOPLIFTING",
+        "confidence":    0.91,
+        "severity":      "HIGH",
+        "alert_id":      123,
+        "timestamp":     "2026-02-25T10:30:00Z",
+        "frame_jpg_b64": "<base64-encoded annotated JPEG>" // optional
+    }
+    """
+
+class GlobalAlertConsumer(AsyncJsonWebsocketConsumer):
+    """
+    ws://localhost:8000/ws/alerts/
+    All authenticated users connect here to receive new alert notifications
+    regardless of which camera triggered them.
+    """
+    GROUP_NAME = "alerts_global"
+
+    async def connect(self):
+        await self.channel_layer.group_add(self.GROUP_NAME, self.channel_name)
+        await self.accept()
+        await self.send_json({"type": "connected", "message": "Subscribed to global alerts"})
+
+    async def disconnect(self, close_code):
+        await self.channel_layer.group_discard(self.GROUP_NAME, self.channel_name)
+
+    async def receive_json(self, content):
+        pass
+
+    async def new_alert(self, event):
+        await self.send_json(event)
+    # ── Connect ────────────────────────────────────────────────────────────
+    async def connect(self):
+        self.camera_id  = self.scope["url_route"]["kwargs"]["camera_id"]
+        self.group_name = f"camera_{self.camera_id}"
+
+        # ── Auth check: only authenticated users may connect ──────────────
+        # AuthMiddlewareStack in asgi.py populates scope["user"] via JWT
+        # For simplicity in dev, allow all; in production enforce this.
+        user = self.scope.get("user")
+        if user is None or isinstance(user, AnonymousUser):
+            # Uncomment below to enforce auth in production:
+            # await self.close(code=4001)
+            # return
+            logger.warning("Unauthenticated WebSocket connection for camera %s", self.camera_id)
+
+        # Join the per-camera group so the AI worker can broadcast to us
+        await self.channel_layer.group_add(self.group_name, self.channel_name)
+        await self.accept()
+
+        logger.info("WebSocket connected: camera=%s group=%s", self.camera_id, self.group_name)
+
+        # Send a welcome/status frame so the client knows the WS is live
+        await self.send_json({
+            "type":      "connected",
+            "camera_id": int(self.camera_id),
+            "message":   f"Subscribed to detections for camera {self.camera_id}",
+        })
+
+    # ── Disconnect ─────────────────────────────────────────────────────────
+    async def disconnect(self, close_code):
+        await self.channel_layer.group_discard(self.group_name, self.channel_name)
+        logger.info("WebSocket disconnected: camera=%s code=%s", self.camera_id, close_code)
+
+    # ── Receive (messages FROM the client — not used but required) ─────────
+    async def receive_json(self, content):
+        # Dashboard doesn't send commands for now.
+        # Could be extended to send "start_detection" / "stop_detection" commands.
+        pass
+
+    # ── Handler: called when AI worker does group_send(type="detection.event") ──
+    async def detection_event(self, event):
+        """
+        Called by the channel layer when the AI worker sends:
+            await channel_layer.group_send(
+                f"camera_{camera_id}",
+                {"type": "detection.event", ...payload...}
+            )
+        Channels converts "detection.event" → "detection_event" method name.
+        """
+        # Forward the payload directly to the React client
+        await self.send_json({
+            "type":          "detection",
+            "camera_id":     event.get("camera_id"),
+            "camera_name":   event.get("camera_name"),
+            "behavior_type": event.get("behavior_type"),
+            "confidence":    event.get("confidence"),
+            "severity":      event.get("severity"),
+            "alert_id":      event.get("alert_id"),
+            "timestamp":     event.get("timestamp"),
+            "frame_jpg_b64": event.get("frame_jpg_b64"),  # annotated frame, may be None
+        })
+
+    # ── Handler: heartbeat ping from worker ────────────────────────────────
+    async def worker_heartbeat(self, event):
+        """
+        The AI worker sends a heartbeat every 30s so the dashboard knows
+        the worker is alive even when there are no detections.
+        """
+        await self.send_json({
+            "type":      "heartbeat",
+            "camera_id": event.get("camera_id"),
+            "timestamp": event.get("timestamp"),
+            "fps":       event.get("fps"),
+        })
+</file>
+
+<file path="smartguard_backend/cameras/management/__init__.py">
+
+</file>
+
+<file path="smartguard_backend/cameras/management/commands/__init__.py">
+
+</file>
+
+<file path="smartguard_backend/cameras/management/commands/send_fake_detections.py">
+from django.core.management.base import BaseCommand
+import time
+from cameras.publisher import publish_fake_detection
+
+class Command(BaseCommand):
+    help = "Continuously send fake detection data to a camera WebSocket group."
+
+    def add_arguments(self, parser):
+        parser.add_argument("--camera-id", type=int, default=4)
+
+    def handle(self, *args, **options):
+        camera_id = options["camera_id"]
+        self.stdout.write(self.style.SUCCESS(f"Sending fake detections to camera_{camera_id}..."))
+
+        try:
+            while True:
+                publish_fake_detection(camera_id=camera_id)
+                time.sleep(0.5)
+        except KeyboardInterrupt:
+            self.stdout.write(self.style.WARNING("Stopped."))
+</file>
+
+<file path="smartguard_backend/cameras/migrations/__init__.py">
+
+</file>
+
+<file path="smartguard_backend/cameras/migrations/0001_initial.py">
+# Generated by Django 6.0.2 on 2026-02-19 13:54
+
+from django.db import migrations, models
+
+
+class Migration(migrations.Migration):
+
+    initial = True
+
+    dependencies = [
+    ]
+
+    operations = [
+        migrations.CreateModel(
+            name='Camera',
+            fields=[
+                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('name', models.CharField(max_length=100)),
+                ('rtsp_url', models.URLField()),
+                ('location', models.CharField(max_length=200)),
+                ('zone', models.CharField(blank=True, max_length=50)),
+                ('is_active', models.BooleanField(default=True)),
+                ('last_heartbeat', models.DateTimeField(blank=True, null=True)),
+                ('status', models.CharField(choices=[('ONLINE', 'Online'), ('OFFLINE', 'Offline'), ('MAINTENANCE', 'Maintenance')], default='OFFLINE', max_length=20)),
+            ],
+        ),
+    ]
+</file>
+
+<file path="smartguard_backend/cameras/migrations/0002 camera stream mjpeg url.py">
+# cameras/migrations/0002_camera_stream_mjpeg_url.py
+# Generated manually — run: python manage.py migrate
+
+from django.db import migrations, models
+
+
+class Migration(migrations.Migration):
+
+    dependencies = [
+        # Replace '0001_initial' with whatever your last migration is
+        ('cameras', '0001_initial'),
+    ]
+
+    operations = [
+        migrations.AddField(
+            model_name='camera',
+            name='stream_mjpeg_url',
+            field=models.CharField(blank=True, default='', max_length=500),
+        ),
+    ]
+</file>
+
+<file path="smartguard_backend/cameras/migrations/0002_remove_camera_is_active_remove_camera_last_heartbeat_and_more.py">
+# Generated by Django 6.0.2 on 2026-02-19 17:38
+
+from django.db import migrations, models
+
+
+class Migration(migrations.Migration):
+
+    dependencies = [
+        ('cameras', '0001_initial'),
+    ]
+
+    operations = [
+        migrations.RemoveField(
+            model_name='camera',
+            name='is_active',
+        ),
+        migrations.RemoveField(
+            model_name='camera',
+            name='last_heartbeat',
+        ),
+        migrations.RemoveField(
+            model_name='camera',
+            name='location',
+        ),
+        migrations.RemoveField(
+            model_name='camera',
+            name='name',
+        ),
+        migrations.RemoveField(
+            model_name='camera',
+            name='status',
+        ),
+        migrations.RemoveField(
+            model_name='camera',
+            name='zone',
+        ),
+        migrations.AlterField(
+            model_name='camera',
+            name='rtsp_url',
+            field=models.URLField(max_length=500),
+        ),
+    ]
+</file>
+
+<file path="smartguard_backend/cameras/migrations/0003_camera_is_active_camera_last_heartbeat_and_more.py">
+# Generated by Django 6.0.2 on 2026-02-19 17:48
+
+from django.db import migrations, models
+
+
+class Migration(migrations.Migration):
+
+    dependencies = [
+        ('cameras', '0002_remove_camera_is_active_remove_camera_last_heartbeat_and_more'),
+    ]
+
+    operations = [
+        migrations.AddField(
+            model_name='camera',
+            name='is_active',
+            field=models.BooleanField(default=True),
+        ),
+        migrations.AddField(
+            model_name='camera',
+            name='last_heartbeat',
+            field=models.DateTimeField(blank=True, null=True),
+        ),
+        migrations.AddField(
+            model_name='camera',
+            name='location',
+            field=models.CharField(blank=True, max_length=255),
+        ),
+        migrations.AddField(
+            model_name='camera',
+            name='name',
+            field=models.CharField(default='Default camera', max_length=255),
+            preserve_default=False,
+        ),
+        migrations.AddField(
+            model_name='camera',
+            name='status',
+            field=models.CharField(choices=[('ONLINE', 'Online'), ('OFFLINE', 'Offline'), ('ERROR', 'Error')], default='OFFLINE', max_length=20),
+        ),
+        migrations.AddField(
+            model_name='camera',
+            name='zone',
+            field=models.CharField(blank=True, max_length=255),
+        ),
+    ]
+</file>
+
+<file path="smartguard_backend/cameras/migrations/0004_alter_camera_rtsp_url.py">
+# Generated by Django 6.0.2 on 2026-02-25 04:05
+
+from django.db import migrations, models
+
+
+class Migration(migrations.Migration):
+
+    dependencies = [
+        ('cameras', '0003_camera_is_active_camera_last_heartbeat_and_more'),
+    ]
+
+    operations = [
+        migrations.AlterField(
+            model_name='camera',
+            name='rtsp_url',
+            field=models.CharField(max_length=500),
+        ),
+    ]
+</file>
+
+<file path="smartguard_backend/cameras/migrations/0005_merge_20260227_0244.py">
+# Generated by Django 6.0.2 on 2026-02-26 18:44
+
+from django.db import migrations
+
+
+class Migration(migrations.Migration):
+
+    dependencies = [
+        ('cameras', '0002 camera stream mjpeg url'),
+        ('cameras', '0004_alter_camera_rtsp_url'),
+    ]
+
+    operations = [
+    ]
+</file>
+
+<file path="smartguard_backend/cameras/migrations/0006_alter_camera_rtsp_url.py">
+# Generated by Django 6.0.2 on 2026-02-27 04:53
+
+from django.db import migrations, models
+
+
+class Migration(migrations.Migration):
+
+    dependencies = [
+        ('cameras', '0005_merge_20260227_0244'),
+    ]
+
+    operations = [
+        migrations.AlterField(
+            model_name='camera',
+            name='rtsp_url',
+            field=models.CharField(blank=True, max_length=500),
+        ),
+    ]
+</file>
+
+<file path="smartguard_backend/cameras/models.py">
+# cameras/models.py
+from django.db import models
+
+
+class Camera(models.Model):
+    STATUS_CHOICES = [
+        ("ONLINE",  "Online"),
+        ("OFFLINE", "Offline"),
+        ("ERROR",   "Error"),
+    ]
+
+    name            = models.CharField(max_length=255)
+    rtsp_url        = models.CharField(max_length=500, blank=True)
+    location        = models.CharField(max_length=255, blank=True)
+    zone            = models.CharField(max_length=255, blank=True)
+    is_active       = models.BooleanField(default=True)
+    last_heartbeat  = models.DateTimeField(null=True, blank=True)
+    status          = models.CharField(
+        max_length=20,
+        choices=STATUS_CHOICES,
+        default="OFFLINE",
+    )
+
+    # ── Stream URLs ───────────────────────────────────────────────────────────
+    # stream_mjpeg_url: URL that the React <img> tag points to for live video.
+    # This is served by the WSGI server on port 8001 (not Daphne on 8000).
+    #
+    # For the local webcam camera, set this to:
+    #   http://localhost:8001/api/cameras/<id>/stream/mjpeg/
+    #
+    # Leave blank for cameras that have no live stream configured.
+    stream_mjpeg_url = models.CharField(max_length=500, blank=True, default="")
+
+    def __str__(self):
+        return f"{self.name} ({self.location})"
+</file>
+
+<file path="smartguard_backend/cameras/permissions.py">
+from rest_framework.permissions import BasePermission, SAFE_METHODS
+
+class IsAdminOrOpsReadOnly(BasePermission):
+    """
+    Admin: full access.
+    Ops Manager: read-only.
+    Staff: no access.
+    """
+
+    def has_permission(self, request, view):
+        user = request.user
+        if not user or not user.is_authenticated:
+            return False
+
+        # Admin can do anything
+        if user.role == 'ADMIN':
+            return True
+
+        # Ops Manager can only read (GET, HEAD, OPTIONS)
+        if user.role == 'OPS_MANAGER' and request.method in SAFE_METHODS:
+            return True
+
+        # Staff: no access to camera API
+        return False
+</file>
+
+<file path="smartguard_backend/cameras/publisher.py">
+from asgiref.sync import async_to_sync
+from channels.layers import get_channel_layer
+import time
+
+channel_layer = get_channel_layer()
+
+def publish_fake_detection(camera_id=4):
+    data = {
+        "camera_id": camera_id,
+        "timestamp": time.time(),
+        "detections": [
+            { "x": 0.1, "y": 0.2, "w": 0.3, "h": 0.4, "label": "person", "conf": 0.92 },
+        ],
+    }
+
+    async_to_sync(channel_layer.group_send)(
+        f"camera_{camera_id}",      # must match self.group_name
+        {
+            "type": "detection_message",
+            "data": data,
+        },
+    )
+</file>
+
+<file path="smartguard_backend/cameras/routing.py">
+from django.urls import re_path
+from . import consumers
+
+websocket_urlpatterns = [
+    re_path(
+        r"^ws/cameras/(?P<camera_id>\d+)/detections/$",
+        consumers.CameraDetectionConsumer.as_asgi(),
+    ),
+    re_path(
+        r"^ws/alerts/$",
+        consumers.GlobalAlertConsumer.as_asgi(),
+    ),
+]
+</file>
+
+<file path="smartguard_backend/cameras/serializers.py">
+from rest_framework import serializers
+from .models import Camera
+
+class CameraSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Camera
+        fields = [
+            "id", "name", "rtsp_url", "location", "zone",
+            "is_active", "last_heartbeat", "status", "stream_mjpeg_url",
+        ]
+        read_only_fields = ["id", "last_heartbeat", "status"]
+</file>
+
+<file path="smartguard_backend/cameras/stream_view.py">
+# cameras/stream_view.py
+#
+# Serves a live MJPEG stream from a camera's RTSP URL (or webcam index).
+# The browser's <img src="http://localhost:8000/api/cameras/<id>/stream/" />
+# will display a live video feed using this endpoint.
+#
+# This is a SEPARATE connection from detection_worker.py.
+# Two things read the camera simultaneously:
+#   1. detection_worker.py  — for YOLOv5 inference
+#   2. This view            — for browser display
+# Most IP cameras and webcams support multiple concurrent readers.
+
+import cv2
+import logging
+from django.http import StreamingHttpResponse, HttpResponse
+from django.shortcuts import get_object_or_404
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAuthenticated
+
+from .models import Camera
+
+logger = logging.getLogger(__name__)
+
+
+def _parse_source(rtsp_url: str):
+    """
+    Returns the correct OpenCV capture source.
+    - If rtsp_url is a digit string like "0" or "1" → webcam index (int)
+    - Otherwise → treat as RTSP/HTTP URL string
+    """
+    if rtsp_url and rtsp_url.strip().isdigit():
+        return int(rtsp_url.strip())
+    return rtsp_url
+
+
+def _mjpeg_generator(source, quality: int = 70):
+    """
+    Generator that yields MJPEG frames as a multipart HTTP stream.
+    Runs inside the Django response — one generator per connected browser tab.
+    """
+    cap = cv2.VideoCapture(source)
+
+    if not cap.isOpened():
+        logger.error("MJPEG stream: cannot open source: %s", source)
+        return
+
+    try:
+        while True:
+            ret, frame = cap.read()
+            if not ret:
+                logger.warning("MJPEG stream: frame read failed for source: %s", source)
+                break
+
+            # Encode frame as JPEG
+            encode_params = [cv2.IMWRITE_JPEG_QUALITY, quality]
+            ret_enc, jpeg = cv2.imencode(".jpg", frame, encode_params)
+            if not ret_enc:
+                continue
+
+            # Yield as one MJPEG part
+            yield (
+                b"--frame\r\n"
+                b"Content-Type: image/jpeg\r\n\r\n"
+                + jpeg.tobytes()
+                + b"\r\n"
+            )
+    except GeneratorExit:
+        # Browser disconnected — clean up
+        logger.info("MJPEG stream: client disconnected from source: %s", source)
+    finally:
+        cap.release()
+
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def camera_stream(request, camera_id):
+    """
+    GET /api/cameras/<camera_id>/stream/
+
+    Returns a live MJPEG stream for the given camera.
+    Used as the src for <img> in the Live Monitoring dashboard.
+
+    The camera's rtsp_url field can be:
+      - "0"                          → laptop/USB webcam (index 0)
+      - "1"                          → second webcam
+      - "rtsp://user:pass@192.168.x.x:554/stream1"  → IP camera RTSP
+    """
+    camera = get_object_or_404(Camera, pk=camera_id, is_active=True)
+
+    if not camera.rtsp_url:
+        return HttpResponse("No stream URL configured for this camera.", status=404)
+
+    source = _parse_source(camera.rtsp_url)
+
+    response = StreamingHttpResponse(
+        _mjpeg_generator(source),
+        content_type="multipart/x-mixed-replace; boundary=frame",
+    )
+    # Prevent caching
+    response["Cache-Control"] = "no-cache, no-store, must-revalidate"
+    response["Pragma"]        = "no-cache"
+    response["Expires"]       = "0"
+    return response
+</file>
+
+<file path="smartguard_backend/cameras/tests.py">
+from django.test import TestCase
+
+# Create your tests here.
+</file>
+
+<file path="smartguard_backend/cameras/urls.py">
+# cameras/urls.py
+from . import views
+from django.urls import path
+from .views import (
+    CameraListCreateView,
+    CameraDetailView,
+    camera_mjpeg_stream,
+    camera_stream_status,   # ← add this
+    
+)
+
+urlpatterns = [
+    
+    path('cameras/', CameraListCreateView.as_view(), name='camera_list_create'),
+    path('cameras/<int:pk>/', CameraDetailView.as_view(), name='camera_detail'),
+    path('cameras/<int:pk>/stream/mjpeg/', camera_mjpeg_stream, name='camera_mjpeg_stream'),
+      path("cameras/<int:pk>/stream/mjpeg/",    views.camera_mjpeg_stream),  
+     path('cameras/<int:pk>/stream/status/',   camera_stream_status,     name='camera_stream_status'),
+]
+</file>
+
+<file path="smartguard_backend/cameras/views.py">
+# cameras/views.py
+
+import cv2
+import time
+import logging
+import threading
+
+from django.http import StreamingHttpResponse, Http404, JsonResponse
+from rest_framework import generics
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+
+from rest_framework_simplejwt.authentication import JWTAuthentication
+from rest_framework.exceptions import AuthenticationFailed
+
+from .serializers import CameraSerializer
+from .models import Camera
+
+log = logging.getLogger(__name__)
+
+# ── Camera CRUD ────────────────────────────────────────────────────────────────
+
+class CameraListCreateView(generics.ListCreateAPIView):
+    queryset           = Camera.objects.all().order_by('id')
+    serializer_class   = CameraSerializer
+    permission_classes = [IsAuthenticated]
+
+class CameraDetailView(generics.RetrieveUpdateDestroyAPIView):
+    queryset           = Camera.objects.all()
+    serializer_class   = CameraSerializer
+    permission_classes = [IsAuthenticated]
+
+
+# ── Frame Grabber ──────────────────────────────────────────────────────────────
+# One background thread per camera owns the VideoCapture exclusively.
+# It continuously reads frames into _latest_frames[cam_id].
+# The MJPEG generator just reads from that slot — no lock contention on reads.
+
+_latest_frames  = {}   # { cam_id: np.ndarray | None }
+_grabber_threads = {}  # { cam_id: threading.Thread }
+_grabber_stop   = {}   # { cam_id: threading.Event }
+_frame_locks    = {}   # { cam_id: threading.Lock }  — protects _latest_frames slot
+_pool_lock      = threading.Lock()
+
+STREAM_WIDTH    = 1280
+STREAM_HEIGHT   = 720
+STREAM_FPS      = 30
+JPEG_QUALITY    = 70
+
+
+def _get_source(camera: Camera):
+    rtsp = (camera.rtsp_url or "").strip()
+    if rtsp.isdigit():
+        return int(rtsp)
+    return rtsp
+
+
+def _grabber_loop(cam_id, source, stop_event):
+    """
+    Dedicated thread: sole owner of cv2.VideoCapture for this camera.
+    Continuously grabs frames into _latest_frames[cam_id].
+    """
+    log.info("[GRABBER %s] Starting, source=%r", cam_id, source)
+
+    while not stop_event.is_set():
+        cap = cv2.VideoCapture(source)
+        if not cap.isOpened():
+            log.warning("[GRABBER %s] Cannot open source, retrying in 3s...", cam_id)
+            stop_event.wait(3)
+            continue
+
+        cap.set(cv2.CAP_PROP_FRAME_WIDTH,  STREAM_WIDTH)
+        cap.set(cv2.CAP_PROP_FRAME_HEIGHT, STREAM_HEIGHT)
+        cap.set(cv2.CAP_PROP_FPS,          STREAM_FPS)
+        cap.set(cv2.CAP_PROP_BUFFERSIZE,   1)   # discard stale frames
+        log.info("[GRABBER %s] Capture opened.", cam_id)
+
+        read_errors = 0
+        while not stop_event.is_set():
+            ret, frame = cap.read()   # blocks here — no lock needed
+            if not ret:
+                read_errors += 1
+                if read_errors >= 10:
+                    log.warning("[GRABBER %s] Too many read errors, reopening.", cam_id)
+                    break
+                continue
+
+            read_errors = 0
+            with _frame_locks[cam_id]:
+                _latest_frames[cam_id] = frame
+
+        cap.release()
+        if not stop_event.is_set():
+            log.warning("[GRABBER %s] Reconnecting in 3s...", cam_id)
+            stop_event.wait(3)
+
+    log.info("[GRABBER %s] Stopped.", cam_id)
+    with _frame_locks[cam_id]:
+        _latest_frames[cam_id] = None
+
+
+def _ensure_grabber(camera: Camera):
+    """Start the grabber thread for this camera if not already running."""
+    cam_id = camera.id
+    with _pool_lock:
+        if cam_id not in _frame_locks:
+            _frame_locks[cam_id]   = threading.Lock()
+            _latest_frames[cam_id] = None
+
+        existing = _grabber_threads.get(cam_id)
+        if existing and existing.is_alive():
+            return  # already running
+
+        stop_event = threading.Event()
+        _grabber_stop[cam_id] = stop_event
+
+        t = threading.Thread(
+            target=_grabber_loop,
+            args=(cam_id, _get_source(camera), stop_event),
+            name=f"grabber-cam-{cam_id}",
+            daemon=True,
+        )
+        t.start()
+        _grabber_threads[cam_id] = t
+        log.info("[STREAM] Grabber thread started for camera %s", cam_id)
+
+
+# ── MJPEG generator ────────────────────────────────────────────────────────────
+
+def _mjpeg_generator(camera: Camera):
+    """
+    Reads the latest frame from the grabber thread and yields MJPEG chunks.
+    Never touches VideoCapture directly — no lock contention on reads.
+    """
+    cam_id      = camera.id
+    empty_waits = 0
+
+    while True:
+        with _frame_locks[cam_id]:
+            frame = _latest_frames.get(cam_id)
+
+        if frame is None:
+            empty_waits += 1
+            if empty_waits > 100:   # ~5s with no frames
+                log.warning("[STREAM] Cam %s: no frames after 5s, giving up.", cam_id)
+                return
+            time.sleep(0.05)
+            continue
+
+        empty_waits = 0
+
+        ok, jpeg = cv2.imencode(
+            ".jpg", frame,
+            [cv2.IMWRITE_JPEG_QUALITY, JPEG_QUALITY]
+        )
+        if not ok:
+            continue
+
+        frame_bytes = jpeg.tobytes()
+        try:
+            yield (
+                b"--frame\r\n"
+                b"Content-Type: image/jpeg\r\n"
+                b"Content-Length: " + str(len(frame_bytes)).encode() + b"\r\n"
+                b"\r\n" +
+                frame_bytes +
+                b"\r\n"
+            )
+        except GeneratorExit:
+            log.info("[STREAM] Cam %s: client disconnected.", cam_id)
+            return
+
+
+# ── MJPEG stream view ──────────────────────────────────────────────────────────
+
+def camera_mjpeg_stream(request, pk):
+    auth = JWTAuthentication()
+    try:
+        result = auth.authenticate(request)
+        if result is None:
+            return JsonResponse({"detail": "Authentication required."}, status=401)
+    except AuthenticationFailed as e:
+        return JsonResponse({"detail": str(e)}, status=401)
+    except Exception:
+        return JsonResponse({"detail": "Auth error."}, status=401)
+
+    try:
+        camera = Camera.objects.get(pk=pk, is_active=True)
+    except Camera.DoesNotExist:
+        raise Http404("Camera not found or inactive")
+
+    source = _get_source(camera)
+    if source == "" or (source != 0 and not source):
+        return JsonResponse(
+            {"detail": "No stream source configured for this camera."},
+            status=404,
+        )
+
+    _ensure_grabber(camera)   # ← start grabber thread if not running
+
+    response = StreamingHttpResponse(
+        _mjpeg_generator(camera),
+        content_type="multipart/x-mixed-replace; boundary=frame",
+    )
+    response["Cache-Control"]                = "no-cache, no-store, must-revalidate"
+    response["Pragma"]                       = "no-cache"
+    response["Expires"]                      = "0"
+    response["Access-Control-Allow-Origin"]  = "http://localhost:5173"
+    response["Access-Control-Allow-Headers"] = "Authorization, Content-Type"
+    return response
+
+
+# ── Stream status check ────────────────────────────────────────────────────────
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def camera_stream_status(request, pk):
+    try:
+        camera = Camera.objects.get(pk=pk)
+    except Camera.DoesNotExist:
+        raise Http404
+
+    source    = _get_source(camera)
+    reachable = False
+
+    if source == 0 or (isinstance(source, str) and source):
+        test_cap  = cv2.VideoCapture(source)
+        reachable = test_cap.isOpened()
+        test_cap.release()
+
+    return Response({
+        "camera_id": camera.id,
+        "name":      camera.name,
+        "reachable": reachable,
+        "source":    str(source),
+    })
+</file>
+
+<file path="smartguard_backend/detect.py">
+"""
+detect.py - Minimal shoplifting-only detector for testing,
+now wired to Django Alerts.
+"""
+
+import argparse
+import os
+import pathlib
+from pathlib import Path
+from datetime import datetime, timedelta
+from ultralytics import YOLO
+
+
+# --- WINDOWS PATH COMPATIBILITY PATCH START ---
+#temp = pathlib.PosixPath
+#pathlib.PosixPath = pathlib.WindowsPath
+
+# --- WINDOWS PATH COMPATIBILITY PATCH END ---
+
+import cv2
+import numpy as np
+import torch
+
+# ========= Django integration =========
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "smartguard_backend.settings")
+
+import django
+django.setup()
+
+from cameras.models import Camera
+from alerts.models import Alert
+# ======================================
+
+INCIDENT_TIMEOUT_SECONDS = 30
+active_incident = {}  # key: camera_id, value: dict with alert state
+
+# Hardcode or pass from CLI: which Camera in DB this source belongs to
+CAMERA_ID = 1  # TODO: later: make this a CLI arg if needed
+
+
+def map_confidence_to_severity(behavior_type, c):
+    """
+    Very simple mapping: you can refine later.
+    c is 0–1 float.
+    """
+    if behavior_type == "CONCEALMENT":
+        if c >= 0.95:
+            return "CRITICAL"
+        if c >= 0.85:
+            return "HIGH"
+        if c >= 0.70:
+            return "MEDIUM"
+        return "LOW"
+    # default for other behaviors
+    if c >= 0.85:
+        return "HIGH"
+    if c >= 0.70:
+        return "MEDIUM"
+    return "LOW"
+
+
+def create_alert_from_detection(camera_id, behavior_type, confidence):
+    """
+    Create an Alert row in Django using the detection info.
+    confidence: 0–1 float from YOLO.
+    """
+    camera = Camera.objects.get(id=camera_id)
+    severity = map_confidence_to_severity(behavior_type, confidence)
+
+    alert = Alert.objects.create(
+        camera=camera,
+        behavior_type=behavior_type,      # e.g. "CONCEALMENT" for shoplifting
+        confidence=confidence,            # store 0–1
+        severity=severity,
+        alert_category="SHOPLIFTING",
+        status="NEW",
+    )
+
+    print(f"[ALERT] {behavior_type} at {camera.name}: {confidence*100:.0f}% → {severity}")
+    return alert
+
+
+def handle_detection(camera_id, behavior_type, confidence):
+    now = datetime.utcnow()
+    state = active_incident.get(camera_id)
+
+    if state is None:
+        # No active incident -> create a new Alert
+        alert = create_alert_from_detection(camera_id, behavior_type, confidence)
+        active_incident[camera_id] = {
+            "alert_id": alert.id,
+            "last_seen": now,
+            "max_conf": confidence,
+        }
+        return
+
+    # Incident already active for this camera -> update state, not create a new alert
+    state["last_seen"] = now
+
+    if confidence > state["max_conf"]:
+        # Update DB row with higher confidence and severity
+        alert = Alert.objects.get(id=state["alert_id"])
+        alert.confidence = confidence
+        alert.severity = map_confidence_to_severity(behavior_type, confidence)
+        alert.save()
+        state["max_conf"] = confidence
+
+
+def cleanup_incidents():
+    now = datetime.utcnow()
+    to_delete = []
+    for camera_id, state in active_incident.items():
+        if (now - state["last_seen"]) > timedelta(seconds=INCIDENT_TIMEOUT_SECONDS):
+            to_delete.append(camera_id)
+    for camera_id in to_delete:
+        del active_incident[camera_id]
+
+
+def parse_args():
+    p = argparse.ArgumentParser(
+        description="Minimal YOLOv5 shoplifting detector (image/video)."
+    )
+    p.add_argument("--weights", required=True, help="Path to YOLOv5 weights (best.pt)")
+    p.add_argument("--source", required=True, help="Path to image/video file, or camera index (0).")
+    p.add_argument("--target_class", default="shoplifting",
+                   help="Class name to treat as 'shoplifting' (default: shoplifting).")
+    p.add_argument("--conf", type=float, default=0.4,
+                   help="Confidence threshold for detections.")
+    p.add_argument("--output", default=None,
+                   help="If provided, save annotated image/video to this path.")
+    return p.parse_args()
+
+
+def load_model(weights_path, device=None):
+    if device is None:
+        device = "cuda" if torch.cuda.is_available() else "cpu"
+    # Ultralytics YOLO API
+    model = YOLO(weights_path)
+    model.to(device)
+    return model
+
+
+def run_on_image(model, img_path, target_class, conf_thresh, out_path=None):
+    img = cv2.imread(img_path)
+    if img is None:
+        raise FileNotFoundError(f"Image not found: {img_path}")
+    results = model(img)
+    df = results.pandas().xyxy[0]
+    hits = df[(df['confidence'] >= conf_thresh) &
+              (df['name'].str.lower() == target_class.lower())]
+    detected = len(hits) > 0
+
+    # create alerts for image detections
+    for _, row in hits.iterrows():
+        conf = float(row['confidence'])
+        handle_detection(
+            camera_id=CAMERA_ID,
+            behavior_type="CONCEALMENT",
+            confidence=conf,
+        )
+
+    annotated = results.render()[0]
+    if annotated.shape[:2] != img.shape[:2]:
+        annotated = cv2.resize(annotated, (img.shape[1], img.shape[0]))
+    if out_path:
+        cv2.imwrite(out_path, annotated)
+
+    detections = []
+    for _, row in hits.iterrows():
+        detections.append({
+            "name": row['name'],
+            "confidence": float(row['confidence']),
+            "bbox": [float(row['xmin']), float(row['ymin']),
+                     float(row['xmax']), float(row['ymax'])]
+        })
+    return detected, detections
+
+
+def run_on_video(model, video_path, target_class, conf_thresh, out_path=None):
+    
+    cap = cv2.VideoCapture(video_path if not video_path.isdigit() else int(video_path))
+    if not cap.isOpened():
+        raise RuntimeError(f"Cannot open video source: {video_path}")
+    fps = cap.get(cv2.CAP_PROP_FPS) or 25.0
+    width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
+    height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
+    fourcc = cv2.VideoWriter_fourcc(*'mp4v') if out_path else None
+    writer = cv2.VideoWriter(out_path, fourcc, fps, (width, height)) if out_path else None
+
+    frame_idx = 0
+    detections_log = []
+    try:
+        while True:
+            ret, frame = cap.read()
+            if not ret:
+                break
+
+            # YOLOv8 inference
+            results = model(frame)
+            r = results[0]
+            boxes = r.boxes  # Boxes object
+
+            # Collect detections matching target_class and conf_thresh
+            hits = []
+            if boxes is not None and len(boxes) > 0:
+                clses = boxes.cls.cpu().numpy().astype(int)
+                confs = boxes.conf.cpu().numpy()
+                xyxy = boxes.xyxy.cpu().numpy()
+
+                for cls_id, conf, (x1, y1, x2, y2) in zip(clses, confs, xyxy):
+                    name = model.names[int(cls_id)].lower()
+                    if name == target_class.lower() and conf >= conf_thresh:
+                        hits.append((conf, [x1, y1, x2, y2]))
+
+            if hits:
+                t_sec = frame_idx / fps
+                for conf, bbox in hits:
+                    detections_log.append({
+                        "time_sec": round(t_sec, 3),
+                        "confidence": float(conf),
+                        "bbox": [float(b) for b in bbox],
+                    })
+                    handle_detection(
+                        camera_id=CAMERA_ID,
+                        behavior_type="CONCEALMENT",
+                        confidence=float(conf),
+                    )
+
+            # apply incident timeout each frame
+            cleanup_incidents()
+
+            # Render annotated frame from Ultralytics result
+            annotated = r.plot()
+
+            if annotated.shape[1] != width or annotated.shape[0] != height:
+                annotated = cv2.resize(annotated, (width, height))
+            if writer:
+                writer.write(annotated)
+            cv2.imshow("SmartGuard - Webcam", annotated)
+            if cv2.waitKey(1) & 0xFF == ord('q'):
+              break
+
+            frame_idx += 1
+    finally:
+        cap.release()
+        if writer:
+            writer.release()
+        cv2.destroyAllWindows()
+
+    detected = len(detections_log) > 0
+    duration = frame_idx / fps if fps else 0
+    return detected, detections_log, duration
+
+
+
+def main():
+    args = parse_args()
+    src = args.source
+    is_image = False
+    if os.path.isfile(src):
+        _, ext = os.path.splitext(src.lower())
+        if ext in (".jpg", ".jpeg", ".png", ".bmp", ".tif", ".tiff"):
+            is_image = True
+
+    print(f"[INFO] Loading model from: {args.weights}")
+    model = load_model(args.weights)
+    model.conf = args.conf
+
+    if is_image:
+        print("[INFO] Running on image:", src)
+        detected, dets = run_on_image(
+            model, src, args.target_class, args.conf, out_path=args.output
+        )
+        if detected:
+            print("[RESULT] Shoplifting DETECTED in image!")
+            for i, d in enumerate(dets, 1):
+                print(f"  - Hit {i}: conf={d['confidence']:.3f}, bbox={d['bbox']}")
+        else:
+            print("[RESULT] No shoplifting detected in image.")
+        if args.output:
+            print(f"[INFO] Annotated image saved to: {args.output}")
+    else:
+        print("[INFO] Running on video:", src)
+        detected, log, duration = run_on_video(
+            model, src, args.target_class, args.conf, out_path=args.output
+        )
+        if detected:
+            print("[RESULT] Shoplifting DETECTED in video!")
+            for i, entry in enumerate(log[:20], 1):
+                print(
+                    f"  - #{i} @ t={entry['time_sec']}s "
+                    f"conf={entry['confidence']:.3f} bbox={entry['bbox']}"
+                )
+            if len(log) > 20:
+                print(f"  ...and {len(log)-20} more detections (omitted).")
+        else:
+            print("[RESULT] No shoplifting detected in video.")
+        print(f"[INFO] Video duration (s): {duration:.2f}")
+        if args.output:
+            print(f"[INFO] Annotated video saved to: {args.output}")
+
+
+if __name__ == "__main__":
+    main()
+</file>
+
+<file path="smartguard_backend/detection_worker.py">
+"""
+detection_worker.py — SmartGuard AI Detection Worker
+Uses Ultralytics YOLO API (same as detect.py) for correct bounding boxes.
+"""
+
+import os
+import sys
+import time
+import threading
+import logging
+import base64
+from datetime import datetime, timedelta, timezone
+
+import cv2
+import numpy as np
+import torch
+
+# ── Django setup ──────────────────────────────────────────────────────────────
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "smartguard_backend.settings")
+import django
+django.setup()
+
+from django.utils import timezone as dj_timezone
+from django.core.mail import send_mail
+from django.conf import settings
+from asgiref.sync import async_to_sync
+from channels.layers import get_channel_layer
+
+from cameras.models import Camera
+from alerts.models import Alert
+from accounts.models import CustomUser
+
+# ── Ultralytics YOLO (same as detect.py — fixes bounding boxes) ───────────────
+from ultralytics import YOLO
+
+# ── Logging ───────────────────────────────────────────────────────────────────
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s [WORKER] %(levelname)s %(message)s",
+    datefmt="%H:%M:%S",
+)
+log = logging.getLogger(__name__)
+
+# ── Configuration ─────────────────────────────────────────────────────────────
+MODEL_PATH           = r"D:\Jacob\SmartGuard\yolov5\best3.pt"
+CONFIDENCE_THRESHOLD = 0.4
+FRAME_SKIP           = 3          # run inference every N frames
+HEARTBEAT_EVERY      = 30         # seconds between heartbeat pushes
+EMAIL_COOLDOWN       = 60         # seconds between emails per camera
+INCIDENT_TIMEOUT     = 30         # seconds before incident is considered over
+TARGET_CLASS         = "shoplifting"
+
+# ── FIX 3 — Test mode ─────────────────────────────────────────────────────────
+# Set TEST_VIDEO_PATH to a local video file to override all camera RTSP streams.
+# The video will loop automatically so you can capture screenshots at any point.
+# Set to None when done testing to use real camera streams from the database.
+TEST_VIDEO_PATH = r"D:\Jacob\SmartguardYOLOV5\sl5.mp4"
+# TEST_VIDEO_PATH = None   # ← uncomment this line when deploying for real
+
+# ── Model (loaded once, shared across threads) ────────────────────────────────
+_model      = None
+_model_lock = threading.Lock()
+
+def get_model() -> YOLO:
+    global _model
+    with _model_lock:
+        if _model is None:
+            log.info("Loading YOLOv5 model from: %s", MODEL_PATH)
+            _model = YOLO(MODEL_PATH)
+            log.info("Model loaded. Classes: %s", _model.names)
+    return _model
+
+
+# ── Severity mapping ──────────────────────────────────────────────────────────
+def map_confidence_to_severity(behavior_type: str, c: float) -> str:
+    if behavior_type == "CONCEALMENT":
+        if c >= 0.95: return "CRITICAL"
+        if c >= 0.85: return "HIGH"
+        if c >= 0.70: return "MEDIUM"
+        return "LOW"
+    if behavior_type == "LOITERING":
+        if c >= 0.90: return "HIGH"
+        if c >= 0.70: return "MEDIUM"
+        return "LOW"
+    if behavior_type == "RAPID_EXIT":
+        if c >= 0.92: return "CRITICAL"
+        if c >= 0.80: return "HIGH"
+        if c >= 0.65: return "MEDIUM"
+        return "LOW"
+    # SHOPLIFTING + fallback
+    if c >= 0.90: return "HIGH"
+    if c >= 0.70: return "MEDIUM"
+    return "LOW"
+
+# convenience alias
+confidence_to_severity = lambda c: map_confidence_to_severity("SHOPLIFTING", c)
+
+
+# ── Alert creation ────────────────────────────────────────────────────────────
+def save_alert(camera: Camera, behavior_type: str, confidence: float, severity: str) -> int:
+    alert = Alert.objects.create(
+        camera=camera,
+        behavior_type=behavior_type,
+        confidence=confidence,
+        severity=severity,
+        alert_category="SHOPLIFTING",
+        status="NEW",
+    )
+    log.info("[CAM %s] Alert saved: id=%s severity=%s conf=%.2f",
+             camera.id, alert.id, severity, confidence)
+    return alert.id
+
+
+# ── Incident deduplication ────────────────────────────────────────────────────
+# Prevents a new alert row being created every FRAME_SKIP frames.
+# One Alert per incident; confidence updated if a higher value is seen.
+_incidents: dict = {}   # {camera_id: {alert_id, last_seen, max_conf}}
+
+def handle_detection(camera: Camera, behavior_type: str, confidence: float):
+    """Create or update the active incident alert for this camera."""
+    now    = datetime.now(timezone.utc)
+    cam_id = camera.id
+    state  = _incidents.get(cam_id)
+
+    if state is None:
+        severity = map_confidence_to_severity(behavior_type, confidence)
+        alert_id = save_alert(camera, behavior_type, confidence, severity)
+        _incidents[cam_id] = {
+            "alert_id": alert_id,
+            "last_seen": now,
+            "max_conf": confidence,
+        }
+        return alert_id, severity, True   # (id, severity, is_new)
+
+    # Incident still active — update last_seen and possibly severity
+    state["last_seen"] = now
+    is_new = False
+
+    if confidence > state["max_conf"]:
+        severity = map_confidence_to_severity(behavior_type, confidence)
+        Alert.objects.filter(id=state["alert_id"]).update(
+            confidence=confidence,
+            severity=severity,
+        )
+        state["max_conf"] = confidence
+    else:
+        severity = map_confidence_to_severity(behavior_type, state["max_conf"])
+
+    return state["alert_id"], severity, is_new
+
+
+def cleanup_incidents():
+    """Expire incidents that haven't been seen for INCIDENT_TIMEOUT seconds."""
+    now = datetime.now(timezone.utc)
+    expired = [
+        cam_id for cam_id, s in _incidents.items()
+        if (now - s["last_seen"]).total_seconds() > INCIDENT_TIMEOUT
+    ]
+    for cam_id in expired:
+        del _incidents[cam_id]
+
+
+# ── WebSocket push ────────────────────────────────────────────────────────────
+def push_detection(camera_id, camera_name, behavior_type,
+                   confidence, severity, alert_id, frame_bgr=None):
+    channel_layer = get_channel_layer()
+
+    frame_b64 = None
+    if frame_bgr is not None:
+        try:
+            _, buf = cv2.imencode(".jpg", frame_bgr, [cv2.IMWRITE_JPEG_QUALITY, 70])
+            frame_b64 = base64.b64encode(buf.tobytes()).decode()
+        except Exception as e:
+            log.warning("Frame encode failed: %s", e)
+
+    payload = {
+        "type":          "detection.event",
+        "camera_id":     camera_id,
+        "camera_name":   camera_name,
+        "behavior_type": behavior_type,
+        "confidence":    round(float(confidence), 4),
+        "severity":      severity,
+        "alert_id":      alert_id,
+        "timestamp":     datetime.now(timezone.utc).isoformat(),
+        "frame_jpg_b64": frame_b64,
+    }
+
+    try:
+        async_to_sync(channel_layer.group_send)(f"camera_{camera_id}", payload)
+    except Exception as e:
+        log.error("Camera channel push failed: %s", e)
+
+    # Global alert channel
+    try:
+        global_payload        = dict(payload)
+        global_payload["type"] = "new.alert"
+        async_to_sync(channel_layer.group_send)("alerts_global", global_payload)
+    except Exception as e:
+        log.error("Global alert push failed: %s", e)
+
+
+def push_heartbeat(camera_id: int, fps: float):
+    try:
+        channel_layer = get_channel_layer()
+        async_to_sync(channel_layer.group_send)(
+            f"camera_{camera_id}",
+            {
+                "type":      "worker.heartbeat",
+                "camera_id": camera_id,
+                "fps":       round(fps, 1),
+                "ts":        datetime.now(timezone.utc).isoformat(),
+            },
+        )
+    except Exception as e:
+        log.warning("Heartbeat push failed: %s", e)
+
+
+# ── FIX 2 — Role-split email alerts ──────────────────────────────────────────
+# OPS/ADMIN receive full technical details (severity, behavior, confidence,
+# alert ID). STAFF receive location and time only — no behavior type, no
+# confidence score — consistent with the Staff Portal UI and RA 10173
+# data minimization requirements.
+def send_alert_email(camera_name: str, behavior_type: str,
+                     confidence: float, severity: str, alert_id: int):
+    try:
+        timestamp_str = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S UTC")
+
+        # ── OPS + ADMIN — full technical details ─────────────────────────────
+        ops_recipients = list(
+            CustomUser.objects.filter(
+                role__in=["OPERATIONS_MANAGER", "ADMIN"],
+                is_active=True,
+            ).exclude(email="").values_list("email", flat=True)
+        )
+
+        if ops_recipients:
+            ops_subject = (
+                f"[SmartGuard] {severity} Alert — "
+                f"{behavior_type} Detected at {camera_name}"
+            )
+            ops_message = (
+                f"SmartGuard AI has detected a suspicious activity.\n\n"
+                f"Severity:    {severity}\n"
+                f"Behavior:    {behavior_type}\n"
+                f"Camera:      {camera_name}\n"
+                f"Confidence:  {round(confidence * 100)}%\n"
+                f"Alert ID:    #{alert_id}\n"
+                f"Time:        {timestamp_str}\n\n"
+                f"Log in to the SmartGuard dashboard to review and take action:\n"
+                f"http://localhost:5173/ops\n"
+            )
+            send_mail(
+                subject=ops_subject,
+                message=ops_message,
+                from_email=settings.DEFAULT_FROM_EMAIL,
+                recipient_list=ops_recipients,
+                fail_silently=False,
+            )
+            log.info("Full alert email sent to %d OPS/ADMIN recipient(s).",
+                     len(ops_recipients))
+
+        # ── STAFF — location and time ONLY ───────────────────────────────────
+        # No behavior type, no confidence score, no alert ID.
+        # Consistent with the Staff Portal UI which shows the same limited info.
+        staff_recipients = list(
+            CustomUser.objects.filter(
+                role="STAFF",
+                is_active=True,
+            ).exclude(email="").values_list("email", flat=True)
+        )
+
+        if staff_recipients:
+            staff_subject = (
+                f"[SmartGuard] Incident Alert — {camera_name}"
+            )
+            staff_message = (
+                f"An incident has been reported in your area.\n\n"
+                f"Location:  {camera_name}\n"
+                f"Time:      {timestamp_str}\n\n"
+                f"Please check the Staff Portal and acknowledge this alert:\n"
+                f"http://localhost:5173/staff\n"
+            )
+            send_mail(
+                subject=staff_subject,
+                message=staff_message,
+                from_email=settings.DEFAULT_FROM_EMAIL,
+                recipient_list=staff_recipients,
+                fail_silently=False,
+            )
+            log.info("Minimal alert email sent to %d STAFF recipient(s).",
+                     len(staff_recipients))
+
+        if not ops_recipients and not staff_recipients:
+            log.warning("No email recipients found.")
+
+    except Exception as e:
+        log.error("Failed to send alert email: %s", e)
+
+
+# ── HUD overlay ──────────────────────────────────────────────────────────────
+# Draws a SmartGuard-branded overlay on top of the YOLO annotated frame.
+# Shows: camera name, timestamp, FPS, behavior label, severity badge,
+# confidence bar, and alert ID when a detection fires.
+
+SEVERITY_COLORS = {
+    "CRITICAL": (0,   0,   220),   # red
+    "HIGH":     (0,   100, 220),   # orange-red
+    "MEDIUM":   (0,   165, 255),   # amber
+    "LOW":      (180, 130, 70),    # muted blue
+}
+
+FONT       = cv2.FONT_HERSHEY_DUPLEX
+FONT_SMALL = cv2.FONT_HERSHEY_SIMPLEX
+
+
+def _text(img, text, pos, scale, color, thickness=1, shadow=True):
+    """Draw text with optional drop shadow for readability on any background."""
+    x, y = pos
+    if shadow:
+        cv2.putText(img, text, (x + 1, y + 1), FONT, scale, (0, 0, 0), thickness + 1, cv2.LINE_AA)
+    cv2.putText(img, text, pos, FONT, scale, color, thickness, cv2.LINE_AA)
+
+
+def _filled_rect(img, x1, y1, x2, y2, color, alpha=0.55):
+    """Semi-transparent filled rectangle."""
+    overlay = img.copy()
+    cv2.rectangle(overlay, (x1, y1), (x2, y2), color, -1)
+    cv2.addWeighted(overlay, alpha, img, 1 - alpha, 0, img)
+
+
+def draw_hud(frame: np.ndarray, cam_name: str, fps: float,
+             detection: dict | None) -> np.ndarray:
+    """
+    Draws the SmartGuard HUD on top of the YOLO-annotated frame.
+
+    detection = None                    → idle state (no current detection)
+    detection = {
+        behavior_type, confidence,
+        severity, alert_id
+    }                                   → active detection state
+    """
+    h, w = frame.shape[:2]
+    out  = frame.copy()
+
+    # ── Top bar — camera name + timestamp + FPS ──────────────────────────────
+    bar_h = 38
+    _filled_rect(out, 0, 0, w, bar_h, (15, 20, 30), alpha=0.75)
+
+    # SmartGuard logo text
+    _text(out, "SMART", (10, 26), 0.55, (255, 255, 255), thickness=1)
+    _text(out, "GUARD", (65, 26), 0.55, (59, 130, 246), thickness=1)
+
+    # Camera name
+    _text(out, f"  |  {cam_name}", (115, 26), 0.45, (180, 200, 220), thickness=1)
+
+    # Timestamp + FPS on right
+    ts  = datetime.now().strftime("%Y-%m-%d  %H:%M:%S")
+    fps_str = f"{fps:.1f} FPS"
+    _text(out, fps_str, (w - 90, 26), 0.44, (100, 200, 100), thickness=1)
+    _text(out, ts,      (w - 220, 26), 0.38, (140, 160, 180), thickness=1)
+
+    # ── Bottom panel ─────────────────────────────────────────────────────────
+    panel_h = 56
+    _filled_rect(out, 0, h - panel_h, w, h, (10, 14, 22), alpha=0.80)
+
+    if detection is None:
+        # ── Idle state ────────────────────────────────────────────────────────
+        _text(out, "MONITORING", (12, h - 33), 0.50, (80, 140, 200), thickness=1)
+        _text(out, "No suspicious behavior detected",
+              (12, h - 12), 0.40, (100, 120, 140), thickness=1)
+
+        # Green "LIVE" pill
+        cv2.rectangle(out, (w - 66, h - panel_h + 10),
+                      (w - 10, h - panel_h + 32), (0, 160, 60), -1)
+        cv2.rectangle(out, (w - 66, h - panel_h + 10),
+                      (w - 10, h - panel_h + 32), (0, 220, 80), 1)
+        _text(out, "LIVE", (w - 58, h - panel_h + 25),
+              0.38, (255, 255, 255), thickness=1, shadow=False)
+
+    else:
+        # ── Active detection state ────────────────────────────────────────────
+        btype    = detection["behavior_type"]
+        conf     = detection["confidence"]
+        sev      = detection["severity"]
+        alert_id = detection["alert_id"]
+        sev_col  = SEVERITY_COLORS.get(sev, (200, 200, 200))
+
+        # Behavior label
+        _text(out, btype, (12, h - 33), 0.62, (255, 255, 255), thickness=1)
+
+        # Alert ID small
+        _text(out, f"Alert #{alert_id}", (12, h - 11),
+              0.38, (140, 160, 180), thickness=1)
+
+        # ── Severity badge ────────────────────────────────────────────────────
+        badge_x = 220
+        badge_w = len(sev) * 11 + 18
+        cv2.rectangle(out,
+                      (badge_x, h - panel_h + 12),
+                      (badge_x + badge_w, h - panel_h + 34),
+                      sev_col, -1)
+        cv2.rectangle(out,
+                      (badge_x, h - panel_h + 12),
+                      (badge_x + badge_w, h - panel_h + 34),
+                      (255, 255, 255), 1)
+        _text(out, sev,
+              (badge_x + 8, h - panel_h + 27),
+              0.38, (255, 255, 255), thickness=1, shadow=False)
+
+        # ── Confidence bar ────────────────────────────────────────────────────
+        bar_x     = badge_x + badge_w + 16
+        bar_y     = h - panel_h + 16
+        bar_total = 180
+        bar_fill  = int(bar_total * conf)
+        bar_color = sev_col
+
+        # Track
+        cv2.rectangle(out,
+                      (bar_x, bar_y),
+                      (bar_x + bar_total, bar_y + 12),
+                      (40, 50, 65), -1)
+        # Fill
+        if bar_fill > 0:
+            cv2.rectangle(out,
+                          (bar_x, bar_y),
+                          (bar_x + bar_fill, bar_y + 12),
+                          bar_color, -1)
+        # Border
+        cv2.rectangle(out,
+                      (bar_x, bar_y),
+                      (bar_x + bar_total, bar_y + 12),
+                      (80, 100, 120), 1)
+
+        # Confidence percentage
+        conf_pct = f"{round(conf * 100)}%"
+        _text(out, conf_pct,
+              (bar_x + bar_total + 8, bar_y + 11),
+              0.42, (220, 230, 240), thickness=1)
+
+        # Confidence label above bar
+        _text(out, "CONFIDENCE",
+              (bar_x, bar_y - 3),
+              0.28, (100, 130, 160), thickness=1)
+
+        # ── Flashing ALERT pill (pulses via frame time) ───────────────────────
+        pulse = int(time.time() * 2) % 2 == 0
+        pill_color = (0, 0, 200) if pulse else (0, 0, 160)
+        cv2.rectangle(out,
+                      (w - 90, h - panel_h + 10),
+                      (w - 10, h - panel_h + 32),
+                      pill_color, -1)
+        cv2.rectangle(out,
+                      (w - 90, h - panel_h + 10),
+                      (w - 10, h - panel_h + 32),
+                      (80, 80, 255), 1)
+        _text(out, "ALERT",
+              (w - 80, h - panel_h + 25),
+              0.38, (255, 255, 255), thickness=1, shadow=False)
+
+    # ── Border frame — red when detecting, dark blue when idle ───────────────
+    border_col = SEVERITY_COLORS.get(
+        detection["severity"] if detection else None,
+        (30, 50, 80)
+    )
+    cv2.rectangle(out, (0, 0), (w - 1, h - 1), border_col, 3)
+
+    return out
+
+
+# ── Redis frame sharing (for MJPEG stream) ────────────────────────────────────
+def publish_frame_to_redis(camera_id: int, frame_bgr):
+    try:
+        import redis
+        r = redis.Redis(host="127.0.0.1", port=6379)
+        _, buf = cv2.imencode(".jpg", frame_bgr, [cv2.IMWRITE_JPEG_QUALITY, 70])
+        r.set(f"frame:{camera_id}", buf.tobytes(), ex=5)
+    except Exception as e:
+        log.warning("Redis frame publish failed: %s", e)
+
+
+# ── Camera worker thread ──────────────────────────────────────────────────────
+def camera_worker(camera: Camera):
+    cam_id   = camera.id
+    cam_name = camera.name
+    rtsp_url = camera.rtsp_url
+
+    log.info("[CAM %s] Starting worker for '%s' — %s", cam_id, cam_name, rtsp_url)
+    model = get_model()
+
+    frame_count         = 0
+    inference_count     = 0       # ← separate counter for FRAME_SKIP
+    fps_timer           = time.time()
+    fps                 = 0.0
+    last_heartbeat      = time.time()
+    last_alert_email_ts = 0
+
+    while True:
+        source = int(rtsp_url) if rtsp_url.isdigit() else rtsp_url
+
+        cap = cv2.VideoCapture(source)
+        cap.set(cv2.CAP_PROP_BUFFERSIZE, 1)   # ← fix C
+
+        if not cap.isOpened():
+            log.warning("[CAM %s] Cannot open stream '%s'. Retrying in 10s…", cam_id, source)
+            time.sleep(10)
+            continue
+
+        log.info("[CAM %s] Stream opened. Resolution: %dx%d",
+                 cam_id,
+                 int(cap.get(cv2.CAP_PROP_FRAME_WIDTH)),
+                 int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT)))
+
+        Camera.objects.filter(pk=cam_id).update(
+            status="ONLINE", last_heartbeat=dj_timezone.now(),
+        )
+
+        read_errors     = 0
+        MAX_READ_ERRORS = 10
+
+        while True:
+            ret, frame = cap.read()
+            if not ret:
+                if TEST_VIDEO_PATH:
+                    log.info("[CAM %s] Test video ended — looping.", cam_id)
+                    cap.set(cv2.CAP_PROP_POS_FRAMES, 0)
+                    continue
+                read_errors += 1
+                if read_errors >= MAX_READ_ERRORS:
+                    log.error("[CAM %s] Too many read errors — reconnecting.", cam_id)
+                    break
+                time.sleep(0.1)
+                continue
+
+            read_errors  = 0
+            frame_count += 1
+
+            # FPS tracking
+            elapsed = time.time() - fps_timer
+            if elapsed >= 5.0:
+                fps         = frame_count / elapsed
+                frame_count = 0
+                fps_timer   = time.time()
+
+            # Heartbeat
+            if time.time() - last_heartbeat >= HEARTBEAT_EVERY:
+                Camera.objects.filter(pk=cam_id).update(last_heartbeat=dj_timezone.now())
+                push_heartbeat(cam_id, fps)
+                last_heartbeat = time.time()
+
+            # ── FRAME_SKIP — only run inference every N frames ────────────────
+            inference_count += 1                        # ← fix A
+            if inference_count % FRAME_SKIP != 0:
+                continue
+
+            cleanup_incidents()
+
+            # ── Inference ─────────────────────────────────────────────────────
+            try:
+                results         = model(frame, conf=CONFIDENCE_THRESHOLD, verbose=False)
+                r               = results[0]
+                boxes           = r.boxes
+                annotated_frame = r.plot()
+            except Exception as e:
+                log.error("[CAM %s] Inference error: %s", cam_id, e)
+                continue
+
+            # ── Publish to Redis AFTER inference, use annotated frame ─────────
+            publish_frame_to_redis(cam_id, annotated_frame)   # ← fix B
+
+            # ── Parse detections ──────────────────────────────────────────────
+            shoplifting_detected = False
+            best_conf            = 0.0
+
+            if boxes is not None and len(boxes) > 0:
+                clses = boxes.cls.cpu().numpy().astype(int)
+                confs = boxes.conf.cpu().numpy()
+                for cls_id, conf in zip(clses, confs):
+                    class_name = model.names[int(cls_id)].lower()
+                    if class_name == TARGET_CLASS and conf >= CONFIDENCE_THRESHOLD:
+                        shoplifting_detected = True
+                        if conf > best_conf:
+                            best_conf = float(conf)
+
+            current_detection = None
+
+            if shoplifting_detected:
+                alert_id, severity, is_new = handle_detection(camera, "SHOPLIFTING", best_conf)
+                current_detection = {
+                    "behavior_type": "SHOPLIFTING",
+                    "confidence":    best_conf,
+                    "severity":      severity,
+                    "alert_id":      alert_id,
+                }
+                push_detection(
+                    camera_id=cam_id, camera_name=cam_name,
+                    behavior_type="SHOPLIFTING", confidence=best_conf,
+                    severity=severity, alert_id=alert_id,
+                    frame_bgr=annotated_frame,
+                )
+                now = time.time()
+                if severity in ("HIGH", "CRITICAL") and \
+                        now - last_alert_email_ts >= EMAIL_COOLDOWN:
+                    send_alert_email(cam_name, "SHOPLIFTING", best_conf, severity, alert_id)
+                    last_alert_email_ts = now
+
+            # ── Preview window ────────────────────────────────────────────────
+            display_frame = draw_hud(annotated_frame, cam_name, fps, current_detection)
+            cv2.imshow(f"SmartGuard - {cam_name}", display_frame)
+            if cv2.waitKey(1) & 0xFF == ord("q"):
+                log.info("[CAM %s] Preview closed by user.", cam_id)
+                cap.release()
+                cv2.destroyAllWindows()
+                return
+
+        cap.release()
+        cv2.destroyAllWindows()
+        Camera.objects.filter(pk=cam_id).update(status="OFFLINE")
+        log.warning("[CAM %s] Stream closed. Reconnecting in 10s…", cam_id)
+        time.sleep(10)  
+
+
+# ── Main ──────────────────────────────────────────────────────────────────────
+def main():
+
+    log.info("=" * 60)
+    log.info("SmartGuard AI Detection Worker starting...")
+    log.info("=" * 60)
+    # Pre-load model before spawning threads
+    get_model()
+
+    cameras = list(
+        Camera.objects.filter(is_active=True).exclude(rtsp_url="")
+    )
+
+    if not cameras:
+        log.warning("No active cameras found in the database.")
+        log.warning("Add a camera via the dashboard and restart this worker.")
+        return
+
+    log.info("Found %d active camera(s). Starting detection threads…", len(cameras))
+
+    threads = []
+    for cam in cameras:
+        t = threading.Thread(
+            target=camera_worker,
+            args=(cam,),
+            name=f"worker-cam-{cam.id}",
+            daemon=True,
+        )
+        t.start()
+        threads.append(t)
+        log.info("  Started thread for camera: [%s] %s", cam.id, cam.name)
+
+    log.info("All workers started. Press Ctrl+C to stop.")
+    if TEST_VIDEO_PATH:
+        log.info("Video is looping — press Q in the preview window or Ctrl+C to stop.")
+
+    try:
+        while True:
+            alive = [t.name for t in threads if t.is_alive()]
+            if alive:
+                log.info("Alive workers: %s", alive)
+            else:
+                log.warning("All worker threads have stopped.")
+                break
+            time.sleep(60)
+    except KeyboardInterrupt:
+        log.info("Shutdown requested. Stopping workers…")
+
+
+if __name__ == "__main__":
+    main()
+</file>
+
+<file path="smartguard_backend/ir/__init__.py">
+
+</file>
+
+<file path="smartguard_backend/ir/admin.py">
+from django.contrib import admin
+
+# Register your models here.
+</file>
+
+<file path="smartguard_backend/ir/apps.py">
+from django.apps import AppConfig
+
+
+class IrConfig(AppConfig):
+    name = 'ir'
+</file>
+
+<file path="smartguard_backend/ir/migrations/__init__.py">
+
+</file>
+
+<file path="smartguard_backend/ir/models.py">
+from django.db import models
+
+# Create your models here.
+</file>
+
+<file path="smartguard_backend/ir/tests.py">
+from django.test import TestCase
+
+# Create your tests here.
+</file>
+
+<file path="smartguard_backend/ir/views.py">
+from django.shortcuts import render
+
+# Create your views here.
+</file>
+
+<file path="smartguard_backend/logging_info/__init__.py">
+
+</file>
+
+<file path="smartguard_backend/logging_info/admin.py">
+from django.contrib import admin
+
+# Register your models here.
+</file>
+
+<file path="smartguard_backend/logging_info/apps.py">
+from django.apps import AppConfig
+
+
+class LoggingInfoConfig(AppConfig):
+    name = 'logging_info'
+</file>
+
+<file path="smartguard_backend/logging_info/migrations/__init__.py">
+
+</file>
+
+<file path="smartguard_backend/logging_info/models.py">
+from django.db import models
+
+# Create your models here.
+</file>
+
+<file path="smartguard_backend/logging_info/tests.py">
+from django.test import TestCase
+
+# Create your tests here.
+</file>
+
+<file path="smartguard_backend/logging_info/views.py">
+from django.shortcuts import render
+
+# Create your views here.
+</file>
+
+<file path="smartguard_backend/manage.py">
+#!/usr/bin/env python
+"""Django's command-line utility for administrative tasks."""
+import os
+import sys
+
+
+def main():
+    """Run administrative tasks."""
+    os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'smartguard_backend.settings')
+    try:
+        from django.core.management import execute_from_command_line
+    except ImportError as exc:
+        raise ImportError(
+            "Couldn't import Django. Are you sure it's installed and "
+            "available on your PYTHONPATH environment variable? Did you "
+            "forget to activate a virtual environment?"
+        ) from exc
+    execute_from_command_line(sys.argv)
+
+
+if __name__ == '__main__':
+    main()
+</file>
+
+<file path="smartguard_backend/smartguard_backend/__init__.py">
+
+</file>
+
+<file path="smartguard_backend/smartguard_backend/asgi.py">
+# smartguard_backend/asgi.py
+#
+# This file ONLY handles routing.
+# The CameraDetectionConsumer lives in cameras/consumers.py — NOT here.
+
+import os
+import django
+
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "smartguard_backend.settings")
+django.setup()
+
+from django.core.asgi import get_asgi_application
+from channels.routing import ProtocolTypeRouter, URLRouter
+from channels.auth import AuthMiddlewareStack
+import cameras.routing
+
+django_asgi_app = get_asgi_application()
+
+application = ProtocolTypeRouter({
+    "http": django_asgi_app,
+    "websocket": AuthMiddlewareStack(
+        URLRouter(cameras.routing.websocket_urlpatterns)
+    ),
+})
+</file>
+
+<file path="smartguard_backend/smartguard_backend/settings.py">
+"""
+Django settings for smartguard_backend project.
+"""
+
+import os
+from pathlib import Path
+from datetime import timedelta
+
+# ── Twilio ─────────────────────────────────────────────────────────────────────
+TWILIO_ACCOUNT_SID  = os.environ.get("TWILIO_ACCOUNT_SID",  "")
+TWILIO_AUTH_TOKEN   = os.environ.get("TWILIO_AUTH_TOKEN",   "")
+TWILIO_FROM_NUMBER  = os.environ.get("TWILIO_FROM_NUMBER",  "")
+
+BASE_DIR = Path(__file__).resolve().parent.parent
+
+# ── Core ───────────────────────────────────────────────────────────────────────
+SECRET_KEY = 'django-insecure-^==a$(7@an64!0t!8y)-0tt))ibbz%^(nd34)38_7x4po8p*z%'
+DEBUG      = True
+ALLOWED_HOSTS = ["*"]
+
+# ── Apps ───────────────────────────────────────────────────────────────────────
+INSTALLED_APPS = [
+    "daphne", 
+    'django.contrib.admin',
+    'django.contrib.auth',
+    'django.contrib.contenttypes',
+    'django.contrib.sessions',
+    'django.contrib.messages',
+    'django.contrib.staticfiles',
+    'rest_framework',
+    'corsheaders',
+    'accounts',
+    'cameras',
+    'logging_info',
+    'alerts.apps.AlertsConfig',
+]
+ASGI_APPLICATION = "smartguard_backend.asgi.application"
+# at the bottom or near ASGI_APPLICATION
+CHANNEL_LAYERS = {
+    "default": {
+        "BACKEND": "channels_redis.core.RedisChannelLayer",
+        "CONFIG": {
+            "hosts": [("127.0.0.1", 6379)],
+            "capacity": 1500,           # max messages per channel before dropping
+            "expiry": 10,               # seconds before unread messages expire
+        },
+    },
+}
+
+
+AUTH_USER_MODEL = 'accounts.CustomUser'
+
+# ── Middleware ─────────────────────────────────────────────────────────────────
+MIDDLEWARE = [
+    'django.middleware.security.SecurityMiddleware',
+    'django.contrib.sessions.middleware.SessionMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
+    'django.middleware.common.CommonMiddleware',
+    'django.middleware.csrf.CsrfViewMiddleware',
+    'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'django.contrib.messages.middleware.MessageMiddleware',
+    'django.middleware.clickjacking.XFrameOptionsMiddleware',
+]
+
+ROOT_URLCONF = 'smartguard_backend.urls'
+
+TEMPLATES = [
+    {
+        'BACKEND': 'django.template.backends.django.DjangoTemplates',
+        'DIRS': [],
+        'APP_DIRS': True,
+        'OPTIONS': {
+            'context_processors': [
+                'django.template.context_processors.request',
+                'django.contrib.auth.context_processors.auth',
+                'django.contrib.messages.context_processors.messages',
+            ],
+        },
+    },
+]
+
+WSGI_APPLICATION = 'smartguard_backend.wsgi.application'
+
+# ── Database ───────────────────────────────────────────────────────────────────
+DATABASES = {
+    'default': {
+        'ENGINE':   'django.db.backends.postgresql',
+        'NAME':     'smartguard_db',
+        'USER':     'smartguard',
+        'PASSWORD': 'smgh123!',
+        'HOST':     'localhost',
+        'PORT':     '5432',
+    }
+}
+
+# ── BCrypt Password Hashing ────────────────────────────────────────────────────
+# Install first: pip install django[bcrypt]
+#
+# Django uses the FIRST hasher for all NEW passwords.
+# Existing PBKDF2 hashes are automatically re-hashed to BCrypt
+# the next time each user logs in — no data migration needed.
+PASSWORD_HASHERS = [
+    'django.contrib.auth.hashers.BCryptSHA256PasswordHasher',  # ← primary (NEW)
+    'django.contrib.auth.hashers.PBKDF2PasswordHasher',        # ← fallback for old hashes
+    'django.contrib.auth.hashers.PBKDF2SHA1PasswordHasher',
+]
+
+# ── Password Validation ────────────────────────────────────────────────────────
+AUTH_PASSWORD_VALIDATORS = [
+    {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
+    {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator'},
+    {'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator'},
+    {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator'},
+]
+
+# ── Internationalisation ───────────────────────────────────────────────────────
+LANGUAGE_CODE = 'en-us'
+TIME_ZONE     = 'UTC'
+USE_I18N      = True
+USE_TZ        = True
+
+STATIC_URL = 'static/'
+
+# ── DRF ───────────────────────────────────────────────────────────────────────
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+        'rest_framework.authentication.SessionAuthentication',
+    ],
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.IsAuthenticated',
+    ],
+}
+
+# ── JWT ───────────────────────────────────────────────────────────────────────
+SIMPLE_JWT = {
+    'ACCESS_TOKEN_LIFETIME':        timedelta(minutes=30),
+    'REFRESH_TOKEN_LIFETIME':       timedelta(days=1),
+    'ROTATE_REFRESH_TOKENS':        True,
+    'BLACKLIST_AFTER_ROTATION':     True,
+    'ALGORITHM':                    'HS256',
+    'AUTH_HEADER_TYPES':            ('Bearer',),
+}
+
+# ── CORS ──────────────────────────────────────────────────────────────────────
+CORS_ALLOWED_ORIGINS = [
+    'http://localhost:5173',
+]
+
+CSRF_TRUSTED_ORIGINS = [
+    'http://localhost:5173',
+]
+
+# ── Login redirects (DRF browsable API) ───────────────────────────────────────
+LOGIN_REDIRECT_URL = '/api/alerts/'
+LOGIN_URL          = '/api-auth/login/'
+
+# ── Email ─────────────────────────────────────────────────────────────────────
+EMAIL_BACKEND       = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST          = 'smtp.gmail.com'
+EMAIL_PORT          = 587
+EMAIL_USE_TLS       = True
+EMAIL_HOST_USER     = 'smartguardalerts01@gmail.com'
+EMAIL_HOST_PASSWORD = 'ijzdntbwdfsbgzjf'
+DEFAULT_FROM_EMAIL  = EMAIL_HOST_USER
+
+# ── Dev debug prints (remove in production) ───────────────────────────────────
+print(">>> USING SETTINGS FROM:", __file__)
+print(">>> LOGIN_REDIRECT_URL =", LOGIN_REDIRECT_URL)
+print(">>> LOGIN_URL =", LOGIN_URL)
+
+from datetime import timedelta
+# ...
+
+#CACHES = {
+#    "default": {
+#        "BACKEND": "django_redis.cache.RedisCache",
+#        "LOCATION": "redis://127.0.0.1:6379/0",
+#        "OPTIONS": {
+#            "CLIENT_CLASS": "django_redis.client.DefaultClient",
+#        }
+#    }
+#}
+
+#LOGIN_LOCK_MAX_ATTEMPTS = 5
+#LOGIN_LOCK_DURATION_SECONDS = 2 * 60  # 2 minutes, match your model constant
+</file>
+
+<file path="smartguard_backend/smartguard_backend/urls.py">
+from django.contrib import admin
+from django.urls import path, include
+
+
+urlpatterns = [
+    path('admin/', admin.site.urls),
+    path("api-auth/", include("rest_framework.urls")),
+    path('api/', include('accounts.urls')),
+    path('api/', include('cameras.urls')),
+    path('api/', include('alerts.urls')),
+]
+</file>
+
+<file path="smartguard_backend/smartguard_backend/wsgi.py">
+"""
+WSGI config for smartguard_backend project.
+
+It exposes the WSGI callable as a module-level variable named ``application``.
+
+For more information on this file, see
+https://docs.djangoproject.com/en/6.0/howto/deployment/wsgi/
+"""
+
+import os
+
+from django.core.wsgi import get_wsgi_application
+
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'smartguard_backend.settings')
+
+application = get_wsgi_application()
+</file>
+
+<file path="smartguard_backend/test_webcam_headless.py">
+import cv2
+
+print("Opening webcam index 0...")
+cap = cv2.VideoCapture(0)
+
+if not cap.isOpened():
+    print("FAILED: cannot open webcam index 0")
+    exit(1)
+
+print("SUCCESS: webcam opened. Reading a few frames...")
+
+ok_frames = 0
+for i in range(30):
+    ret, frame = cap.read()
+    if not ret:
+        print(f"Frame {i}: FAILED")
+    else:
+        ok_frames += 1
+        print(f"Frame {i}: OK, shape={frame.shape}")
+
+cap.release()
+print(f"Done. {ok_frames} / 30 frames read successfully.")
+</file>
+
+<file path="smartguard_backend/test_webcam.py">
+import cv2
+
+cap = cv2.VideoCapture(0)  # 0 = default webcam
+
+if not cap.isOpened():
+    print("Cannot open webcam")
+    exit()
+
+while True:
+    ret, frame = cap.read()
+    if not ret:
+        print("Failed to grab frame")
+        break
+    cv2.imshow("Webcam test", frame)
+    if cv2.waitKey(1) & 0xFF == ord('q'):
+        break
+
+cap.release()
+cv2.destroyAllWindows()
+</file>
+
+<file path="smartguard-frontend/eslint.config.js">
+import js from '@eslint/js'
+import globals from 'globals'
+import reactHooks from 'eslint-plugin-react-hooks'
+import reactRefresh from 'eslint-plugin-react-refresh'
+import { defineConfig, globalIgnores } from 'eslint/config'
+
+export default defineConfig([
+  globalIgnores(['dist']),
+  {
+    files: ['**/*.{js,jsx}'],
+    extends: [
+      js.configs.recommended,
+      reactHooks.configs.flat.recommended,
+      reactRefresh.configs.vite,
+    ],
+    languageOptions: {
+      ecmaVersion: 2020,
+      globals: globals.browser,
+      parserOptions: {
+        ecmaVersion: 'latest',
+        ecmaFeatures: { jsx: true },
+        sourceType: 'module',
+      },
+    },
+    rules: {
+      'no-unused-vars': ['error', { varsIgnorePattern: '^[A-Z_]' }],
+    },
+  },
+])
+</file>
+
+<file path="smartguard-frontend/package.json">
+{
+  "name": "smartguard-frontend",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "lint": "eslint .",
+    "preview": "vite preview"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.39.1",
+    "@types/react": "^19.2.7",
+    "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "^5.1.1",
+    "eslint": "^9.39.1",
+    "eslint-plugin-react-hooks": "^7.0.1",
+    "eslint-plugin-react-refresh": "^0.4.24",
+    "globals": "^16.5.0",
+    "vite": "^7.3.1"
+  },
+  "dependencies": {
+    "react": "^19.2.4",
+    "react-dom": "^19.2.4",
+    "react-router-dom": "^7.13.0"
+  }
+}
+</file>
+
+<file path="smartguard-frontend/README.md">
+# React + Vite
+
+This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+
+Currently, two official plugins are available:
+
+- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
+- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+
+## React Compiler
+
+The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+
+## Expanding the ESLint configuration
+
+If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+</file>
+
+<file path="smartguard-frontend/src/api/alertApi.js">
+const BASE_URL = "http://localhost:8000";
+
+export async function getAlerts(token) {
+  const res = await fetch(`${BASE_URL}/api/alerts/`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+  if (!res.ok) {
+    throw new Error("Failed to fetch alerts");
+  }
+
+  const data = await res.json();
+  if (Array.isArray(data)) return data;
+  if (Array.isArray(data.results)) return data.results;
+  return [];
+}
+
+export async function acknowledgeAlert(token, alertId, notes = "") {
+  const res = await fetch(`${BASE_URL}/api/alerts/${alertId}/`, {
+    method: "PATCH",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify({
+      acknowledged: true,
+      notes,
+    }),
+  });
+
+  if (!res.ok) {
+    throw new Error("Failed to acknowledge alert");
+  }
+
+  return await res.json();
+}
+</file>
+
+<file path="smartguard-frontend/src/api/authApi.js">
+// src/api/authApi.js
+//
+// IMPORTANT: This uses plain fetch (not Axios).
+// Errors are thrown as objects with { status, data } so that
+// LoginPage.jsx can detect lockout (429) vs wrong credentials (401).
+
+const BASE_URL = "http://localhost:8000";
+
+/**
+ * POST /api/auth/login/
+ * Throws a structured error object on failure so the caller
+ * can distinguish between:
+ *   - 401: wrong credentials  → { status: 401, data: { attempts_remaining } }
+ *   - 429: locked out         → { status: 429, data: { locked, seconds_remaining } }
+ *   - other: server error     → { status: 500, data: {} }
+ */
+export async function loginApi(identifier, password) {
+  const res = await fetch(`${BASE_URL}/api/auth/login/`, {
+    method:  "POST",
+    headers: { "Content-Type": "application/json" },
+    body:    JSON.stringify({
+      username: identifier,   // backend accepts username or email
+      password: password,
+    }),
+  });
+
+  // Parse JSON body regardless of success/failure
+  let data = {};
+  try {
+    data = await res.json();
+  } catch {
+    // response had no body — keep data as {}
+  }
+
+  if (!res.ok) {
+    // Throw a structured error that LoginPage.jsx can inspect
+    const err = new Error(data?.detail || "Login failed");
+    err.response = { status: res.status, data };
+    throw err;
+  }
+
+  return data; // { access, refresh }
+}
+
+/**
+ * GET /api/auth/me/
+ * Returns the authenticated user's profile.
+ */
+export async function getMe(token) {
+  const res = await fetch(`${BASE_URL}/api/auth/me/`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+  if (!res.ok) {
+    const err = new Error("Unauthorized");
+    err.response = { status: res.status, data: {} };
+    throw err;
+  }
+
+  return res.json(); // { id, email, role, ... }
+}
+
+/**
+ * POST /api/auth/refresh/
+ * Exchanges a refresh token for a new access token.
+ */
+export async function refreshTokenApi(refreshToken) {
+  const res = await fetch(`${BASE_URL}/api/auth/refresh/`, {
+    method:  "POST",
+    headers: { "Content-Type": "application/json" },
+    body:    JSON.stringify({ refresh: refreshToken }),
+  });
+
+  if (!res.ok) {
+    const err = new Error("Token refresh failed");
+    err.response = { status: res.status, data: {} };
+    throw err;
+  }
+
+  return res.json(); // { access }
+}
+</file>
+
+<file path="smartguard-frontend/src/api/cameraApi.js">
+// src/api/cameraApi.js
+const BASE_URL = "http://localhost:8000";
+
+function authHeaders(token) {
+  return {
+    "Content-Type": "application/json",
+    Authorization: `Bearer ${token}`,
+  };
+}
+
+async function handleResponse(res) {
+  let data = {};
+  try { data = await res.json(); } catch { /* empty body */ }
+  if (!res.ok) {
+    const err = new Error(data?.detail || data?.message || "Request failed");
+    err.response = { status: res.status, data };
+    throw err;
+  }
+  return data;
+}
+
+// ── READ ───────────────────────────────────────────────────────────────────────
+
+export async function getCameras(token) {
+  const res = await fetch(`${BASE_URL}/api/cameras/`, {
+    headers: authHeaders(token),
+  });
+  return handleResponse(res);
+}
+
+export async function getCamera(token, id) {
+  const res = await fetch(`${BASE_URL}/api/cameras/${id}/`, {
+    headers: authHeaders(token),
+  });
+  return handleResponse(res);
+}
+
+// ── CREATE ─────────────────────────────────────────────────────────────────────
+
+export async function createCamera(token, data) {
+  const res = await fetch(`${BASE_URL}/api/cameras/`, {
+    method:  "POST",
+    headers: authHeaders(token),
+    body:    JSON.stringify(data),
+  });
+  return handleResponse(res);
+}
+
+// ── UPDATE ─────────────────────────────────────────────────────────────────────
+
+export async function updateCamera(token, id, data) {
+  const res = await fetch(`${BASE_URL}/api/cameras/${id}/`, {
+    method:  "PATCH",           // PATCH = partial update (only changed fields)
+    headers: authHeaders(token),
+    body:    JSON.stringify(data),
+  });
+  return handleResponse(res);
+}
+
+// ── DELETE ─────────────────────────────────────────────────────────────────────
+
+export async function deleteCamera(token, id) {
+  const res = await fetch(`${BASE_URL}/api/cameras/${id}/`, {
+    method:  "DELETE",
+    headers: authHeaders(token),
+  });
+  if (res.status === 204) return null; // 204 No Content = success, no body
+  return handleResponse(res);
+}
+</file>
+
+<file path="smartguard-frontend/src/api/usersApi.js">
+// src/api/usersApi.js
+//
+// All user-management API calls for the Admin panel.
+// Every endpoint requires an ADMIN-role JWT token.
+
+const BASE_URL = "http://localhost:8000";
+
+function authHeaders(token) {
+  return {
+    "Content-Type": "application/json",
+    Authorization: `Bearer ${token}`,
+  };
+}
+
+async function handleResponse(res) {
+  let data = {};
+  try {
+    data = await res.json();
+  } catch {
+    /* empty body — e.g. 204 No Content */
+  }
+  if (!res.ok) {
+    const err = new Error(data?.detail || "Request failed");
+    err.response = { status: res.status, data };
+    throw err;
+  }
+  return data;
+}
+
+// ── READ ──────────────────────────────────────────────────────────────────────
+
+/** GET /api/users/  — returns array of all users */
+export async function getUsers(token) {
+  const res = await fetch(`${BASE_URL}/api/users/`, {
+    headers: authHeaders(token),
+  });
+  return handleResponse(res);
+}
+
+// ── CREATE ────────────────────────────────────────────────────────────────────
+
+/**
+ * POST /api/users/
+ * data: { username, email, first_name, last_name, password, role, is_active }
+ */
+export async function createUser(token, data) {
+  const res = await fetch(`${BASE_URL}/api/users/`, {
+    method: "POST",
+    headers: authHeaders(token),
+    body: JSON.stringify(data),
+  });
+  return handleResponse(res);
+}
+
+// ── UPDATE ────────────────────────────────────────────────────────────────────
+
+/**
+ * PATCH /api/users/<id>/
+ * data: { username?, email?, first_name?, last_name?, role?, is_active? }
+ */
+export async function updateUser(token, id, data) {
+  const res = await fetch(`${BASE_URL}/api/users/${id}/`, {
+    method: "PATCH",
+    headers: authHeaders(token),
+    body: JSON.stringify(data),
+  });
+  return handleResponse(res);
+}
+
+// ── DELETE ────────────────────────────────────────────────────────────────────
+
+/** DELETE /api/users/<id>/ */
+export async function deleteUser(token, id) {
+  const res = await fetch(`${BASE_URL}/api/users/${id}/`, {
+    method: "DELETE",
+    headers: authHeaders(token),
+  });
+  if (res.status === 204) return null;
+  return handleResponse(res);
+}
+
+// ── SPECIAL ACTIONS ───────────────────────────────────────────────────────────
+
+/**
+ * POST /api/users/<id>/reset-password/
+ * body: { password, confirm_password }
+ */
+export async function resetUserPassword(token, id, password, confirmPassword) {
+  const res = await fetch(`${BASE_URL}/api/users/${id}/reset-password/`, {
+    method: "POST",
+    headers: authHeaders(token),
+    body: JSON.stringify({ password, confirm_password: confirmPassword }),
+  });
+  return handleResponse(res);
+}
+
+/**
+ * POST /api/users/<id>/unlock/
+ * Clears the account lockout for a user.
+ */
+export async function unlockUser(token, id) {
+  const res = await fetch(`${BASE_URL}/api/users/${id}/unlock/`, {
+    method: "POST",
+    headers: authHeaders(token),
+  });
+  return handleResponse(res);
+}
+
+/**
+ * POST /api/users/<id>/toggle-active/
+ * Flips is_active between true and false.
+ */
+export async function toggleUserActive(token, id) {
+  const res = await fetch(`${BASE_URL}/api/users/${id}/toggle-active/`, {
+    method: "POST",
+    headers: authHeaders(token),
+  });
+  return handleResponse(res);
+}
+
+// ── Error helper ──────────────────────────────────────────────────────────────
+
+/**
+ * Extracts a human-readable error message from a thrown API error.
+ * Handles DRF field-level validation errors like { username: ["Already taken."] }
+ */
+export function extractApiError(err) {
+  const data = err?.response?.data;
+  if (!data) return err?.message || "An unexpected error occurred.";
+  if (typeof data === "string") return data;
+  if (data.detail) return data.detail;
+  // DRF field validation errors → show first field and first message
+  const fields = Object.keys(data);
+  if (fields.length > 0) {
+    const field = fields[0];
+    const msgs  = data[field];
+    const msg   = Array.isArray(msgs) ? msgs[0] : msgs;
+    const label = field === "non_field_errors" ? "" : `${field}: `;
+    return `${label}${msg}`;
+  }
+  return "An unexpected error occurred.";
+}
+</file>
+
+<file path="smartguard-frontend/src/hooks/useAllDetections.js">
+// src/hooks/useAllDetections.js
+//
+// Manages one WebSocket per camera and returns a unified detection feed.
+// Usage:
+//   const { feed, connectedIds } = useAllDetections(cameras, token);
+//
+// feed         — array of detection events, newest first, max 50
+// connectedIds — Set of camera IDs currently connected
+//
+// FIX: cameras array is stabilised via a deep-equal ref so that a new
+// array reference with the same camera IDs never tears down live sockets.
+
+import { useEffect, useRef, useState, useCallback } from "react";
+
+const WS_BASE            = "ws://localhost:8000";
+const RECONNECT_DELAY_MS = 3000;
+const MAX_FEED_LENGTH    = 50;
+
+// ── Shallow-compare two camera arrays by id ────────────────────────────────────
+function sameCameraIds(a, b) {
+  if (a.length !== b.length) return false;
+  for (let i = 0; i < a.length; i++) {
+    if (a[i].id !== b[i].id) return false;
+  }
+  return true;
+}
+
+export function useAllDetections(cameras, token) {
+  const [feed,         setFeed]         = useState([]);
+  const [connectedIds, setConnectedIds] = useState(new Set());
+
+  // ── Stable cameras ref: only update when IDs actually change ──────────────
+  const stableCamerasRef = useRef([]);
+  if (!sameCameraIds(stableCamerasRef.current, cameras ?? [])) {
+    stableCamerasRef.current = cameras ?? [];
+  }
+
+  const socketsRef = useRef({});  // { camId: WebSocket }
+  const timersRef  = useRef({});  // { camId: timeoutId }
+  const mountedRef = useRef(true);
+
+  const addToFeed = useCallback((event) => {
+    setFeed(prev => [event, ...prev].slice(0, MAX_FEED_LENGTH));
+  }, []);
+
+  // ── Main effect — re-runs only when the stable camera list changes ─────────
+  useEffect(() => {
+    const cameras = stableCamerasRef.current;
+    mountedRef.current = true;
+
+    if (!token || !cameras.length) return;
+
+    function connect(cam) {
+      if (!mountedRef.current) return;
+      const camId = cam.id;
+
+      // Skip if already open / connecting
+      const existing = socketsRef.current[camId];
+      if (existing && existing.readyState < WebSocket.CLOSING) return;
+
+      const ws = new WebSocket(`${WS_BASE}/ws/cameras/${camId}/detections/`);
+      socketsRef.current[camId] = ws;
+
+      ws.onopen = () => {
+        if (!mountedRef.current) { ws.close(1000, "unmounted"); return; }
+        setConnectedIds(prev => new Set([...prev, camId]));
+      };
+
+      ws.onmessage = (e) => {
+        if (!mountedRef.current) return;
+        try {
+          const msg = JSON.parse(e.data);
+          if (msg.type === "detection") {
+            // Always look up the latest camera name from the stable ref
+            const liveCam = stableCamerasRef.current.find(c => c.id === camId);
+            addToFeed({
+              ...msg,
+              camera_id:   camId,
+              camera_name: liveCam?.name ?? cam.name,
+              receivedAt:  Date.now(),
+            });
+          }
+        } catch { /* ignore JSON parse errors */ }
+      };
+
+      ws.onerror = () => {
+        if (!mountedRef.current) return;
+        setConnectedIds(prev => { const s = new Set(prev); s.delete(camId); return s; });
+      };
+
+      ws.onclose = (closeEvent) => {
+        if (!mountedRef.current) return;
+        setConnectedIds(prev => { const s = new Set(prev); s.delete(camId); return s; });
+
+        // Reconnect unless it was a clean intentional close
+        if (closeEvent.code !== 1000) {
+          timersRef.current[camId] = setTimeout(() => {
+            if (!mountedRef.current) return;
+            const liveCam = stableCamerasRef.current.find(c => c.id === camId);
+            if (liveCam) connect(liveCam);
+          }, RECONNECT_DELAY_MS);
+        }
+      };
+    }
+
+    cameras.forEach(connect);
+
+    // ── Tear down sockets for cameras no longer in the list ──────────────────
+    const activeCamIds = new Set(cameras.map(c => c.id));
+    Object.keys(socketsRef.current).forEach(idStr => {
+      const id = Number(idStr);
+      if (!activeCamIds.has(id)) {
+        const ws = socketsRef.current[id];
+        if (ws && ws.readyState < WebSocket.CLOSING) ws.close(1000, "camera removed");
+        delete socketsRef.current[id];
+        clearTimeout(timersRef.current[id]);
+        delete timersRef.current[id];
+      }
+    });
+
+    return () => {
+      mountedRef.current = false;
+      Object.values(timersRef.current).forEach(clearTimeout);
+      Object.values(socketsRef.current).forEach(ws => {
+        if (ws.readyState < WebSocket.CLOSING) ws.close(1000, "unmounted");
+      });
+      socketsRef.current = {};
+      timersRef.current  = {};
+    };
+
+  // stableCamerasRef.current is the real dependency — but since it's a ref,
+  // we use the cameras prop only to trigger the effect when IDs change.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [stableCamerasRef.current, token, addToFeed]);
+
+  return { feed, connectedIds };
+}
+</file>
+
+<file path="smartguard-frontend/src/hooks/useDetectionSocket.js">
+// src/hooks/useDetectionSocket.js
+//
+// Connects to ws://localhost:8000/ws/cameras/<cameraId>/detections/
+// and returns the latest detection event for that camera.
+//
+// Usage:
+//   const { detection, heartbeat, connected } = useDetectionSocket(cameraId, token);
+
+import { useEffect, useRef, useState, useCallback } from "react";
+
+const WS_BASE = "ws://localhost:8000";
+const RECONNECT_DELAY_MS = 3000;
+
+export function useDetectionSocket(cameraId, token) {
+  const [detection,  setDetection]  = useState(null);   // latest detection payload
+  const [heartbeat,  setHeartbeat]  = useState(null);   // latest heartbeat
+  const [connected,  setConnected]  = useState(false);
+  const [error,      setError]      = useState(null);
+
+  const wsRef         = useRef(null);
+  const reconnectRef  = useRef(null);
+  const mountedRef    = useRef(true);
+
+  const connect = useCallback(() => {
+    if (!cameraId || !token) return;
+    if (wsRef.current && wsRef.current.readyState < 2) return; // already open/connecting
+
+    const url = `${WS_BASE}/ws/cameras/${cameraId}/detections/`;
+    const ws  = new WebSocket(url);
+    wsRef.current = ws;
+
+    ws.onopen = () => {
+      if (!mountedRef.current) return;
+      setConnected(true);
+      setError(null);
+    };
+
+    ws.onmessage = (e) => {
+      if (!mountedRef.current) return;
+      try {
+        const msg = JSON.parse(e.data);
+        if (msg.type === "detection") {
+          setDetection(msg);
+        } else if (msg.type === "heartbeat") {
+          setHeartbeat(msg);
+        }
+        // "connected" type is just an ack — ignore
+      } catch (err) {
+        console.warn("WS parse error:", err);
+      }
+    };
+
+    ws.onerror = (e) => {
+      if (!mountedRef.current) return;
+      setError("WebSocket error");
+      setConnected(false);
+    };
+
+    ws.onclose = (e) => {
+      if (!mountedRef.current) return;
+      setConnected(false);
+      // Auto-reconnect unless intentionally closed (code 1000)
+      if (e.code !== 1000) {
+        reconnectRef.current = setTimeout(connect, RECONNECT_DELAY_MS);
+      }
+    };
+  }, [cameraId, token]);
+
+  useEffect(() => {
+    mountedRef.current = true;
+    connect();
+    return () => {
+      mountedRef.current = false;
+      clearTimeout(reconnectRef.current);
+      if (wsRef.current) {
+        wsRef.current.close(1000, "component unmounted");
+      }
+    };
+  }, [connect]);
+
+  return { detection, heartbeat, connected, error };
+}
+</file>
+
+<file path="smartguard-frontend/vite.config.js">
+import { defineConfig } from 'vite'
+import react from '@vitejs/plugin-react'
+
+// https://vite.dev/config/
+export default defineConfig({
+  plugins: [react()],
+})
+</file>
+
+</files>

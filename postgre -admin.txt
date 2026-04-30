@@ -1,0 +1,53 @@
+postgre -admin
+python:
+superuser- superadmin123
+postgre_db, migration:
+smartguard - smgh123!
+smartguardalerts01@gmail.com - smartguard1779900
+
+.venv\Scripts\activate
+cd smartguard_backend 
+python manage.py shell
+
+from accounts.models import CustomUser
+
+python detect.py --weights D:\Jacob\SmartguardYOLOV5\best2.pt --source 0 --conf 0.5
+
+User.objects.create_user(
+    email="ops-test@gmail.com",
+    password="SomeStrongPassword123!",
+    role="OPS",
+
+User.objects.create_user(
+    email="staff-test@gmail.com",
+    password="SomeStrongPassword123!",
+    role="STAFF",
+
+
+from accounts.models import CustomUser
+
+CustomUser.objects.create_user(
+    username="ops-role",
+    email="ops-test@gmail.com",
+    password="SomeStrongPassword123!",
+    role="OPS",
+)
+
+CustomUser.objects.create_user(
+    username="staff-role",
+    email="staff-test@gmail.com",
+    password="SomeStrongPassword123!",
+    role="STAFF",
+)
+
+runscript:
+sc config Redis binPath= "D:\Redis\redis-server.exe D:\Redis\redis.conf"
+.venv\Scripts\activate
+cd smartguard_backend
+python manage.py 
+daphne smartguard_backend.asgi:application -p 8000
+python manage.py runserver 8001
+python detection_worker.py
+npm run dev
+
+
