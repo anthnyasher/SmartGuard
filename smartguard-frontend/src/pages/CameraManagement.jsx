@@ -12,6 +12,7 @@ const NAV_ITEMS = [
   { id: "live",       label: "Live Monitoring",     icon: "◉", path: "/admin/live",       functional: true  },
   { id: "detections", label: "Detections & Alerts", icon: "✦", path: "/admin/detections", functional: false, badge: "6" },
   { id: "evidence",   label: "Evidence Vault",      icon: "🔒", path: "/admin/evidence",   functional: false },
+  { id: "incidents",  label: "Incident Response",   icon: "📝", path: "/admin/incidents",  functional: true },
   { id: "cameras",    label: "Cameras",             icon: "📷", path: "/admin/cameras",    functional: true  },
   { id: "logs",       label: "Logs",                icon: "📋", path: "/admin/logs",       functional: false },
   { id: "access",     label: "Access Control",      icon: "🔑", path: "/admin/access",     functional: false },

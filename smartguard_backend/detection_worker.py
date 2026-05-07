@@ -9,6 +9,7 @@ import time
 import threading
 import logging
 import base64
+import collections
 from datetime import datetime, timedelta, timezone
 
 import cv2
@@ -49,6 +50,7 @@ HEARTBEAT_EVERY      = 30         # seconds between heartbeat pushes
 EMAIL_COOLDOWN       = 60         # seconds between emails per camera
 INCIDENT_TIMEOUT     = 30         # seconds before incident is considered over
 TARGET_CLASS         = "person"   # Generic class for testing (was "shoplifting")
+CLIP_DURATION        = 10         # seconds of video to capture per evidence clip
 
 # ── FIX 3 — Test mode ─────────────────────────────────────────────────────────
 # Set TEST_VIDEO_PATH to a local video file to override all camera RTSP streams.
@@ -139,6 +141,11 @@ def save_alert(camera: Camera, behavior_type: str, confidence: float,
 # Prevents a new alert row being created every FRAME_SKIP frames.
 # One Alert per incident; confidence updated if a higher value is seen.
 _incidents: dict = {}   # {camera_id: {alert_id, last_seen, max_conf}}
+
+# ── Per-camera frame buffers (for evidence clips) ────────────────────────────
+# Each camera gets a rolling deque of (timestamp, frame_bgr) tuples.
+# Buffer size = CLIP_DURATION * estimated_fps frames.
+_frame_buffers: dict = {}   # {camera_id: deque}
 
 def handle_detection(camera: Camera, behavior_type: str, confidence: float,
                      frame_bgr=None):
@@ -575,6 +582,13 @@ def camera_worker(camera: Camera):
     last_heartbeat      = time.time()
     last_alert_email_ts = 0
 
+    # ── Rolling frame buffer for evidence clips ───────────────────────────────
+    # Buffer holds ~CLIP_DURATION seconds of frames. Initial guess at 15 FPS;
+    # resized dynamically once real FPS is measured.
+    buffer_max = int(CLIP_DURATION * 15)
+    frame_buffer = collections.deque(maxlen=buffer_max)
+    _frame_buffers[cam_id] = frame_buffer
+
     while True:
         source = int(rtsp_url) if rtsp_url.isdigit() else rtsp_url
 
@@ -615,12 +629,21 @@ def camera_worker(camera: Camera):
             read_errors  = 0
             frame_count += 1
 
+            # ── Append frame to rolling evidence buffer ───────────────────────
+            frame_buffer.append((time.time(), frame.copy()))
+
             # FPS tracking
             elapsed = time.time() - fps_timer
             if elapsed >= 5.0:
                 fps         = frame_count / elapsed
                 frame_count = 0
                 fps_timer   = time.time()
+                # Dynamically resize buffer to hold exactly CLIP_DURATION seconds
+                new_max = max(int(CLIP_DURATION * fps), 30)
+                if new_max != frame_buffer.maxlen:
+                    old_frames = list(frame_buffer)
+                    frame_buffer = collections.deque(old_frames, maxlen=new_max)
+                    _frame_buffers[cam_id] = frame_buffer
 
             # Heartbeat
             if time.time() - last_heartbeat >= HEARTBEAT_EVERY:
@@ -668,25 +691,37 @@ def camera_worker(camera: Camera):
 
             if shoplifting_detected:
                 alert_id, severity, is_new = handle_detection(
-                    camera, "CONCEALMENT", best_conf,
+                    camera, "SHOPLIFTING", best_conf,
                     frame_bgr=annotated_frame,
                 )
                 current_detection = {
-                    "behavior_type": "CONCEALMENT",
+                    "behavior_type": "SHOPLIFTING",
                     "confidence":    best_conf,
                     "severity":      severity,
                     "alert_id":      alert_id,
                 }
                 push_detection(
                     camera_id=cam_id, camera_name=cam_name,
-                    behavior_type="CONCEALMENT", confidence=best_conf,
+                    behavior_type="SHOPLIFTING", confidence=best_conf,
                     severity=severity, alert_id=alert_id,
                     frame_bgr=annotated_frame,
                 )
+
+                # ── Record evidence clip on NEW incidents ─────────────────────
+                if is_new:
+                    try:
+                        from evidence.clip_recorder import record_evidence_clip_async
+                        alert_obj = Alert.objects.get(id=alert_id)
+                        record_evidence_clip_async(
+                            camera, alert_obj, frame_buffer, fps,
+                        )
+                    except Exception as ev_err:
+                        log.error("[CAM %s] Evidence clip recording failed: %s", cam_id, ev_err)
+
                 now = time.time()
                 if severity in ("HIGH", "CRITICAL") and \
                         now - last_alert_email_ts >= EMAIL_COOLDOWN:
-                    send_alert_email(cam_name, "CONCEALMENT", best_conf, severity, alert_id)
+                    send_alert_email(cam_name, "SHOPLIFTING", best_conf, severity, alert_id)
                     last_alert_email_ts = now
 
             # ── Preview window ────────────────────────────────────────────────

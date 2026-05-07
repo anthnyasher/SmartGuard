@@ -17,3 +17,19 @@ class IsAdminRole(BasePermission):
             and request.user.is_authenticated
             and getattr(request.user, "role", None) == "ADMIN"
         )
+
+
+class IsAdminOrOpsManager(BasePermission):
+    """
+    Grants access to users with role='ADMIN' or role='OPS_MANAGER'.
+    Used for evidence clip review and other operational endpoints.
+    """
+
+    message = "Only Administrators and Operations Managers can perform this action."
+
+    def has_permission(self, request, view):
+        return (
+            request.user is not None
+            and request.user.is_authenticated
+            and getattr(request.user, "role", None) in ("ADMIN", "OPS_MANAGER")
+        )

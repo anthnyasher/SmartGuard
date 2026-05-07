@@ -18,6 +18,7 @@ const NAV_ITEMS = [
   { id: "live", label: "Live Monitoring", icon: "◉", path: "/admin/live", functional: true },
   { id: "detections", label: "Detections & Alerts", icon: "✦", path: "/admin/detections", functional: true, badge: "6" },
   { id: "evidence", label: "Evidence Vault", icon: "🔒", path: "/admin/evidence", functional: true },
+  { id: "incidents", label: "Incident Response", icon: "📝", path: "/admin/incidents", functional: true },
   { id: "cameras", label: "Cameras", icon: "📷", path: "/admin/cameras", functional: true },
   { id: "logs", label: "Logs", icon: "📋", path: "/admin/logs", functional: true },
   { id: "access", label: "Access Control", icon: "🔑", path: "/admin/access", functional: true },
@@ -523,33 +524,38 @@ function LiveMonitoring() {
           </div>
 
           <section className="sg-card lm-grid-card">
-            <div className="sg-card-header">
-              <h2 className="sg-card-title">
-                Live Cameras
-                {!loading && cameras.length > 0 && (
-                  <span className="lm-cam-count">{pageStart + 1}–{Math.min(pageStart + activeGrid.perPage, cameras.length)} of {cameras.length}</span>
-                )}
-              </h2>
-              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                <div style={{ display: "flex", gap: 2, background: "var(--bg-elevated)", borderRadius: 6, padding: 3, border: "1px solid var(--border)" }}>
-                  {GRID_OPTIONS.map(g => (
-                    <button
-                      key={g.key}
-                      onClick={() => setGridKey(g.key)}
-                      title={`${g.key} grid`}
-                      style={{
-                        padding: "4px 8px", borderRadius: 4, cursor: "pointer", fontSize: 11,
-                        fontWeight: 600, border: "none",
-                        background: gridKey === g.key ? "var(--accent-blue)" : "transparent",
-                        color: gridKey === g.key ? "#fff" : "var(--text-muted)",
-                        transition: "all 0.15s",
-                      }}
-                    >
-                      {g.key}
-                    </button>
-                  ))}
+            <div className="sg-card-header" style={{ justifyContent: "flex-start", gap: "20px" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+                <h2 className="sg-card-title" style={{ margin: 0 }}>
+                  Live Cameras
+                  {!loading && cameras.length > 0 && (
+                    <span className="lm-cam-count" style={{ marginLeft: "8px" }}>
+                      {pageStart + 1}–{Math.min(pageStart + activeGrid.perPage, cameras.length)} of {cameras.length}
+                    </span>
+                  )}
+                </h2>
+                
+                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                  <div style={{ display: "flex", gap: 2, background: "var(--bg-elevated)", borderRadius: 6, padding: 3, border: "1px solid var(--border)" }}>
+                    {GRID_OPTIONS.map(g => (
+                      <button
+                        key={g.key}
+                        onClick={() => setGridKey(g.key)}
+                        title={`${g.key} grid`}
+                        style={{
+                          padding: "4px 8px", borderRadius: 4, cursor: "pointer", fontSize: 11,
+                          fontWeight: 600, border: "none",
+                          background: gridKey === g.key ? "var(--accent-blue)" : "transparent",
+                          color: gridKey === g.key ? "#fff" : "var(--text-muted)",
+                          transition: "all 0.15s",
+                        }}
+                      >
+                        {g.key}
+                      </button>
+                    ))}
+                  </div>
+                  <button className="lm-settings-icon-btn" onClick={() => setShowConfig(true)} title="Configure cameras">⚙</button>
                 </div>
-                <button className="lm-settings-icon-btn" onClick={() => setShowConfig(true)} title="Configure cameras">⚙</button>
               </div>
             </div>
 

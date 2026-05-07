@@ -15,6 +15,8 @@ class EvidenceClipSerializer(serializers.ModelSerializer):
     alert_status = serializers.CharField(source="alert.status", read_only=True)
     alert_id = serializers.IntegerField(source="alert.id", read_only=True)
     file_size_mb = serializers.FloatField(read_only=True)
+    time_until_expiry = serializers.IntegerField(read_only=True)
+    reviewed_by_username = serializers.SerializerMethodField()
 
     class Meta:
         model = EvidenceClip
@@ -37,8 +39,18 @@ class EvidenceClipSerializer(serializers.ModelSerializer):
             "sha256_hash",
             "integrity_status",
             "last_verified_at",
+            "is_encrypted",
+            "review_status",
+            "reviewed_by_username",
+            "reviewed_at",
             "status",
             "created_at",
             "expires_at",
+            "time_until_expiry",
         ]
         read_only_fields = fields
+
+    def get_reviewed_by_username(self, obj):
+        if obj.reviewed_by:
+            return obj.reviewed_by.username
+        return None

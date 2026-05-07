@@ -1,0 +1,113 @@
+/* IncidentResponse.css */
+
+/* ── Page Header ───────────────────────────────────────────────────────────── */
+.ir-page-header {
+  display: flex; align-items: flex-start; justify-content: space-between;
+  margin-bottom: 20px;
+}
+.ir-subtitle {
+  font-size: 12px; color: var(--text-muted); margin-top: 4px;
+}
+.ir-create-btn {
+  padding: 8px 20px; font-size: 12px; font-weight: 700;
+  font-family: 'DM Sans', sans-serif;
+  background: var(--accent-blue); color: #fff; border: none;
+  border-radius: var(--radius-sm); cursor: pointer;
+  transition: all 0.14s;
+}
+.ir-create-btn:hover { background: #2563eb; transform: translateY(-1px); }
+
+/* ── IR ID ─────────────────────────────────────────────────────────────────── */
+.ir-id {
+  font-family: 'Space Mono', monospace; font-size: 10px;
+  font-weight: 700; color: var(--accent-blue);
+}
+.ir-alert-link {
+  font-family: 'Space Mono', monospace; font-size: 10px;
+  color: var(--text-muted);
+}
+
+/* ── Status Chips ──────────────────────────────────────────────────────────── */
+.ir-stat-open {
+  background: rgba(239,68,68,0.10) !important; color: #ef4444 !important;
+  border: 1px solid rgba(239,68,68,0.25);
+}
+.ir-stat-progress {
+  background: rgba(59,130,246,0.10) !important; color: #3b82f6 !important;
+  border: 1px solid rgba(59,130,246,0.25);
+}
+.ir-stat-resolved {
+  background: rgba(22,163,74,0.10) !important; color: #16a34a !important;
+  border: 1px solid rgba(22,163,74,0.25);
+}
+.ir-stat-escalated {
+  background: rgba(245,158,11,0.10) !important; color: #f59e0b !important;
+  border: 1px solid rgba(245,158,11,0.25);
+}
+.ir-stat-false {
+  background: rgba(100,116,139,0.10) !important; color: #64748b !important;
+  border: 1px solid rgba(100,116,139,0.25);
+}
+
+/* ── KPI Red ───────────────────────────────────────────────────────────────── */
+.kpi-red { border-left: 3px solid #ef4444; }
+.kpi-icon-red { background: rgba(239,68,68,0.08); color: #ef4444; }
+
+/* ── Edit Section ──────────────────────────────────────────────────────────── */
+.ir-edit-section {
+  padding: 12px; background: var(--bg-base); border: 1px solid var(--border);
+  border-radius: var(--radius-sm); margin: 12px 0;
+}
+.ir-field { margin-bottom: 12px; }
+.ir-field:last-child { margin-bottom: 0; }
+.ir-field-label {
+  display: block; font-size: 10px; font-weight: 700;
+  color: var(--text-muted); text-transform: uppercase;
+  letter-spacing: 0.5px; margin-bottom: 5px;
+}
+.ir-select, .ir-input {
+  width: 100%; padding: 8px 10px; font-size: 12px;
+  font-family: 'DM Sans', sans-serif;
+  background: var(--bg-surface); color: var(--text-primary);
+  border: 1px solid var(--border); border-radius: var(--radius-sm);
+  outline: none; transition: border-color 0.14s;
+}
+.ir-select:focus, .ir-input:focus, .ir-textarea:focus {
+  border-color: var(--accent-blue);
+}
+.ir-textarea {
+  width: 100%; padding: 8px 10px; font-size: 12px;
+  font-family: 'DM Sans', sans-serif;
+  background: var(--bg-surface); color: var(--text-primary);
+  border: 1px solid var(--border); border-radius: var(--radius-sm);
+  outline: none; resize: vertical; transition: border-color 0.14s;
+  min-height: 40px;
+}
+
+/* ── Create Modal ──────────────────────────────────────────────────────────── */
+.ir-modal-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.55);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 1000; backdrop-filter: blur(4px);
+}
+.ir-modal {
+  background: var(--bg-card); border: 1px solid var(--border);
+  border-radius: var(--radius-lg); width: 520px; max-width: 94vw;
+  max-height: 90vh; overflow-y: auto;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+}
+.ir-modal-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 18px 20px; border-bottom: 1px solid var(--border);
+}
+.ir-modal-title {
+  font-size: 15px; font-weight: 700; color: var(--text-primary);
+  margin: 0;
+}
+.ir-modal-body { padding: 20px; }
+.ir-modal-footer {
+  display: flex; gap: 10px; padding: 16px 20px;
+  border-top: 1px solid var(--border);
+}
+.ir-modal-footer .det-btn-full--ghost { flex: 1; }
+.ir-modal-footer .det-btn-full--primary { flex: 2; }

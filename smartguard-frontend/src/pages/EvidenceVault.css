@@ -38,3 +38,106 @@
   display: flex; align-items: center; justify-content: center; gap: 6px;
 }
 .ev-verify-btn:hover { background: var(--accent-blue); border-color: var(--accent-blue); color: #fff; }
+
+/* ── Review Status Chips ───────────────────────────────────────────────────── */
+.sg-review-pending {
+  background: rgba(245,158,11,0.10) !important; color: #f59e0b !important;
+  border: 1px solid rgba(245,158,11,0.25);
+}
+.sg-review-confirmed {
+  background: rgba(22,163,74,0.10) !important; color: #16a34a !important;
+  border: 1px solid rgba(22,163,74,0.25);
+}
+.sg-review-fp {
+  background: rgba(239,68,68,0.10) !important; color: #ef4444 !important;
+  border: 1px solid rgba(239,68,68,0.25);
+}
+
+/* ── Confirm / Reject Action Buttons ───────────────────────────────────────── */
+.det-btn--confirm {
+  background: rgba(22,163,74,0.12); color: #16a34a; border: 1px solid rgba(22,163,74,0.3);
+  font-weight: 700; border-radius: var(--radius-sm); padding: 3px 8px; cursor: pointer;
+  font-size: 11px; transition: all 0.14s;
+}
+.det-btn--confirm:hover:not(:disabled) { background: #16a34a; color: #fff; }
+
+.det-btn--reject {
+  background: rgba(239,68,68,0.12); color: #ef4444; border: 1px solid rgba(239,68,68,0.3);
+  font-weight: 700; border-radius: var(--radius-sm); padding: 3px 8px; cursor: pointer;
+  font-size: 11px; transition: all 0.14s;
+}
+.det-btn--reject:hover:not(:disabled) { background: #ef4444; color: #fff; }
+
+.det-btn--confirm:disabled, .det-btn--reject:disabled {
+  opacity: 0.4; cursor: not-allowed;
+}
+
+/* ── Expiring Soon Banner ──────────────────────────────────────────────────── */
+.ev-expiring-banner {
+  background: rgba(245,158,11,0.08); border: 1px solid rgba(245,158,11,0.25);
+  color: #f59e0b; border-radius: var(--radius-md); padding: 10px 16px;
+  font-size: 12px; font-weight: 600; margin-bottom: 16px;
+  display: flex; align-items: center; gap: 8px;
+}
+
+/* ── Encrypted Badge (grid view) ───────────────────────────────────────────── */
+.ev-encrypted-badge {
+  position: absolute; top: 6px; left: 6px;
+  font-family: 'Space Mono', monospace; font-size: 8px; font-weight: 700;
+  background: rgba(139,92,246,0.85); color: #fff;
+  padding: 2px 7px; border-radius: 4px;
+}
+
+/* ── Integrity badge states ────────────────────────────────────────────────── */
+.ev-badge-pending {
+  color: var(--text-muted) !important;
+  background: rgba(100,116,139,0.08) !important;
+  border-color: rgba(100,116,139,0.2) !important;
+}
+
+/* ── Card review buttons (grid view) ───────────────────────────────────────── */
+.ev-card-review-btns {
+  display: flex; gap: 6px; margin-top: 8px;
+}
+.ev-card-review-btns .det-btn--confirm,
+.ev-card-review-btns .det-btn--reject {
+  flex: 1; padding: 5px 0; font-size: 10px; text-align: center;
+}
+
+/* ── Detail panel review section ───────────────────────────────────────────── */
+.ev-review-actions {
+  padding: 12px; background: var(--bg-base); border: 1px solid var(--border);
+  border-radius: var(--radius-sm); margin-bottom: 10px;
+}
+.ev-review-actions .det-btn-full--confirm {
+  background: rgba(22,163,74,0.10); color: #16a34a;
+  border: 1px solid rgba(22,163,74,0.3); margin-bottom: 8px;
+}
+.ev-review-actions .det-btn-full--confirm:hover:not(:disabled) {
+  background: #16a34a; color: #fff; border-color: #16a34a;
+}
+.ev-review-actions .det-btn-full--reject {
+  background: rgba(239,68,68,0.08); color: #ef4444;
+  border: 1px solid rgba(239,68,68,0.25);
+}
+.ev-review-actions .det-btn-full--reject:hover:not(:disabled) {
+  background: #ef4444; color: #fff; border-color: #ef4444;
+}
+
+.ev-review-hint {
+  font-size: 10px; color: var(--text-muted); margin-top: 10px; line-height: 1.5;
+  font-style: italic;
+}
+
+.ev-review-confirmed-badge {
+  background: rgba(22,163,74,0.08); border: 1px solid rgba(22,163,74,0.2);
+  color: #16a34a; border-radius: var(--radius-sm); padding: 10px 14px;
+  font-size: 11px; font-weight: 600; margin-bottom: 10px;
+  text-align: center;
+}
+
+/* ── Video Player ──────────────────────────────────────────────────────────── */
+.ev-video-player {
+  width: 100%; border-radius: var(--radius-sm);
+  background: #000; max-height: 240px; object-fit: contain;
+}

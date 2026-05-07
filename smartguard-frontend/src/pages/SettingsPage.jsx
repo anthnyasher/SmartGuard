@@ -12,6 +12,7 @@ const NAV_ITEMS = [
   { id: "live",       label: "Live Monitoring",     icon: "◉", path: "/admin/live"       },
   { id: "detections", label: "Detections & Alerts", icon: "✦", path: "/admin/detections" },
   { id: "evidence",   label: "Evidence Vault",      icon: "🔒", path: "/admin/evidence"   },
+  { id: "incidents",  label: "Incident Response",   icon: "📝", path: "/admin/incidents"  },
   { id: "cameras",    label: "Cameras",             icon: "📷", path: "/admin/cameras"    },
   { id: "logs",       label: "Logs",                icon: "📋", path: "/admin/logs"       },
   { id: "access",     label: "Access Control",      icon: "🔑", path: "/admin/access"     },

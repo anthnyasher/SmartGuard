@@ -166,7 +166,7 @@ EMAIL_HOST          = 'smtp.gmail.com'
 EMAIL_PORT          = 587
 EMAIL_USE_TLS       = True
 EMAIL_HOST_USER     = 'smartguardalerts01@gmail.com'
-EMAIL_HOST_PASSWORD = 'ijzdntbwdfsbgzjf'
+EMAIL_HOST_PASSWORD = 'umjtbgnkstmdqkad'
 DEFAULT_FROM_EMAIL  = EMAIL_HOST_USER
 
 # ── Dev debug prints (remove in production) ───────────────────────────────────
@@ -192,3 +192,11 @@ print(">>> LOGIN_URL =", LOGIN_URL)
 # ── Media files (snapshots, evidence clips) ────────────────────────────────────
 MEDIA_ROOT = BASE_DIR / "media"
 MEDIA_URL  = "/media/"
+
+# ── Evidence Clips ─────────────────────────────────────────────────────────────
+# AES-256 encryption key: set a 64-char hex string in env for production.
+# Falls back to PBKDF2 derivation from SECRET_KEY if not provided.
+EVIDENCE_ENCRYPTION_KEY  = os.environ.get("EVIDENCE_ENCRYPTION_KEY", "")
+EVIDENCE_CLIP_DURATION   = 10       # seconds per clip
+EVIDENCE_RETENTION_HOURS = 48       # hours before unreviewed clips auto-delete
+EVIDENCE_CLIPS_DIR       = BASE_DIR / "media" / "evidence_clips"

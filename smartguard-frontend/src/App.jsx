@@ -13,6 +13,7 @@ import CameraManagement from "./pages/CameraManagement";
 import DetectionsPage from "./pages/DetectionsPage.jsx";
 import LogsPage from "./pages/LogsPage.jsx";
 import EvidenceVault from "./pages/EvidenceVault.jsx";
+import IncidentResponse from "./pages/IncidentResponse.jsx";
 import AccessControl from "./pages/AccessControl.jsx";
 import SettingsPage from "./pages/SettingsPage.jsx";
 
@@ -46,6 +47,7 @@ export default function App() {
         { path: "/admin/live",       element: <LiveMonitoring />  },
         { path: "/admin/detections", element: <DetectionsPage />  },
         { path: "/admin/evidence",   element: <EvidenceVault />   },
+        { path: "/admin/incidents",  element: <IncidentResponse /> },
         { path: "/admin/cameras",    element: <CameraManagement />},
         { path: "/admin/logs",       element: <LogsPage />        },
         { path: "/admin/access",     element: <AccessControl />   },
