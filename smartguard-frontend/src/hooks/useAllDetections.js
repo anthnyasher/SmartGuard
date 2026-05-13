@@ -133,5 +133,9 @@ export function useAllDetections(cameras, token) {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [stableCamerasRef.current, token, addToFeed]);
 
-  return { feed, connectedIds };
+  const removeFeedItem = useCallback((alertId) => {
+    setFeed(prev => prev.filter(e => e.alert_id !== alertId));
+  }, []);
+
+  return { feed, connectedIds, removeFeedItem };
 }

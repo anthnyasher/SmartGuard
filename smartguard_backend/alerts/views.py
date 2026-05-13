@@ -52,7 +52,7 @@ class AlertListView(generics.ListAPIView):
         return qs
 
 
-class AlertDetailView(generics.RetrieveUpdateAPIView):
+class AlertDetailView(generics.RetrieveUpdateDestroyAPIView):
     """
     GET   /api/alerts/<pk>/  — fetch single alert
     PATCH /api/alerts/<pk>/  — update status, notes, acknowledgement

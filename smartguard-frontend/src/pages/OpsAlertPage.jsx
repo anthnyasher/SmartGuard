@@ -89,8 +89,14 @@ function AlertDetailPanel({ alert, onClose, onUpdate }) {
       if (res.ok) {
         const updated = await res.json();
         onUpdate(updated);
+      } else {
+        const errText = await res.text().catch(() => "");
+        alert(`Failed to update status: ${res.status} ${errText}`);
       }
-    } catch (e) { console.error(e); }
+    } catch (e) { 
+      console.error(e);
+      alert("Network error. Could not update alert.");
+    }
     finally { setSaving(false); }
   };
 
@@ -228,14 +234,20 @@ export default function OpsAlertsPage() {
       if (res.ok) {
         const updated = await res.json();
         handleUpdate(updated);
+      } else {
+        const errText = await res.text().catch(() => "");
+        alert(`Failed to update status: ${res.status} ${errText}`);
       }
-    } catch (e) { console.error(e); }
+    } catch (e) { 
+      console.error(e);
+      alert("Network error. Could not update alert.");
+    }
   };
 
   const handleSaveNote = async (note) => {
-    const alert = noteModal;
+    const alertData = noteModal;
     try {
-      const res = await fetch(`${BASE_URL}/api/alerts/${alert.id}/`, {
+      const res = await fetch(`${BASE_URL}/api/alerts/${alertData.id}/`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
         body: JSON.stringify({ notes: note }),
@@ -243,8 +255,14 @@ export default function OpsAlertsPage() {
       if (res.ok) {
         const updated = await res.json();
         handleUpdate(updated);
+      } else {
+        const errText = await res.text().catch(() => "");
+        alert(`Failed to save note: ${res.status} ${errText}`);
       }
-    } catch (e) { console.error(e); }
+    } catch (e) { 
+      console.error(e);
+      alert("Network error. Could not save note.");
+    }
     setNoteModal(null);
   };
 

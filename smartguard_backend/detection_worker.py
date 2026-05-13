@@ -31,8 +31,8 @@ from cameras.models import Camera
 from alerts.models import Alert
 from accounts.models import CustomUser
 
-# ── Ultralytics YOLO (same as detect.py — fixes bounding boxes) ───────────────
-from ultralytics import YOLO
+# ── YOLOv5 via torch.hub (for custom-trained .pt weights) ─────────────────────
+import torch
 
 # ── Logging ───────────────────────────────────────────────────────────────────
 logging.basicConfig(
@@ -43,13 +43,13 @@ logging.basicConfig(
 log = logging.getLogger(__name__)
 
 # ── Configuration ─────────────────────────────────────────────────────────────
-MODEL_PATH           = "yolov8n.pt"  # Auto-downloads generic YOLOv8 model for testing
+MODEL_PATH           = os.path.join(os.path.dirname(os.path.abspath(__file__)), "best.pt")
 CONFIDENCE_THRESHOLD = 0.4
 FRAME_SKIP           = 3          # run inference every N frames
 HEARTBEAT_EVERY      = 30         # seconds between heartbeat pushes
 EMAIL_COOLDOWN       = 60         # seconds between emails per camera
 INCIDENT_TIMEOUT     = 30         # seconds before incident is considered over
-TARGET_CLASS         = "person"   # Generic class for testing (was "shoplifting")
+TARGET_CLASS         = "shoplifting"   # Class name in custom best.pt model
 CLIP_DURATION        = 10         # seconds of video to capture per evidence clip
 
 # ── FIX 3 — Test mode ─────────────────────────────────────────────────────────
@@ -60,17 +60,17 @@ CLIP_DURATION        = 10         # seconds of video to capture per evidence cli
 TEST_VIDEO_PATH = None   # ← set to a local video file path for testing, or None for real cameras
 
 # ── Device selection ──────────────────────────────────────────────────────────
-DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
+DEVICE = "0" if torch.cuda.is_available() else "cpu"
 
 # ── Model (loaded once, shared across threads) ────────────────────────────────
 _model      = None
 _model_lock = threading.Lock()
 
-def get_model() -> YOLO:
+def get_model():
     global _model
     with _model_lock:
         if _model is None:
-            if DEVICE == "cuda":
+            if DEVICE != "cpu":
                 gpu_name = torch.cuda.get_device_name(0)
                 vram_mb  = torch.cuda.get_device_properties(0).total_memory // (1024 ** 2)
                 log.info("GPU detected: %s (%d MB VRAM)", gpu_name, vram_mb)
@@ -78,9 +78,14 @@ def get_model() -> YOLO:
             else:
                 log.warning("No CUDA GPU found — falling back to CPU (inference will be slow).")
 
-            log.info("Loading YOLO model from: %s  →  device: %s", MODEL_PATH, DEVICE)
-            _model = YOLO(MODEL_PATH)
-            _model.to(DEVICE)
+            log.info("Loading YOLOv5 model from: %s  →  device: %s", MODEL_PATH, DEVICE)
+            _model = torch.hub.load(
+                'ultralytics/yolov5', 'custom',
+                path=MODEL_PATH,
+                device=DEVICE,
+                force_reload=False,
+            )
+            _model.conf = CONFIDENCE_THRESHOLD
             log.info("Model loaded on %s. Classes: %s", DEVICE.upper(), _model.names)
     return _model
 
@@ -662,10 +667,8 @@ def camera_worker(camera: Camera):
 
             # ── Inference ─────────────────────────────────────────────────────
             try:
-                results         = model(frame, conf=CONFIDENCE_THRESHOLD, verbose=False, device=DEVICE)
-                r               = results[0]
-                boxes           = r.boxes
-                annotated_frame = r.plot()
+                results         = model(frame)
+                annotated_frame = results.render()[0]  # YOLOv5 render returns list of np arrays
             except Exception as e:
                 log.error("[CAM %s] Inference error: %s", cam_id, e)
                 continue
@@ -677,15 +680,14 @@ def camera_worker(camera: Camera):
             shoplifting_detected = False
             best_conf            = 0.0
 
-            if boxes is not None and len(boxes) > 0:
-                clses = boxes.cls.cpu().numpy().astype(int)
-                confs = boxes.conf.cpu().numpy()
-                for cls_id, conf in zip(clses, confs):
+            det = results.xyxy[0]  # tensor: [x1, y1, x2, y2, conf, cls]
+            if det is not None and len(det) > 0:
+                for *_box, conf_val, cls_id in det:
                     class_name = model.names[int(cls_id)].lower()
-                    if class_name == TARGET_CLASS and conf >= CONFIDENCE_THRESHOLD:
+                    if class_name == TARGET_CLASS and float(conf_val) >= CONFIDENCE_THRESHOLD:
                         shoplifting_detected = True
-                        if conf > best_conf:
-                            best_conf = float(conf)
+                        if float(conf_val) > best_conf:
+                            best_conf = float(conf_val)
 
             current_detection = None
 

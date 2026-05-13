@@ -107,15 +107,35 @@ export default function OpsDashboard() {
   const handleLogout = () => { logout(); navigate("/login", { replace: true }); };
 
   // Per spec: OPS can mark Reviewed, Escalated, or False Positive
-  const updateStatus = (id, newStatus) => {
-    // TODO: PATCH /api/alerts/<id>/ { status: newStatus }
-    setAlerts(prev => prev.map(a => a.id === id ? { ...a, status: newStatus } : a));
+  const updateStatus = async (id, newStatus) => {
+    try {
+      const res = await fetch(`http://localhost:8000/api/alerts/${id}/`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ status: newStatus }),
+      });
+      if (res.ok) {
+        setAlerts(prev => prev.map(a => a.id === id ? { ...a, status: newStatus } : a));
+      } else {
+        console.error("Failed to update status", res.status);
+      }
+    } catch (e) { console.error(e); }
   };
 
-  const saveNote = (id, note) => {
-    // TODO: PATCH /api/alerts/<id>/ { notes: note }
-    setAlerts(prev => prev.map(a => a.id === id ? { ...a, notes: note } : a));
-    setNoteModal(null);
+  const saveNote = async (id, note) => {
+    try {
+      const res = await fetch(`http://localhost:8000/api/alerts/${id}/`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ notes: note }),
+      });
+      if (res.ok) {
+        setAlerts(prev => prev.map(a => a.id === id ? { ...a, notes: note } : a));
+        setNoteModal(null);
+      } else {
+        console.error("Failed to save note", res.status);
+      }
+    } catch (e) { console.error(e); }
   };
 
   const countByStatus = {

@@ -109,7 +109,7 @@ function SnapshotModal({ event, onClose }) {
   );
 }
 
-function FeedRow({ event, index, onViewSnapshot }) {
+function FeedRow({ event, index, onViewSnapshot, onDelete }) {
   const cfg = SEVERITY_CONFIG[event.severity] ?? SEVERITY_CONFIG.HIGH;
   const isNew = index === 0;
   return (
@@ -134,14 +134,19 @@ function FeedRow({ event, index, onViewSnapshot }) {
           <span className="dp-row-time">{formatTime(event.timestamp)}</span>
         </div>
       </div>
-      <button className="dp-row-snap-btn" onClick={() => onViewSnapshot(event)} title="View snapshot">
-        {event.frame_jpg_b64 ? (
-          <img className="dp-row-thumb" src={`data:image/jpeg;base64,${event.frame_jpg_b64}`} alt="snapshot" />
-        ) : (
-          <span className="dp-row-no-thumb">🎞</span>
+      <div className="dp-row-actions">
+        <button className="dp-row-snap-btn" onClick={() => onViewSnapshot(event)} title="View snapshot">
+          {event.frame_jpg_b64 ? (
+            <img className="dp-row-thumb" src={`data:image/jpeg;base64,${event.frame_jpg_b64}`} alt="snapshot" />
+          ) : (
+            <span className="dp-row-no-thumb">🎞</span>
+          )}
+          <span className="dp-row-snap-label">View</span>
+        </button>
+        {event.alert_id && onDelete && (
+          <button className="dp-row-delete-btn" onClick={() => onDelete(event)} title="Delete alert">✕</button>
         )}
-        <span className="dp-row-snap-label">View</span>
-      </button>
+      </div>
     </div>
   );
 }
@@ -154,7 +159,8 @@ function DetectionsPage() {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState(null);
   const [severityFilter, setSeverityFilter] = useState("ALL");
-  const [paused, setPaused]             = useState(false);
+  const [paused, setPaused]             = useState(() => sessionStorage.getItem("sg_alerts_paused") === "true");
+  useEffect(() => { sessionStorage.setItem("sg_alerts_paused", paused); }, [paused]);
   const [historicalFeed, setHistoricalFeed] = useState([]);
 
   const loadCameras = useCallback(async () => {
@@ -200,8 +206,31 @@ function DetectionsPage() {
 
   useEffect(() => { loadExistingAlerts(); }, [loadExistingAlerts]);
 
-  const { feed, connectedIds } = useAllDetections(paused ? [] : cameras, token);
+  const { feed, connectedIds, removeFeedItem } = useAllDetections(paused ? [] : cameras, token);
   const handleLogout = () => { logout(); navigate("/login", { replace: true }); };
+
+  const deleteAlert = useCallback(async (event) => {
+    if (!event.alert_id) return;
+    try {
+      const res = await fetch(`http://localhost:8000/api/alerts/${event.alert_id}/`, {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      });
+      if (res.status === 204 || res.ok) {
+        // Remove from both feeds immediately
+        setHistoricalFeed(prev => prev.filter(h => h.alert_id !== event.alert_id));
+        removeFeedItem(event.alert_id);
+      } else {
+        const errText = await res.text().catch(() => "");
+        console.error("Failed to delete alert", res.status, errText);
+      }
+    } catch (e) {
+      console.error("Failed to delete alert", e);
+    }
+  }, [token, removeFeedItem]);
 
   const mergedFeed = [
     ...feed,
@@ -338,7 +367,7 @@ function DetectionsPage() {
                 <div className="dp-feed-list">
                   {filteredFeed.map((event, i) => (
                     <FeedRow key={`${event.camera_id}-${event.timestamp}-${i}`}
-                      event={event} index={i} onViewSnapshot={setSelectedEvent} />
+                      event={event} index={i} onViewSnapshot={setSelectedEvent} onDelete={deleteAlert} />
                   ))}
                 </div>
               )}
