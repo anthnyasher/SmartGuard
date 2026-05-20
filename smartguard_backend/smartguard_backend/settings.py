@@ -5,6 +5,9 @@ Django settings for smartguard_backend project.
 import os
 from pathlib import Path
 from datetime import timedelta
+from dotenv import load_dotenv
+
+load_dotenv()
 
 # ── Twilio ─────────────────────────────────────────────────────────────────────
 TWILIO_ACCOUNT_SID  = os.environ.get("TWILIO_ACCOUNT_SID",  "")
