@@ -99,7 +99,7 @@ export default function EvidenceVault() {
   // ADMIN: direct download | OPS: submit request
   const handleDownload = (ev) => {
     if (user?.role === "ADMIN") {
-      window.open(`http://localhost:8000/api/evidence/${ev.id}/download/`, "_blank");
+      window.open(`${import.meta.env.VITE_API_BASE_URL || "http://localhost:8000"}/api/evidence/${ev.id}/download/`, "_blank");
     } else {
       setDownloadRequested(prev => new Set([...prev, ev.id]));
       alert(`Download request submitted for ${ev.clip_id || ev.id}. An administrator will review and approve it.`);
@@ -354,7 +354,7 @@ export default function EvidenceVault() {
                   className="ev-video-player"
                   controls
                   preload="metadata"
-                  src={`http://localhost:8000/api/evidence/${selected.id}/stream/`}
+                  src={`${import.meta.env.VITE_API_BASE_URL || "http://localhost:8000"}/api/evidence/${selected.id}/stream/`}
                   key={selected.id}
                 >
                   Your browser does not support video playback.

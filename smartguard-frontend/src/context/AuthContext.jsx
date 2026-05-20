@@ -23,7 +23,7 @@ export function AuthProvider({ children }) {
     // Attempt to blacklist the refresh token on the server
     if (refreshToken && token) {
       try {
-        await fetch("http://localhost:8000/api/auth/logout/", {
+        await fetch((import.meta.env.VITE_API_BASE_URL || "http://localhost:8000") + "/api/auth/logout/", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",

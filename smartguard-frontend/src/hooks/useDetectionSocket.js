@@ -8,7 +8,7 @@
 
 import { useEffect, useRef, useState, useCallback } from "react";
 
-const WS_BASE = "ws://localhost:8000";
+const WS_BASE = import.meta.env.VITE_API_BASE_URL ? (import.meta.env.VITE_API_BASE_URL.startsWith("https") ? import.meta.env.VITE_API_BASE_URL.replace("https", "wss") : import.meta.env.VITE_API_BASE_URL.replace("http", "ws")) : "ws://localhost:8000";
 const RECONNECT_DELAY_MS = 3000;
 
 export function useDetectionSocket(cameraId, token) {

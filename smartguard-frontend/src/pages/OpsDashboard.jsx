@@ -109,7 +109,7 @@ export default function OpsDashboard() {
   // Per spec: OPS can mark Reviewed, Escalated, or False Positive
   const updateStatus = async (id, newStatus) => {
     try {
-      const res = await fetch(`http://localhost:8000/api/alerts/${id}/`, {
+      const res = await fetch(`${import.meta.env.VITE_API_BASE_URL || "http://localhost:8000"}/api/alerts/${id}/`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
         body: JSON.stringify({ status: newStatus }),
@@ -124,7 +124,7 @@ export default function OpsDashboard() {
 
   const saveNote = async (id, note) => {
     try {
-      const res = await fetch(`http://localhost:8000/api/alerts/${id}/`, {
+      const res = await fetch(`${import.meta.env.VITE_API_BASE_URL || "http://localhost:8000"}/api/alerts/${id}/`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
         body: JSON.stringify({ notes: note }),

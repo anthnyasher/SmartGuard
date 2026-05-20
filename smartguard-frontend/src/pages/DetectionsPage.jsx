@@ -180,7 +180,7 @@ function DetectionsPage() {
   const loadExistingAlerts = useCallback(async () => {
     if (!token) return;
     try {
-      const res = await fetch("http://localhost:8000/api/alerts/", {
+      const res = await fetch((import.meta.env.VITE_API_BASE_URL || "http://localhost:8000") + "/api/alerts/", {
         headers: { Authorization: `Bearer ${token}` },
       });
       if (!res.ok) return;
@@ -212,7 +212,7 @@ function DetectionsPage() {
   const deleteAlert = useCallback(async (event) => {
     if (!event.alert_id) return;
     try {
-      const res = await fetch(`http://localhost:8000/api/alerts/${event.alert_id}/`, {
+      const res = await fetch(`${import.meta.env.VITE_API_BASE_URL || "http://localhost:8000"}/api/alerts/${event.alert_id}/`, {
         method: "DELETE",
         headers: {
           Authorization: `Bearer ${token}`,

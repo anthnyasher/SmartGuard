@@ -9,7 +9,7 @@ import "./AdminDashboard.css";
 import "./shared-components.css";
 import "./LogsPage.css";
 
-const BASE_URL = "http://localhost:8000";
+const BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8000";
 
 const NAV_ITEMS = [
   { id: "dashboard",  label: "Dashboard",          icon: "⊞", path: "/admin"            },

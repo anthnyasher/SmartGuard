@@ -1,4 +1,5 @@
 from rest_framework import serializers
+from django.conf import settings
 from .models import Camera
 
 class CameraSerializer(serializers.ModelSerializer):
@@ -14,5 +15,6 @@ class CameraSerializer(serializers.ModelSerializer):
         ret = super().to_representation(instance)
         # Auto-compute the MJPEG URL if left blank
         if not ret.get("stream_mjpeg_url") and ret.get("id"):
-            ret["stream_mjpeg_url"] = f"http://localhost:8001/api/cameras/{ret['id']}/stream/mjpeg/"
+            base = getattr(settings, 'STREAM_BASE_URL', 'http://localhost:8001')
+            ret["stream_mjpeg_url"] = f"{base}/api/cameras/{ret['id']}/stream/mjpeg/"
         return ret

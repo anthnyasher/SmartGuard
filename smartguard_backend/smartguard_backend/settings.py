@@ -17,6 +17,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-^==a$(7@an64!0t!8y)-0tt))ibbz%^(nd34)38_7x4po8p*z%'
 DEBUG      = True
 ALLOWED_HOSTS = ["*"]
+STREAM_BASE_URL = os.environ.get("STREAM_BASE_URL", "http://localhost:8001")
 
 # ── Apps ───────────────────────────────────────────────────────────────────────
 INSTALLED_APPS = [
@@ -41,11 +42,14 @@ INSTALLED_APPS = [
 ]
 ASGI_APPLICATION = "smartguard_backend.asgi.application"
 # at the bottom or near ASGI_APPLICATION
+CLOUD_REDIS_HOST = os.environ.get("CLOUD_REDIS_HOST", "127.0.0.1")
+CLOUD_REDIS_PORT = int(os.environ.get("CLOUD_REDIS_PORT", "6379"))
+
 CHANNEL_LAYERS = {
     "default": {
         "BACKEND": "channels_redis.core.RedisChannelLayer",
         "CONFIG": {
-            "hosts": [("127.0.0.1", 6379)],
+            "hosts": [(CLOUD_REDIS_HOST, CLOUD_REDIS_PORT)],
             "capacity": 1500,           # max messages per channel before dropping
             "expiry": 10,               # seconds before unread messages expire
         },
@@ -90,11 +94,11 @@ WSGI_APPLICATION = 'smartguard_backend.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE':   'django.db.backends.postgresql',
-        'NAME':     'smartguard_db',
-        'USER':     'smartguard',
-        'PASSWORD': 'smgh123!',
-        'HOST':     'localhost',
-        'PORT':     '5432',
+        'NAME':     os.environ.get('DATABASE_NAME', 'smartguard_db'),
+        'USER':     os.environ.get('DATABASE_USER', 'smartguard'),
+        'PASSWORD': os.environ.get('DATABASE_PASSWORD', 'smgh123!'),
+        'HOST':     os.environ.get('DATABASE_HOST', 'localhost'),
+        'PORT':     os.environ.get('DATABASE_PORT', '5432'),
     }
 }
 
