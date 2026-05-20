@@ -4,7 +4,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useAuth } from "../context/AuthContext.jsx";
-import OpsLayout from "./OpsLayout.jsx";
+import OpsLayout from "./Opslayout.jsx";
 import CameraTile from "./CameraTile.jsx";
 import AlertToast from "../components/AlertToast.jsx";
 import { useAllDetections } from "../hooks/useAllDetections.js";
