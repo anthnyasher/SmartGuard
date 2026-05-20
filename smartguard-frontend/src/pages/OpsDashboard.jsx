@@ -23,10 +23,7 @@ const ASSIGNED_ZONES = [
   { id: "cam-06", name: "Customer Service",         status: "ONLINE"  },
 ];
 
-const SAMPLE_INCIDENTS = [
-  { id: "INC-0042", time: "02:15 PM", camera_name: "Aisle 1 — Zone GF",       severity: "CRITICAL", status: "OPEN",                description: "Shoplifting detected with high confidence" },
-  { id: "INC-0041", time: "01:30 PM", camera_name: "Self-Checkout — Zone GF", severity: "HIGH",     status: "UNDER_INVESTIGATION", description: "Concealment behavior — under review"      },
-];
+const SAMPLE_INCIDENTS = [];
 
 const STATUS_LABELS   = { NEW: "New", ESCALATED: "Escalated", FALSE_POSITIVE: "False Positive", CLOSED: "Closed" };
 const INCIDENT_LABELS = { OPEN: "Open", UNDER_INVESTIGATION: "Under Investigation", MITIGATED: "Mitigated", CLOSED: "Closed" };

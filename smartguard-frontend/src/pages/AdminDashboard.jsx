@@ -92,16 +92,10 @@ function AdminDashboard() {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
   // TODO: Replace with GET /api/incidents/?status=OPEN
-  const placeholderIncidents = [
-    { id: "INC-0042", time: "01:30 PM", camera: "CAM-12", severity: "CRITICAL", status: "OPEN" },
-    { id: "INC-0041", time: "10:34 AM", camera: "CAM-01", severity: "HIGH",     status: "UNDER_INVESTIGATION" },
-  ];
+  const placeholderIncidents = [];
 
   // TODO: Replace with GET /api/evidence/?limit=3
-  const placeholderEvidence = [
-    { timestamp: "01:30 PM", camera: "Entrance — Zone A",  incident: "INC-0042", size: "28.7 MB", verified: true  },
-    { timestamp: "10:34 AM", camera: "Aisle 2 — Zone GF", incident: "INC-0041", size: "14.2 MB", verified: true  },
-  ];
+  const placeholderEvidence = [];
 
   // TODO: Replace with GET /api/cameras/activity/?period=24h
   const topCameras = [
