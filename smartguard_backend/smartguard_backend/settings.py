@@ -49,6 +49,7 @@ CLOUD_REDIS_HOST = os.environ.get("CLOUD_REDIS_HOST", "127.0.0.1")
 CLOUD_REDIS_PORT = int(os.environ.get("CLOUD_REDIS_PORT", "6379"))
 
 CLOUD_REDIS_PASSWORD = os.environ.get("REDIS_PASSWORD", "")
+STREAM_BASE_URL = os.environ.get("STREAM_BASE_URL", "http://localhost:8001")
 
 CHANNEL_LAYERS = {
     "default": {
