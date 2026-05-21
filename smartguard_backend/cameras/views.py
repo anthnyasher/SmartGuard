@@ -21,8 +21,14 @@ from .models import Camera
 
 log = logging.getLogger(__name__)
 
+from django.conf import settings
+
 # ── Redis connection (shared with the detection worker) ────────────────────────
-_redis = redis.Redis(host="127.0.0.1", port=6379)
+_redis = redis.Redis(
+    host=getattr(settings, 'CLOUD_REDIS_HOST', '127.0.0.1'),
+    port=getattr(settings, 'CLOUD_REDIS_PORT', 6379),
+    password=getattr(settings, 'CLOUD_REDIS_PASSWORD', None)
+)
 
 # ── Camera CRUD ────────────────────────────────────────────────────────────────
 
