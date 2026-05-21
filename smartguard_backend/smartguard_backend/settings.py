@@ -48,11 +48,13 @@ ASGI_APPLICATION = "smartguard_backend.asgi.application"
 CLOUD_REDIS_HOST = os.environ.get("CLOUD_REDIS_HOST", "127.0.0.1")
 CLOUD_REDIS_PORT = int(os.environ.get("CLOUD_REDIS_PORT", "6379"))
 
+CLOUD_REDIS_PASSWORD = os.environ.get("REDIS_PASSWORD", "")
+
 CHANNEL_LAYERS = {
     "default": {
         "BACKEND": "channels_redis.core.RedisChannelLayer",
         "CONFIG": {
-            "hosts": [(CLOUD_REDIS_HOST, CLOUD_REDIS_PORT)],
+            "hosts": [f"redis://:{CLOUD_REDIS_PASSWORD}@{CLOUD_REDIS_HOST}:{CLOUD_REDIS_PORT}/0"] if CLOUD_REDIS_PASSWORD else [(CLOUD_REDIS_HOST, CLOUD_REDIS_PORT)],
             "capacity": 1500,           # max messages per channel before dropping
             "expiry": 10,               # seconds before unread messages expire
         },
