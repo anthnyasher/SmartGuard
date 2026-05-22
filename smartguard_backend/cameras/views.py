@@ -134,7 +134,7 @@ def camera_mjpeg_stream(request, pk):
     response["Cache-Control"]                = "no-cache, no-store, must-revalidate"
     response["Pragma"]                       = "no-cache"
     response["Expires"]                      = "0"
-    response["Access-Control-Allow-Origin"]  = "http://localhost:5173"
+    response["Access-Control-Allow-Origin"]  = "*"
     response["Access-Control-Allow-Headers"] = "Authorization, Content-Type"
     return response
 
