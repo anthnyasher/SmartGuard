@@ -153,7 +153,7 @@ function StaffDashboard() {
               Alerts assigned to you. Acknowledge receipt and trigger the alarm when needed.
             </p>
           </div>
-          <div className="staff-kpi-row">
+          <div className="staff-kpi-row" style={{ alignItems: "center", gap: 16 }}>
             <div className="staff-kpi staff-kpi--red">
               <div className="staff-kpi-val">{activeAlerts.length}</div>
               <div className="staff-kpi-label">Active</div>
@@ -162,7 +162,13 @@ function StaffDashboard() {
               <div className="staff-kpi-val">{ackedAlerts.length}</div>
               <div className="staff-kpi-label">Acknowledged</div>
             </div>
-    
+            <button 
+              className="staff-btn staff-btn--alarm" 
+              style={{ height: 'fit-content', padding: '10px 20px' }}
+              onClick={() => navigate('/ops/live')}
+            >
+              📹 View Live Cameras
+            </button>
           </div>
         </div>
 
@@ -266,7 +272,7 @@ function StaffDashboard() {
         <div className="staff-access-notice">
           <span>🔒</span>
           <span>
-            Camera feeds, video clips, and system settings are only accessible
+            Video clips and system settings are only accessible
             to Operations Managers and Administrators.
           </span>
         </div>
