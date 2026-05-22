@@ -77,3 +77,51 @@ class AlertDetailView(generics.RetrieveUpdateDestroyAPIView):
             qs = qs.filter(alert_category="SHOPLIFTING")
 
         return qs
+
+
+class DashboardAnalyticsView(APIView):
+    """
+    GET /api/alerts/analytics/
+    Returns real statistics for the AI Detection Analytics dashboard.
+    """
+    permission_classes = [AlertPermission]
+
+    def get(self, request):
+        from django.utils import timezone
+        from datetime import timedelta
+        from django.db.models import Count
+        
+        now = timezone.now()
+        last_24h = now - timedelta(hours=24)
+        
+        # Base queryset matching user's permissions
+        role = getattr(request.user, "role", None)
+        qs = Alert.objects.filter(created_at__gte=last_24h)
+        if role in ("STAFF", "OPERATIONS_MANAGER"):
+            qs = qs.filter(alert_category="SHOPLIFTING")
+
+        # 1. Detections Over Time (Last 24 Hours) - bucketed every 2 hours (12 points)
+        points = [0] * 12
+        alerts = list(qs.values('created_at'))
+        for a in alerts:
+            hours_ago = (now - a['created_at']).total_seconds() / 3600
+            bucket_idx = 11 - int(hours_ago / 2) # 0 to 11
+            if 0 <= bucket_idx <= 11:
+                points[bucket_idx] += 1
+
+        # 2. Top Cameras (Most Active)
+        top_cams = (
+            qs.values('camera__name')
+            .annotate(count=Count('id'))
+            .order_by('-count')[:3]
+        )
+        
+        top_cameras_data = [
+            {"name": c['camera__name'] or f"Camera {c.get('camera__id', 'Unknown')}", "count": c['count']}
+            for c in top_cams
+        ]
+
+        return Response({
+            "points": points,
+            "topCameras": top_cameras_data,
+        })

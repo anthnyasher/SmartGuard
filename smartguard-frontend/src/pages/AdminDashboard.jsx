@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext.jsx";
 import { getCameras } from "../api/cameraApi.js";
-import { getAlerts } from "../api/alertApi.js";
+import { getAlerts, getAnalytics } from "../api/alertApi.js";
 import "./AdminDashboard.css";
 
 const NAV_ITEMS = [
@@ -18,9 +18,9 @@ const NAV_ITEMS = [
   { id: "settings",   label: "Settings",            icon: "⚙",  path: "/admin/settings"   },
 ];
 
-function DetectionChart() {
-  const points = [2, 5, 3, 8, 4, 6, 10, 7, 4, 3, 6, 9];
-  const max = Math.max(...points);
+function DetectionChart({ points = [] }) {
+  if (points.length === 0) points = [0,0,0,0,0,0,0,0,0,0,0,0];
+  const max = Math.max(...points, 1); // Avoid division by zero
   const h = 80, w = 260, step = w / (points.length - 1);
   const coords = points.map((v, i) => `${i * step},${h - (v / max) * h}`).join(" ");
   return (
@@ -91,24 +91,13 @@ function AdminDashboard() {
   const [searchQuery, setSearchQuery]       = useState("");
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
-  // TODO: Replace with GET /api/incidents/?status=OPEN
-  const placeholderIncidents = [];
-
-  // TODO: Replace with GET /api/evidence/?limit=3
-  const placeholderEvidence = [];
-
-  // TODO: Replace with GET /api/cameras/activity/?period=24h
-  const topCameras = [
-    { name: "Entrance — Zone A",   count: 15 },
-    { name: "Aisle 2 — Zone GF",   count: 9  },
-    { name: "Checkout — Zone GF",  count: 7  },
-  ];
+  const [analytics, setAnalytics]           = useState({ points: [], topCameras: [] });
 
   useEffect(() => {
     if (!token) return;
     async function loadData() {
       try {
-        const [cams, alerts] = await Promise.all([getCameras(token), getAlerts(token)]);
+        const [cams, alerts, analyticsData] = await Promise.all([getCameras(token), getAlerts(token), getAnalytics(token)]);
         const camList   = Array.isArray(cams)   ? cams   : [];
         const alertList = Array.isArray(alerts) ? alerts : [];
         const online    = camList.filter(c => ["ONLINE","online"].includes(c.status)).length;
@@ -125,6 +114,7 @@ function AdminDashboard() {
         setTodayAlerts(today);
         setRecentAlerts(alertList.slice(0, 6));
         setSeverityCounts(counts);
+        setAnalytics(analyticsData);
       } catch (err) {
         console.error("Failed to load dashboard data", err);
       } finally {
@@ -324,7 +314,8 @@ function AdminDashboard() {
                       <tr><th>Time</th><th>Incident ID</th><th>Camera</th><th>Severity</th><th>Status</th><th>Action</th></tr>
                     </thead>
                     <tbody>
-                      {placeholderIncidents.map(inc => (
+                      {/* Placeholder for now until Incidents API is integrated */}
+                      {[]?.map(inc => (
                         <tr key={inc.id}>
                           <td className="sg-td-mono">{inc.time}</td>
                           <td className="sg-td-bold">{inc.id}</td>
@@ -357,7 +348,8 @@ function AdminDashboard() {
                       <tr><th>Time</th><th>Camera</th><th>Incident</th><th>Size</th><th>Integrity</th><th>Action</th></tr>
                     </thead>
                     <tbody>
-                      {placeholderEvidence.map((ev, i) => (
+                      {/* Placeholder for now until Evidence API is integrated */}
+                      {[]?.map((ev, i) => (
                         <tr key={i}>
                           <td className="sg-td-mono">{ev.timestamp}</td>
                           <td className="sg-td-bold">{ev.camera}</td>
@@ -393,7 +385,7 @@ function AdminDashboard() {
                 </div>
                 <div className="sg-chart-row">
                   <div className="sg-chart-wrap">
-                    <DetectionChart />
+                    <DetectionChart points={analytics.points} />
                     <div className="sg-chart-xaxis">
                       {["4h ago", "3h", "2h", "1h", "Now"].map(l => <span key={l}>{l}</span>)}
                     </div>
@@ -403,25 +395,30 @@ function AdminDashboard() {
                 <div className="sg-top-cameras-row">
                   <div className="sg-top-cam-block">
                     <div className="sg-top-cam-title">MOST ACTIVE</div>
-                    {topCameras.slice(0, 2).map(c => (
+                    {analytics.topCameras.slice(0, 2).map(c => (
                       <div key={c.name} className="sg-top-cam-row">
                         <span className="sg-top-cam-dot" />
                         <span className="sg-top-cam-name">{c.name}</span>
                         <Link to="/admin/live" className="sg-action-btn" style={{ textDecoration: "none" }}>View</Link>
                       </div>
                     ))}
+                    {analytics.topCameras.length === 0 && <div className="sg-empty" style={{padding: '10px 0'}}>No data available</div>}
                   </div>
                   <div className="sg-top-cam-block">
                     <div className="sg-top-cam-title">ACTIVITY BY CAMERA</div>
-                    {topCameras.map(c => (
-                      <div key={c.name} className="sg-top-cam-bar-row">
-                        <span className="sg-top-cam-name">{c.name}</span>
-                        <div className="sg-top-cam-bar-track">
-                          <div className="sg-top-cam-bar-fill" style={{ width: `${(c.count / 15) * 100}%` }} />
+                    {analytics.topCameras.map(c => {
+                      const maxCount = Math.max(...analytics.topCameras.map(x => x.count), 1);
+                      return (
+                        <div key={c.name} className="sg-top-cam-bar-row">
+                          <span className="sg-top-cam-name">{c.name}</span>
+                          <div className="sg-top-cam-bar-track">
+                            <div className="sg-top-cam-bar-fill" style={{ width: `${(c.count / maxCount) * 100}%` }} />
+                          </div>
+                          <span className="sg-top-cam-count">{c.count}</span>
                         </div>
-                        <span className="sg-top-cam-count">{c.count}</span>
-                      </div>
-                    ))}
+                      );
+                    })}
+                    {analytics.topCameras.length === 0 && <div className="sg-empty" style={{padding: '10px 0'}}>No data available</div>}
                   </div>
                 </div>
               </section>

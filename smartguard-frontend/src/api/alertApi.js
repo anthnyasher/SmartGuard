@@ -36,3 +36,17 @@ export async function acknowledgeAlert(token, alertId, notes = "") {
 
   return await res.json();
 }
+
+export async function getAnalytics(token) {
+  const res = await fetch(`${BASE_URL}/api/alerts/analytics/`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+  if (!res.ok) {
+    throw new Error("Failed to fetch analytics");
+  }
+
+  return await res.json();
+}
