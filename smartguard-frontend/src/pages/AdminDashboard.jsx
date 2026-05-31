@@ -89,7 +89,7 @@ function AdminDashboard() {
   const [severityCounts, setSeverityCounts] = useState({ CRITICAL: 0, HIGH: 0, MEDIUM: 0, LOW: 0 });
   const [loading, setLoading]               = useState(true);
   const [searchQuery, setSearchQuery]       = useState("");
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(window.innerWidth <= 768);
 
   const [analytics, setAnalytics]           = useState({ points: [], topCameras: [] });
 

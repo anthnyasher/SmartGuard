@@ -156,7 +156,7 @@ function DetectionsPage() {
   const navigate = useNavigate();
   const [cameras, setCameras]           = useState([]);
   const [loading, setLoading]           = useState(true);
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(window.innerWidth <= 768);
   const [selectedEvent, setSelectedEvent] = useState(null);
   const [severityFilter, setSeverityFilter] = useState("ALL");
   const [paused, setPaused]             = useState(() => sessionStorage.getItem("sg_alerts_paused") === "true");

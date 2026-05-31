@@ -43,7 +43,7 @@ function formatTimeUntilExpiry(seconds) {
 export default function EvidenceVault() {
   const { user, token, logout } = useAuth();
   const navigate = useNavigate();
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(window.innerWidth <= 768);
   const [search, setSearch]                 = useState("");
   const [reviewFilter, setReviewFilter]     = useState("ALL");
   const [selected, setSelected]             = useState(null);

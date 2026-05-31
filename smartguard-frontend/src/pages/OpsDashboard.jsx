@@ -80,7 +80,7 @@ export default function OpsDashboard() {
 
   const [alerts, setAlerts]                     = useState([]);
   const [loading, setLoading]                   = useState(true);
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(window.innerWidth <= 768);
   const [statusFilter, setStatusFilter]         = useState("ALL");
   const [noteModal, setNoteModal]               = useState(null);
 

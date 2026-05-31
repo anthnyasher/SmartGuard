@@ -97,7 +97,7 @@ function Toggle({ value, onChange }) {
 export default function SettingsPage() {
   const { user, token, logout } = useAuth();
   const navigate = useNavigate();
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(window.innerWidth <= 768);
   const [activeTab, setActiveTab]   = useState("general");
   const [settings, setSettings]     = useState(DEFAULT_SETTINGS);
   const [saved, setSaved]           = useState(false);

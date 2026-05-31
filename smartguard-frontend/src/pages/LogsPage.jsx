@@ -79,7 +79,7 @@ export default function LogsPage() {
   const [pages,      setPages]      = useState(1);
   const [autoRefresh,setAutoRefresh]= useState(false);
 
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(window.innerWidth <= 768);
   const [category,         setCategory]         = useState("ALL");
   const [levelFilter,      setLevelFilter]       = useState("ALL");
   const [search,           setSearch]            = useState("");

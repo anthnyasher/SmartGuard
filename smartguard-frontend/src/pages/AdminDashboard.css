@@ -647,7 +647,8 @@ body { font-family: 'DM Sans', sans-serif; background: var(--bg-base); color: va
 }
 
 @media (max-width: 768px) {
-  .sg-sidebar { position: fixed; z-index: 100; height: 100vh; }
+  .sg-sidebar { position: fixed; z-index: 100; height: 100vh; transform: translateX(0); transition: transform 0.3s ease; }
+  .sg-sidebar.collapsed { transform: translateX(-100%); width: var(--sidebar-w); }
   .sg-main { margin-left: 0; }
   .sg-kpi-strip { grid-template-columns: repeat(2, 1fr); }
   .sg-topbar-center { display: none; }

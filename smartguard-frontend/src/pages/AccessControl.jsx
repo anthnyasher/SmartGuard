@@ -630,7 +630,7 @@ export default function AccessControl() {
   const [error,   setError]   = useState(null);
 
   // ── UI state ────────────────────────────────────────────────────────────────
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(window.innerWidth <= 768);
   const [roleFilter,       setRoleFilter]       = useState("ALL");
   const [search,           setSearch]           = useState("");
   const [selectedRole,     setSelectedRole]     = useState("ADMIN");

@@ -59,7 +59,7 @@ function actionLabel(a) {
 export default function IncidentResponse() {
   const { user, token, logout } = useAuth();
   const navigate = useNavigate();
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(window.innerWidth <= 768);
   const [incidents, setIncidents] = useState([]);
   const [loading, setLoading]     = useState(true);
   const [statusFilter, setStatusFilter] = useState("ALL");

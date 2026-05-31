@@ -48,7 +48,7 @@ function CameraManagement() {
 
   const [cameras,          setCameras]          = useState([]);
   const [loading,          setLoading]          = useState(true);
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(window.innerWidth <= 768);
   const [search,           setSearch]           = useState("");
 
   // Modal state

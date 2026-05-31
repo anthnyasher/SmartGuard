@@ -407,7 +407,7 @@ function LiveMonitoring() {
   const navigate = useNavigate();
   const [cameras, setCameras] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(window.innerWidth <= 768);
   const [currentPage, setCurrentPage] = useState(0);
   const [showConfig, setShowConfig] = useState(false);
   const [selectedCam, setSelectedCam] = useState(null);
