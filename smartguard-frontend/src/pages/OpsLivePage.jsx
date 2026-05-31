@@ -68,7 +68,7 @@ export default function OpsLivePage() {
   const [gridKey,     setGridKey]     = useState("2x2");
   const [page,        setPage]        = useState(0);
   const [selectedCam, setSelectedCam] = useState(null);
-  const [collapsed,   setCollapsed]   = useState(false);
+  const [collapsed, setCollapsed] = useState(window.innerWidth <= 768);
 
   const loadCameras = useCallback(async () => {
     if (!token) return;
@@ -151,7 +151,7 @@ export default function OpsLivePage() {
 // This is in the same file for brevity — split into OpsEvidencePage.jsx
 
 export function OpsEvidencePage() {
-  const [collapsed, setCollapsed] = useState(false);
+  const [collapsed, setCollapsed] = useState(window.innerWidth <= 768);
   const [statusFilter, setStatusFilter] = useState("ALL");
   const [search, setSearch] = useState("");
 

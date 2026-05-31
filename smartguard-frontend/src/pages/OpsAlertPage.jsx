@@ -187,7 +187,7 @@ export default function OpsAlertsPage() {
   const [search,       setSearch]       = useState("");
   const [selectedAlert,setSelectedAlert]= useState(null);
   const [noteModal,    setNoteModal]    = useState(null);
-  const [collapsed,    setCollapsed]    = useState(false);
+  const [collapsed, setCollapsed] = useState(window.innerWidth <= 768);
 
   const loadAlerts = useCallback(async () => {
     if (!token) return;
