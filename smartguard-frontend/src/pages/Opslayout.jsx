@@ -17,6 +17,11 @@ export const OPS_NAV = [
   { id: "evidence",  label: "Evidence",        icon: "🎞", path: "/ops/evidence"  },
 ];
 
+export const STAFF_NAV = [
+  { id: "alerts",    label: "Alerts",          icon: "✦", path: "/staff/dashboard" },
+  { id: "live",      label: "Live Monitoring", icon: "◉", path: "/staff/live"      },
+];
+
 export default function OpsLayout({
   active,
   title,
@@ -35,6 +40,9 @@ export default function OpsLayout({
     OPS: "Operations Manager", STAFF: "Store Staff",
   };
 
+  const navItems = user?.role === "STAFF" ? STAFF_NAV : OPS_NAV;
+  const roleDisplay = ROLE_DISPLAY[user?.role] || user?.role;
+
   return (
     <div className="sg-layout">
       {/* Sidebar */}
@@ -49,7 +57,7 @@ export default function OpsLayout({
           )}
         </div>
         <nav className="sg-sidebar-nav">
-          {OPS_NAV.map(item => (
+          {navItems.map(item => (
             <Link key={item.id} to={item.path}
               className={`sg-nav-item${item.id === active ? " sg-nav-active" : ""}`}>
               <span className="sg-nav-icon">{item.icon}</span>
@@ -59,14 +67,15 @@ export default function OpsLayout({
         </nav>
         <div className="sg-sidebar-footer">
           <div className="sg-user-row">
-            <div className="sg-user-avatar">{user?.email?.[0]?.toUpperCase() || "O"}</div>
+            <div className="sg-user-avatar">{user?.email?.[0]?.toUpperCase() || "U"}</div>
             {!sidebarCollapsed && (
               <div className="sg-user-info">
                 <div className="sg-user-name">{user?.email}</div>
-                <div className="sg-user-role">{ROLE_DISPLAY[user?.role] || user?.role}</div>
+                <div className="sg-user-role">{roleDisplay}</div>
               </div>
             )}
           </div>
+
           {!sidebarCollapsed && <button className="sg-logout-btn" onClick={handleLogout}>Logout</button>}
         </div>
       </aside>

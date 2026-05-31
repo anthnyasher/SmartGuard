@@ -69,6 +69,9 @@ export default function App() {
       <Route path="/staff/dashboard"
         element={<RequireAuth allowedRoles={STAFF_ROLES}><StaffDashboard /></RequireAuth>}
       />
+      <Route path="/staff/live"
+        element={<RequireAuth allowedRoles={STAFF_ROLES}><OpsLivePage /></RequireAuth>}
+      />
 
       <Route path="*" element={<Navigate to="/login" replace />} />
     </Routes>

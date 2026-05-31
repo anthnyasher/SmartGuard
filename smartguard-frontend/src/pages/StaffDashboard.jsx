@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext.jsx";
 import { getAlerts, acknowledgeAlert } from "../api/alertApi.js";
+import OpsLayout from "./Opslayout.jsx";
 import "./AdminDashboard.css";
 import "./StaffPortal.css";
 
@@ -41,6 +42,7 @@ function StaffDashboard() {
   const [loading, setLoading]       = useState(true);
   const [alarmModal, setAlarmModal] = useState(null);
   const [filter, setFilter]         = useState("ACTIVE");
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(window.innerWidth <= 768);
 
   // ── Fetch alerts — your original logic, variable renamed to avoid TDZ crash ──
   // BUG FIX: renamed `data` → `responseData` to prevent "Cannot access 'data'
@@ -105,45 +107,12 @@ function StaffDashboard() {
                                 activeAlerts;
 
   return (
-    <div className="staff-portal">
-
-      {/* ── Header ──────────────────────────────────────────────────────── */}
-      <header className="staff-header">
-        <div className="staff-header-left">
-          <div className="staff-logo">
-            <span className="staff-logo-icon">🛡</span>
-            <span className="staff-logo-text">
-              <span className="staff-logo-smart">SMART</span>
-              <span className="staff-logo-guard">GUARD</span>
-            </span>
-            <span className="staff-role-chip">Staff Portal</span>
-          </div>
-        </div>
-
-        <div className="staff-header-right">
-          {activeAlerts.length > 0 && (
-            <div className="staff-alert-banner">
-              <span className="staff-bell">🔔</span>
-              <span>
-                <strong>{activeAlerts.length} active alert{activeAlerts.length !== 1 ? "s" : ""}</strong> assigned to you
-              </span>
-            </div>
-          )}
-          <div className="staff-user-chip">
-            <div className="staff-user-avatar">
-              {user?.email?.[0]?.toUpperCase() || "S"}
-            </div>
-            <div>
-              <div className="staff-user-name">{user?.email?.split("@")[0]}</div>
-              <div className="staff-user-role">Store Staff</div>
-            </div>
-          </div>
-          <button className="staff-logout-btn" onClick={handleLogout}>Logout</button>
-        </div>
-      </header>
-
-      {/* ── Main ────────────────────────────────────────────────────────── */}
-      <main className="staff-main">
+    <OpsLayout 
+      active="alerts" 
+      sidebarCollapsed={sidebarCollapsed} 
+      onToggleSidebar={() => setSidebarCollapsed(p => !p)}
+    >
+      <div className="staff-main" style={{ padding: 0 }}>
 
         {/* Status row */}
         <div className="staff-status-row">
@@ -162,13 +131,6 @@ function StaffDashboard() {
               <div className="staff-kpi-val">{ackedAlerts.length}</div>
               <div className="staff-kpi-label">Acknowledged</div>
             </div>
-            <button 
-              className="staff-btn staff-btn--alarm" 
-              style={{ height: 'fit-content', padding: '10px 20px' }}
-              onClick={() => navigate('/ops/live')}
-            >
-              📹 View Live Cameras
-            </button>
           </div>
         </div>
 
@@ -277,7 +239,7 @@ function StaffDashboard() {
           </span>
         </div>
 
-      </main>
+      </div>
 
       {/* Alarm confirm modal */}
       {alarmModal && (
@@ -287,7 +249,7 @@ function StaffDashboard() {
           onCancel={() => setAlarmModal(null)}
         />
       )}
-    </div>
+    </OpsLayout>
   );
 }
 
