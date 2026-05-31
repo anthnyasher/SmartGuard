@@ -61,7 +61,7 @@ export default function App() {
       {/* ── Ops Manager routes ──────────────────────────────────────────── */}
       <Route path="/ops" element={<Navigate to="/ops/dashboard" replace />} />
       <Route path="/ops/dashboard" element={<RequireAuth allowedRoles={OPS_ROLES}><OpsDashboard /></RequireAuth>} />
-      <Route path="/ops/live" element={<RequireAuth allowedRoles={STAFF_ROLES}><OpsLivePage /></RequireAuth>} />
+      <Route path="/ops/live" element={<RequireAuth allowedRoles={OPS_ROLES}><OpsLivePage /></RequireAuth>} />
       <Route path="/ops/alerts" element={<RequireAuth allowedRoles={OPS_ROLES}><OpsAlertsPage /></RequireAuth>} />
       <Route path="/ops/evidence" element={<RequireAuth allowedRoles={OPS_ROLES}><OpsEvidencePage /></RequireAuth>} />
 
