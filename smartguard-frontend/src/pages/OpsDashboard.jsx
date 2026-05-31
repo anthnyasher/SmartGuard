@@ -2,7 +2,8 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext.jsx";
-import { getAlerts } from "../api/alertApi.js";
+import { getAlerts, getAnalytics } from "../api/alertApi.js";
+import { getCameras } from "../api/cameraApi.js";
 import "./AdminDashboard.css";
 import "./shared-components.css";
 import "./OpsDashboard.css";
@@ -14,16 +15,7 @@ const NAV_ITEMS = [
   { id: "evidence",  label: "Evidence",        icon: "🎞", path: "/ops/evidence" },
 ];
 
-const ASSIGNED_ZONES = [
-  { id: "cam-01", name: "Entrance — Zone A",       status: "ONLINE"  },
-  { id: "cam-02", name: "Exit — Zone A",           status: "ONLINE"  },
-  { id: "cam-03", name: "Aisle 1 — Zone GF",       status: "ONLINE"  },
-  { id: "cam-04", name: "Aisle 2 — Zone GF",       status: "OFFLINE" },
-  { id: "cam-05", name: "Self-Checkout — Zone GF", status: "ONLINE"  },
-  { id: "cam-06", name: "Customer Service",         status: "ONLINE"  },
-];
-
-const SAMPLE_INCIDENTS = [];
+// Removed hardcoded ASSIGNED_ZONES and SAMPLE_INCIDENTS
 
 const STATUS_LABELS   = { NEW: "New", ESCALATED: "Escalated", FALSE_POSITIVE: "False Positive", CLOSED: "Closed" };
 const INCIDENT_LABELS = { OPEN: "Open", UNDER_INVESTIGATION: "Under Investigation", MITIGATED: "Mitigated", CLOSED: "Closed" };
@@ -79,26 +71,28 @@ export default function OpsDashboard() {
   const navigate = useNavigate();
 
   const [alerts, setAlerts]                     = useState([]);
+  const [cameras, setCameras]                   = useState([]);
+  const [analytics, setAnalytics]               = useState({ points: [], topCameras: [] });
   const [loading, setLoading]                   = useState(true);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(window.innerWidth <= 768);
   const [statusFilter, setStatusFilter]         = useState("ALL");
   const [noteModal, setNoteModal]               = useState(null);
 
-  // ── YOUR ORIGINAL FETCH LOGIC — preserved exactly ────────────────────────────
+  // ── FETCH LOGIC ────────────────────────────────────────────────────────
   useEffect(() => {
-    async function fetchAlerts() {
+    async function loadData() {
       try {
-        const data = await getAlerts(token);
-        const filtered = Array.isArray(data) ? data : [];
-        setAlerts(filtered);
+        const [cams, alrts, analyticsData] = await Promise.all([getCameras(token), getAlerts(token), getAnalytics(token)]);
+        setCameras(cams || []);
+        setAlerts(Array.isArray(alrts) ? alrts : []);
+        if (analyticsData) setAnalytics(analyticsData);
       } catch (err) {
-        console.error("Failed to load ops alerts", err);
-        setAlerts([]);
+        console.error("Failed to load ops data", err);
       } finally {
         setLoading(false);
       }
     }
-    if (token) { fetchAlerts(); }
+    if (token) { loadData(); }
   }, [token]);
 
   const handleLogout = () => { logout(); navigate("/login", { replace: true }); };
@@ -143,8 +137,8 @@ export default function OpsDashboard() {
 };
 
   const displayed   = statusFilter === "ALL" ? alerts : alerts.filter(a => a.status === statusFilter);
-  const onlineCams  = ASSIGNED_ZONES.filter(z => z.status === "ONLINE").length;
-  const offlineCams = ASSIGNED_ZONES.filter(z => z.status === "OFFLINE").length;
+  const onlineCams  = cameras.filter(z => z.status === "ONLINE" || z.status === "online").length;
+  const offlineCams = cameras.length - onlineCams;
 
   return (
     <div className="sg-layout">
@@ -173,7 +167,7 @@ export default function OpsDashboard() {
         {!sidebarCollapsed && (
           <div className="ops-zone-panel">
             <div className="ops-zone-title">MY ASSIGNED ZONES</div>
-            {ASSIGNED_ZONES.map(z => (
+            {cameras.map(z => (
               <div key={z.id} className="ops-zone-row">
                 <span className={`ops-zone-dot ops-zone-dot--${z.status.toLowerCase()}`} />
                 <span className="ops-zone-name">{z.name}</span>
@@ -208,7 +202,7 @@ export default function OpsDashboard() {
           <div className="sg-topbar-right">
             <div className="ops-zone-chip">
               <span>📍</span>
-              <span>Zone A + Zone GF · {onlineCams}/{ASSIGNED_ZONES.length} cameras online</span>
+              <span>All Zones · {onlineCams}/{cameras.length} cameras online</span>
             </div>
             <Link to="/ops/live" className="sg-pdf-btn" style={{ textDecoration: "none" }}>◉ Live View</Link>
           </div>
@@ -334,7 +328,7 @@ export default function OpsDashboard() {
                       <tr><th>ID</th><th>TIME</th><th>CAMERA</th><th>SEVERITY</th><th>STATUS</th><th>DESCRIPTION</th></tr>
                     </thead>
                     <tbody>
-                      {SAMPLE_INCIDENTS.map(inc => (
+                      {[]?.map(inc => (
                         <tr key={inc.id}>
                           <td className="sg-td-bold">{inc.id}</td>
                           <td className="sg-td-mono">{inc.time}</td>
@@ -357,7 +351,7 @@ export default function OpsDashboard() {
                   <h2 className="sg-card-title">Detection Trend</h2>
                   <span className="sg-analytics-sub">Last 24 hours</span>
                 </div>
-                <Sparkline points={[1,3,2,5,4,7,6,9,5,3,6,8]} color="#2563eb" />
+                <Sparkline points={analytics.points.length > 0 ? analytics.points : [0,0,0,0,0,0,0,0,0,0,0,0]} color="#2563eb" />
                 <div className="sg-chart-xaxis" style={{ marginTop: 4 }}>
                   {["12h","9h","6h","3h","Now"].map(l => <span key={l}>{l}</span>)}
                 </div>
@@ -380,17 +374,17 @@ export default function OpsDashboard() {
                   <h2 className="sg-card-title">Camera Status</h2>
                   <span className="ops-readonly-badge">View Only</span>
                 </div>
-                <div className="sg-cam-ratio">{onlineCams}<span className="sg-cam-ratio-total"> / {ASSIGNED_ZONES.length}</span></div>
+                <div className="sg-cam-ratio">{onlineCams}<span className="sg-cam-ratio-total"> / {cameras.length}</span></div>
                 <div className="sg-cam-bar-track" style={{ marginBottom: 14 }}>
-                  <div className="sg-cam-bar-fill" style={{ width: `${(onlineCams / ASSIGNED_ZONES.length) * 100}%` }} />
+                  <div className="sg-cam-bar-fill" style={{ width: `${(onlineCams / Math.max(cameras.length, 1)) * 100}%` }} />
                 </div>
-                {ASSIGNED_ZONES.map(z => (
+                {cameras.map(z => (
                   <div key={z.id} className="ops-cam-row">
                     <div className="ops-cam-info">
                       <span className={`ops-zone-dot ops-zone-dot--${z.status.toLowerCase()}`} />
                       <span className="ops-cam-name">{z.name}</span>
                     </div>
-                    <span className={`sg-chip ${z.status === "ONLINE" ? "sg-stat-REVIEWED" : "sg-stat-ESCALATED"}`} style={{ fontSize: 9 }}>{z.status}</span>
+                    <span className={`sg-chip ${z.status === "ONLINE" || z.status === "online" ? "sg-stat-REVIEWED" : "sg-stat-ESCALATED"}`} style={{ fontSize: 9 }}>{z.status.toUpperCase()}</span>
                   </div>
                 ))}
                 {offlineCams > 0 && (
