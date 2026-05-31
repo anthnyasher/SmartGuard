@@ -9,6 +9,7 @@ import CameraTile from "./CameraTile.jsx";
 import AlertToast from "../components/AlertToast.jsx";
 import { useAllDetections } from "../hooks/useAllDetections.js";
 import { getCameras } from "../api/cameraApi.js";
+import { getAlerts } from "../api/alertApi.js";
 import AuthenticatedStream from "../components/AuthenticatedStream.jsx";
 import "./AdminDashboard.css";
 import "./LiveMonitoring.css";
@@ -151,23 +152,44 @@ export default function OpsLivePage() {
 // This is in the same file for brevity — split into OpsEvidencePage.jsx
 
 export function OpsEvidencePage() {
+  const { token } = useAuth();
   const [collapsed, setCollapsed] = useState(window.innerWidth <= 768);
   const [statusFilter, setStatusFilter] = useState("ALL");
   const [search, setSearch] = useState("");
+  const [evidence, setEvidence] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  // Same sample data structure as EvidenceVault (filtered to ops-accessible items)
-  const EVIDENCE = [
-    { id: "EVD-20260227-0041", date: "2026-02-27", time: "01:30 PM", camera: "CAM-04", camera_name: "Self-Checkout — Zone GF", behavior: "CONCEALMENT",  severity: "MEDIUM",   confidence: 76, duration: "0:30", size: "14.2 MB", alert_status: "NEW"       },
-    { id: "EVD-20260227-0040", date: "2026-02-27", time: "10:34 AM", camera: "CAM-01", camera_name: "Entrance — Zone A",       behavior: "CONCEALMENT",  severity: "HIGH",     confidence: 90, duration: "0:30", size: "28.7 MB", alert_status: "ESCALATED"  },
-    { id: "EVD-20260227-0039", date: "2026-02-27", time: "10:12 AM", camera: "CAM-03", camera_name: "Aisle 1 — Zone GF",      behavior: "RAPID_EXIT",   severity: "CRITICAL", confidence: 95, duration: "0:30", size: "41.3 MB", alert_status: "ESCALATED"  },
-    { id: "EVD-20260226-0037", date: "2026-02-26", time: "04:22 PM", camera: "CAM-08", camera_name: "Electronics — Zone 2F",  behavior: "LOITERING",    severity: "MEDIUM",   confidence: 62, duration: "0:30", size: "11.1 MB", alert_status: "CLOSED"     },
-    { id: "EVD-20260226-0036", date: "2026-02-26", time: "01:05 PM", camera: "CAM-04", camera_name: "Self-Checkout — Zone GF", behavior: "LOITERING",   severity: "LOW",      confidence: 58, duration: "0:30", size: "52.0 MB", alert_status: "FALSE_POSITIVE" },
-  ];
+  useEffect(() => {
+    async function loadEvidence() {
+      try {
+        const alerts = await getAlerts(token);
+        const items = (Array.isArray(alerts) ? alerts : []).map(a => ({
+          id: `EVD-${a.id}`,
+          date: new Date(a.created_at).toLocaleDateString(),
+          time: new Date(a.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+          camera: a.camera?.id || a.camera || "N/A",
+          camera_name: a.camera?.name || a.camera_name || `Camera ${a.camera}`,
+          behavior: a.behavior_type || "UNKNOWN",
+          severity: a.severity || "MEDIUM",
+          confidence: a.confidence != null ? Math.round(a.confidence * 100) : null,
+          duration: "0:30",
+          size: "—",
+          alert_status: a.status || "NEW",
+        }));
+        setEvidence(items);
+      } catch (err) {
+        console.error("Failed to load evidence", err);
+      } finally {
+        setLoading(false);
+      }
+    }
+    if (token) loadEvidence();
+  }, [token]);
 
   const BEHAVIOR_DISPLAY = { CONCEALMENT: "Concealment", LOITERING: "Loitering", RAPID_EXIT: "Rapid Exit", SHOPLIFTING: "Shoplifting" };
   const STATUS_LABELS    = { NEW: "New", ESCALATED: "Escalated", FALSE_POSITIVE: "False Positive", CLOSED: "Closed" };
 
-  const filtered = EVIDENCE.filter(e => {
+  const filtered = evidence.filter(e => {
     if (statusFilter !== "ALL" && e.alert_status !== statusFilter) return false;
     if (search && ![e.id, e.camera_name, e.behavior, e.camera].join(" ").toLowerCase().includes(search.toLowerCase())) return false;
     return true;
@@ -254,7 +276,7 @@ export function OpsEvidencePage() {
         </div>
 
         <div className="det-table-footer">
-          <span className="det-count-label">Showing {filtered.length} of {EVIDENCE.length} clips</span>
+          <span className="det-count-label">Showing {filtered.length} of {evidence.length} clips</span>
         </div>
       </div>
     </OpsLayout>

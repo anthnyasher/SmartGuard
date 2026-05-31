@@ -82,15 +82,20 @@ export default function OpsDashboard() {
   useEffect(() => {
     async function loadData() {
       try {
-        const [cams, alrts, analyticsData] = await Promise.all([getCameras(token), getAlerts(token), getAnalytics(token)]);
+        const [cams, alrts] = await Promise.all([getCameras(token), getAlerts(token)]);
         setCameras(cams || []);
         setAlerts(Array.isArray(alrts) ? alrts : []);
-        if (analyticsData) setAnalytics(analyticsData);
       } catch (err) {
         console.error("Failed to load ops data", err);
-      } finally {
-        setLoading(false);
       }
+      // Analytics is optional — don't let it crash the whole page
+      try {
+        const analyticsData = await getAnalytics(token);
+        if (analyticsData) setAnalytics(analyticsData);
+      } catch (err) {
+        console.warn("Analytics not available", err);
+      }
+      setLoading(false);
     }
     if (token) { loadData(); }
   }, [token]);
