@@ -651,6 +651,7 @@ body { font-family: 'DM Sans', sans-serif; background: var(--bg-base); color: va
   .sg-main { margin-left: 0; }
   .sg-kpi-strip { grid-template-columns: repeat(2, 1fr); }
   .sg-topbar-center { display: none; }
+  .sg-topbar { justify-content: space-between; }
 }
 .sg-live-grid {
   display: grid;
@@ -752,3 +753,14 @@ body { font-family: 'DM Sans', sans-serif; background: var(--bg-base); color: va
 .lm-tile-video-wrap {
   position: relative;
 }
+  
+@media (max-width: 430px) {
+  .sg-topbar-right {
+    margin-left: auto;
+  }
+}
+
+    .sg-topbar {
+      justify-content: space-between;
+    }
+  }

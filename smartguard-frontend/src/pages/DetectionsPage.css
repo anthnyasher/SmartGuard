@@ -313,35 +313,6 @@
   font-weight: 600;
 }
 
-/* ── Row actions container ───────────────────────────────────────────────────── */
-.dp-row-actions {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex-shrink: 0;
-}
-
-.dp-row-delete-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 32px;
-  height: 32px;
-  border-radius: 8px;
-  border: 1px solid var(--sg-border, #e2e8f0);
-  background: none;
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--sg-text-muted, #94a3b8);
-  cursor: pointer;
-  transition: all 0.15s;
-}
-.dp-row-delete-btn:hover {
-  background: #fef2f2;
-  border-color: #fecaca;
-  color: #dc2626;
-}
-
 /* ── Empty state ─────────────────────────────────────────────────────────────── */
 .dp-empty {
   display: flex;
