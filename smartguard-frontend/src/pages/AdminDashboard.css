@@ -758,9 +758,8 @@ body { font-family: 'DM Sans', sans-serif; background: var(--bg-base); color: va
   .sg-topbar-right {
     margin-left: auto;
   }
-}
 
-    .sg-topbar {
-      justify-content: space-between;
-    }
-  }
+  .sg-topbar {
+    justify-content: space-between;
+  }
+}
