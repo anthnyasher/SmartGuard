@@ -74,7 +74,7 @@ CAPTURE_HEIGHT       = 480        # downscale webcam capture height
 TEST_VIDEO_PATH = None   # ← set to a local video file path for testing, or None for real cameras
 
 # ── Device selection ──────────────────────────────────────────────────────────
-DEVICE = "0" if torch.cuda.is_available() else "cpu"
+DEVICE = "cuda:0" if torch.cuda.is_available() else "cpu"
 
 # ── Model (loaded once, shared across threads) ────────────────────────────────
 _model      = None
