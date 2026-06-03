@@ -15,6 +15,8 @@ from datetime import datetime, timedelta, timezone
 import cv2
 import numpy as np
 import torch
+import warnings
+warnings.filterwarnings("ignore", category=FutureWarning)
 
 # ── Django setup ──────────────────────────────────────────────────────────────
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "smartguard_backend.settings")
@@ -31,7 +33,8 @@ from cameras.models import Camera
 from alerts.models import Alert
 from accounts.models import CustomUser
 
-# ── YOLOv5 via torch.hub (for custom-trained .pt weights) ─────────────────────
+# ── YOLOv8 ────────────────────────────────────────────────────────────────────
+from ultralytics import YOLO
 import torch
 
 # ── Logging ───────────────────────────────────────────────────────────────────
@@ -45,12 +48,17 @@ log = logging.getLogger(__name__)
 # ── Configuration ─────────────────────────────────────────────────────────────
 MODEL_PATH           = os.path.join(os.path.dirname(os.path.abspath(__file__)), "best.pt")
 CONFIDENCE_THRESHOLD = 0.4
-FRAME_SKIP           = 3          # run inference every N frames
+FRAME_SKIP           = 15         # run inference every N frames
 HEARTBEAT_EVERY      = 30         # seconds between heartbeat pushes
 EMAIL_COOLDOWN       = 60         # seconds between emails per camera
 INCIDENT_TIMEOUT     = 30         # seconds before incident is considered over
 TARGET_CLASS         = "shoplifting"   # Class name in custom best.pt model
 CLIP_DURATION        = 10         # seconds of video to capture per evidence clip
+SHOW_PREVIEW         = True       # set True to show local cv2 window (causes lag on Windows)
+REDIS_PUBLISH_SKIP   = 5          # publish to Redis every N non-inference frames
+JPEG_QUALITY         = 50         # JPEG quality for Redis stream (lower = less bandwidth)
+CAPTURE_WIDTH        = 640        # downscale webcam capture width
+CAPTURE_HEIGHT       = 480        # downscale webcam capture height
 
 # ── FIX 3 — Test mode ─────────────────────────────────────────────────────────
 # Set TEST_VIDEO_PATH to a local video file to override all camera RTSP streams.
@@ -78,14 +86,10 @@ def get_model():
             else:
                 log.warning("No CUDA GPU found — falling back to CPU (inference will be slow).")
 
-            log.info("Loading YOLOv5 model from: %s  →  device: %s", MODEL_PATH, DEVICE)
-            _model = torch.hub.load(
-                'ultralytics/yolov5', 'custom',
-                path=MODEL_PATH,
-                device=DEVICE,
-                force_reload=False,
-            )
-            _model.conf = CONFIDENCE_THRESHOLD
+            log.info("Loading YOLOv8 model from: %s  →  device: %s", MODEL_PATH, DEVICE)
+            _model = YOLO(MODEL_PATH)
+            _model.to(DEVICE)
+            # YOLOv8 doesn't use _model.conf globally, we pass conf to predict() instead
             log.info("Model loaded on %s. Classes: %s", DEVICE.upper(), _model.names)
     return _model
 
@@ -561,11 +565,22 @@ def draw_hud(frame: np.ndarray, cam_name: str, fps: float,
 
 
 # ── Redis frame sharing (for MJPEG stream) ────────────────────────────────────
+_redis_frame_client = None
+
+def _get_redis_client():
+    """Return a reusable Redis connection (created once, shared across frames)."""
+    global _redis_frame_client
+    if _redis_frame_client is None:
+        import redis
+        redis_host = os.environ.get("REDIS_HOST", "127.0.0.1")
+        redis_pass = os.environ.get("REDIS_PASSWORD", None)
+        _redis_frame_client = redis.Redis(host=redis_host, port=6379, password=redis_pass)
+    return _redis_frame_client
+
 def publish_frame_to_redis(camera_id: int, frame_bgr):
     try:
-        import redis
-        r = redis.Redis(host="127.0.0.1", port=6379)
-        _, buf = cv2.imencode(".jpg", frame_bgr, [cv2.IMWRITE_JPEG_QUALITY, 70])
+        r = _get_redis_client()
+        _, buf = cv2.imencode(".jpg", frame_bgr, [cv2.IMWRITE_JPEG_QUALITY, JPEG_QUALITY])
         r.set(f"frame:{camera_id}", buf.tobytes(), ex=5)
     except Exception as e:
         log.warning("Redis frame publish failed: %s", e)
@@ -599,6 +614,8 @@ def camera_worker(camera: Camera):
 
         cap = cv2.VideoCapture(source)
         cap.set(cv2.CAP_PROP_BUFFERSIZE, 1)   # ← fix C
+        cap.set(cv2.CAP_PROP_FRAME_WIDTH, CAPTURE_WIDTH)
+        cap.set(cv2.CAP_PROP_FRAME_HEIGHT, CAPTURE_HEIGHT)
 
         if not cap.isOpened():
             log.warning("[CAM %s] Cannot open stream '%s'. Retrying in 10s…", cam_id, source)
@@ -634,8 +651,9 @@ def camera_worker(camera: Camera):
             read_errors  = 0
             frame_count += 1
 
-            # ── Append frame to rolling evidence buffer ───────────────────────
-            frame_buffer.append((time.time(), frame.copy()))
+            # ── Append frame to rolling evidence buffer (only during active incidents)
+            if cam_id in _incidents:
+                frame_buffer.append((time.time(), frame.copy()))
 
             # FPS tracking
             elapsed = time.time() - fps_timer
@@ -652,6 +670,8 @@ def camera_worker(camera: Camera):
 
             # Heartbeat
             if time.time() - last_heartbeat >= HEARTBEAT_EVERY:
+                from django.db import close_old_connections
+                close_old_connections()
                 Camera.objects.filter(pk=cam_id).update(last_heartbeat=dj_timezone.now())
                 push_heartbeat(cam_id, fps)
                 last_heartbeat = time.time()
@@ -659,16 +679,20 @@ def camera_worker(camera: Camera):
             # ── FRAME_SKIP — only run inference every N frames ────────────────
             inference_count += 1                        # ← fix A
             if inference_count % FRAME_SKIP != 0:
-                # Still publish raw frame to Redis for the live MJPEG stream
-                publish_frame_to_redis(cam_id, frame)
+                # Throttle Redis publishes on skipped frames to reduce network load
+                if inference_count % REDIS_PUBLISH_SKIP == 0:
+                    publish_frame_to_redis(cam_id, frame)
                 continue
 
             cleanup_incidents()
 
             # ── Inference ─────────────────────────────────────────────────────
             try:
-                results         = model(frame)
-                annotated_frame = results.render()[0]  # YOLOv5 render returns list of np arrays
+                results_list    = model(frame, verbose=False)
+                if not results_list:
+                    continue
+                results         = results_list[0]
+                annotated_frame = results.plot()  # YOLOv8's built-in render method
             except Exception as e:
                 log.error("[CAM %s] Inference error: %s", cam_id, e)
                 continue
@@ -680,14 +704,15 @@ def camera_worker(camera: Camera):
             shoplifting_detected = False
             best_conf            = 0.0
 
-            det = results.xyxy[0]  # tensor: [x1, y1, x2, y2, conf, cls]
-            if det is not None and len(det) > 0:
-                for *_box, conf_val, cls_id in det:
-                    class_name = model.names[int(cls_id)].lower()
-                    if class_name == TARGET_CLASS and float(conf_val) >= CONFIDENCE_THRESHOLD:
+            if results.boxes is not None and len(results.boxes) > 0:
+                for box in results.boxes:
+                    cls_id = int(box.cls[0])
+                    conf_val = float(box.conf[0])
+                    class_name = model.names[cls_id].lower()
+                    if class_name == TARGET_CLASS and conf_val >= CONFIDENCE_THRESHOLD:
                         shoplifting_detected = True
-                        if float(conf_val) > best_conf:
-                            best_conf = float(conf_val)
+                        if conf_val > best_conf:
+                            best_conf = conf_val
 
             current_detection = None
 
@@ -726,17 +751,19 @@ def camera_worker(camera: Camera):
                     send_alert_email(cam_name, "SHOPLIFTING", best_conf, severity, alert_id)
                     last_alert_email_ts = now
 
-            # ── Preview window ────────────────────────────────────────────────
-            display_frame = draw_hud(annotated_frame, cam_name, fps, current_detection)
-            cv2.imshow(f"SmartGuard - {cam_name}", display_frame)
-            if cv2.waitKey(1) & 0xFF == ord("q"):
-                log.info("[CAM %s] Preview closed by user.", cam_id)
-                cap.release()
-                cv2.destroyAllWindows()
-                return
+            # ── Preview window (optional — disable to reduce CPU/GPU usage) ──
+            if SHOW_PREVIEW:
+                display_frame = draw_hud(annotated_frame, cam_name, fps, current_detection)
+                cv2.imshow(f"SmartGuard - {cam_name}", display_frame)
+                if cv2.waitKey(1) & 0xFF == ord("q"):
+                    log.info("[CAM %s] Preview closed by user.", cam_id)
+                    cap.release()
+                    cv2.destroyAllWindows()
+                    return
 
         cap.release()
-        cv2.destroyAllWindows()
+        if SHOW_PREVIEW:
+            cv2.destroyAllWindows()
         Camera.objects.filter(pk=cam_id).update(status="OFFLINE")
         log.warning("[CAM %s] Stream closed. Reconnecting in 10s…", cam_id)
         time.sleep(10)  
@@ -744,19 +771,27 @@ def camera_worker(camera: Camera):
 
 # ── Main ──────────────────────────────────────────────────────────────────────
 def main():
+    import argparse
+    parser = argparse.ArgumentParser(description="SmartGuard AI Detection Worker")
+    parser.add_argument("--camera-id", type=int, default=None, help="Specific camera ID to process (runs all if not set)")
+    args = parser.parse_args()
 
     log.info("=" * 60)
     log.info("SmartGuard AI Detection Worker starting...")
+    if args.camera_id:
+        log.info(f"TARGETING ONLY CAMERA ID: {args.camera_id}")
     log.info("=" * 60)
     # Pre-load model before spawning threads
     get_model()
 
-    cameras = list(
-        Camera.objects.filter(is_active=True).exclude(rtsp_url="")
-    )
+    qs = Camera.objects.filter(is_active=True).exclude(rtsp_url="")
+    if args.camera_id:
+        qs = qs.filter(id=args.camera_id)
+        
+    cameras = list(qs)
 
     if not cameras:
-        log.warning("No active cameras found in the database.")
+        log.warning("No active cameras found in the database matching criteria.")
         log.warning("Add a camera via the dashboard and restart this worker.")
         return
 

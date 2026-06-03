@@ -115,3 +115,18 @@ class IncidentReportDetailView(generics.RetrieveUpdateAPIView):
         elif instance.status == "FALSE_ALARM":
             instance.alert.status = "FALSE_POSITIVE"
             instance.alert.save(update_fields=["status"])
+
+
+class IncidentCountsView(generics.GenericAPIView):
+    """
+    GET /api/incidents/counts/ — Returns count of OPEN incidents
+    """
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, *args, **kwargs):
+        qs = IncidentReport.objects.all()
+        if request.user.role == "STAFF":
+            qs = qs.filter(responder=request.user)
+            
+        open_count = qs.filter(status="OPEN").count()
+        return Response({"open": open_count}, status=status.HTTP_200_OK)

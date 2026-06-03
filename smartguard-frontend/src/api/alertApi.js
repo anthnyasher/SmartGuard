@@ -50,3 +50,33 @@ export async function getAnalytics(token) {
 
   return await res.json();
 }
+
+export async function triggerAlarm(token, alertId) {
+  const res = await fetch(`${BASE_URL}/api/alerts/${alertId}/trigger-alarm/`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+  if (!res.ok) {
+    throw new Error("Failed to trigger alarm");
+  }
+
+  return await res.json();
+}
+
+export async function getWeeklyReport(token) {
+  const res = await fetch(`${BASE_URL}/api/reports/weekly/`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+  if (!res.ok) {
+    throw new Error("Failed to fetch weekly report");
+  }
+
+  return await res.json();
+}

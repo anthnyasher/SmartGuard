@@ -125,3 +125,81 @@ class DashboardAnalyticsView(APIView):
             "points": points,
             "topCameras": top_cameras_data,
         })
+
+
+class TriggerAlarmView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, pk):
+        from .models import Alert
+        try:
+            alert = Alert.objects.get(pk=pk)
+            # Update status
+            alert.status = "ESCALATED"
+            alert.alarm_triggered = True
+            alert.save()
+
+            # Log audit
+            from logging_info.models import AuditLog
+            AuditLog.objects.create(
+                user=request.user,
+                action="TRIGGER_ALARM",
+                target_type="Alert",
+                target_id=str(alert.id),
+                severity="CRITICAL",
+                details=f"User triggered store alarm for Alert {alert.id}"
+            )
+            return Response({"message": "Alarm triggered successfully.", "status": "ESCALATED"})
+        except Alert.DoesNotExist:
+            return Response({"error": "Alert not found."}, status=status.HTTP_404_NOT_FOUND)
+
+class WeeklyReportView(APIView):
+    """
+    GET /api/reports/weekly/
+    Aggregates weekly statistics for Alerts, Evidence, and Incidents.
+    """
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        from django.utils import timezone
+        from datetime import timedelta
+        from .models import Alert
+        from evidence.models import EvidenceClip
+
+        now = timezone.now()
+        one_week_ago = now - timedelta(days=7)
+        two_weeks_ago = now - timedelta(days=14)
+
+        # Alerts (this week vs last week)
+        alerts_this_week = Alert.objects.filter(created_at__gte=one_week_ago).count()
+        alerts_last_week = Alert.objects.filter(created_at__gte=two_weeks_ago, created_at__lt=one_week_ago).count()
+
+        # Evidence (this week vs last week)
+        evidence_this_week = EvidenceClip.objects.filter(created_at__gte=one_week_ago).count()
+        evidence_last_week = EvidenceClip.objects.filter(created_at__gte=two_weeks_ago, created_at__lt=one_week_ago).count()
+
+        # Alert categories breakdown (this week)
+        from django.db.models import Count
+        categories = Alert.objects.filter(created_at__gte=one_week_ago).values('alert_category').annotate(count=Count('id'))
+        category_breakdown = {c['alert_category']: c['count'] for c in categories}
+
+        # Status breakdown (this week)
+        statuses = Alert.objects.filter(created_at__gte=one_week_ago).values('status').annotate(count=Count('id'))
+        status_breakdown = {s['status']: s['count'] for s in statuses}
+
+        return Response({
+            "date_range": {
+                "start": one_week_ago.isoformat(),
+                "end": now.isoformat()
+            },
+            "alerts": {
+                "this_week": alerts_this_week,
+                "last_week": alerts_last_week,
+                "category_breakdown": category_breakdown,
+                "status_breakdown": status_breakdown
+            },
+            "evidence": {
+                "this_week": evidence_this_week,
+                "last_week": evidence_last_week
+            }
+        })

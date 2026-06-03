@@ -87,3 +87,17 @@ class AuditLogListView(APIView):
             "summary":   summary,
             "results":   data,
         })
+
+
+class FailedLoginCountView(APIView):
+    """
+    GET /api/logs/failed_logins/
+    """
+    permission_classes = [IsAuthenticated, IsAdminRole]
+
+    def get(self, request):
+        from django.utils import timezone
+        import datetime
+        last_24h = timezone.now() - datetime.timedelta(hours=24)
+        count = AuditLog.objects.filter(action="LOGIN_FAILED", created_at__gte=last_24h).count()
+        return Response({"count": count}, status=status.HTTP_200_OK)

@@ -9,6 +9,7 @@ import OpsAlertsPage from "./pages/OpsAlertPage.jsx";
 import { OpsEvidencePage } from "./pages/OpsLivePage.jsx";
 import StaffDashboard from "./pages/StaffDashboard.jsx";
 import LiveMonitoring from "./pages/LiveMonitoring.jsx";
+import WeeklyReport from "./pages/WeeklyReport.jsx";
 import CameraManagement from "./pages/CameraManagement";
 import DetectionsPage from "./pages/DetectionsPage.jsx";
 import LogsPage from "./pages/LogsPage.jsx";
@@ -52,6 +53,7 @@ export default function App() {
         { path: "/admin/logs",       element: <LogsPage />        },
         { path: "/admin/access",     element: <AccessControl />   },
         { path: "/admin/settings",   element: <SettingsPage />    },
+        { path: "/admin/report",     element: <WeeklyReport />    },
       ].map(({ path, element }) => (
         <Route key={path} path={path}
           element={<RequireAuth allowedRoles={ADMIN_ROLES}>{element}</RequireAuth>}

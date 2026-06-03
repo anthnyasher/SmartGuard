@@ -20,6 +20,14 @@ export async function getIncidents(token, params = {}) {
   return [];
 }
 
+export async function getIncidentCounts(token) {
+  const res = await fetch(`${BASE_URL}/api/incidents/counts/`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  if (!res.ok) throw new Error("Failed to fetch incident counts");
+  return await res.json();
+}
+
 export async function createIncident(token, payload) {
   const res = await fetch(`${BASE_URL}/api/incidents/`, {
     method: "POST",

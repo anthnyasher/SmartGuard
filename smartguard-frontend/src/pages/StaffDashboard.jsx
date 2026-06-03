@@ -2,7 +2,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext.jsx";
-import { getAlerts, acknowledgeAlert } from "../api/alertApi.js";
+import { getAlerts, acknowledgeAlert, triggerAlarm } from "../api/alertApi.js";
 import OpsLayout from "./Opslayout.jsx";
 import "./AdminDashboard.css";
 import "./StaffPortal.css";
@@ -23,7 +23,9 @@ function AlarmConfirmModal({ alert, onConfirm, onCancel }) {
           All nearby staff will be alerted. Only use when an incident is confirmed.
         </p>
         <div className="staff-alarm-actions">
-          
+          <button className="staff-alarm-btn staff-alarm-btn--confirm" onClick={onConfirm}>
+            Yes, Trigger Alarm
+          </button>
           <button className="staff-alarm-btn staff-alarm-btn--cancel" onClick={onCancel}>
             Cancel
           </button>
@@ -88,12 +90,17 @@ function StaffDashboard() {
   };
 
   // ── Trigger alarm ────────────────────────────────────────────────────────────
-  const confirmAlarm = () => {
-    // TODO: POST /api/alerts/<id>/trigger-alarm/
-    setAlerts(prev =>
-      prev.map(a => a.id === alarmModal.id ? { ...a, alarmTriggered: true } : a)
-    );
-    setAlarmModal(null);
+  const confirmAlarm = async () => {
+    try {
+      await triggerAlarm(token, alarmModal.id);
+      setAlerts(prev =>
+        prev.map(a => a.id === alarmModal.id ? { ...a, alarmTriggered: true, status: "ESCALATED" } : a)
+      );
+      setAlarmModal(null);
+    } catch (err) {
+      alert("Failed to trigger alarm");
+      console.error(err);
+    }
   };
 
   const handleLogout = () => { logout(); navigate("/login", { replace: true }); };

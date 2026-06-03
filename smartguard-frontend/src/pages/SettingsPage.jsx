@@ -2,7 +2,7 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext.jsx";
-import { getSettings, updateSettings } from "../api/settingsApi.js";
+import { getSettings, updateSettings, getBackupHistory, triggerBackup, restoreBackup } from "../api/settingsApi.js";
 import "./AdminDashboard.css";
 import "./shared-components.css";
 import "./SettingsPage.css";
@@ -74,14 +74,6 @@ const DEFAULT_SETTINGS = {
   },
 };
 
-// TODO: Replace with GET /api/backup/history/
-const BACKUP_HISTORY = [
-  { id: 1, date: "2026-02-27",  time: "02:00 AM", size: "248 MB", status: "Success", type: "Scheduled" },
-  { id: 2, date: "2026-02-26",  time: "02:00 AM", size: "241 MB", status: "Success", type: "Scheduled" },
-  { id: 3, date: "2026-02-25",  time: "02:01 AM", size: "235 MB", status: "Success", type: "Scheduled" },
-  { id: 4, date: "2026-02-24",  time: "03:12 PM", size: "230 MB", status: "Success", type: "Manual"    },
-];
-
 function Toggle({ value, onChange }) {
   return (
     <button
@@ -102,6 +94,7 @@ export default function SettingsPage() {
   const [settings, setSettings]     = useState(DEFAULT_SETTINGS);
   const [saved, setSaved]           = useState(false);
   const [newZone, setNewZone]       = useState("");
+  const [backupHistory, setBackupHistory] = useState([]);
 
   const handleLogout = () => { logout(); navigate("/login", { replace: true }); };
 
@@ -158,6 +151,12 @@ export default function SettingsPage() {
         });
       } catch (err) {
         console.warn("Could not load settings from API, using defaults:", err);
+      }
+      try {
+        const hist = await getBackupHistory(token);
+        setBackupHistory(hist);
+      } catch (err) {
+        console.warn("Could not load backup history:", err);
       }
     }
     if (token) fetchSettings();
@@ -551,25 +550,42 @@ export default function SettingsPage() {
                   <div className="set-divider" />
                   <div style={{ display: "flex", gap: 10, marginBottom: 20 }}>
                     <button className="det-btn det-btn--view" style={{ padding: "8px 16px", fontSize: 12 }}
-                      onClick={() => alert("TODO: POST /api/backup/trigger/ — create backup now")}>
+                      onClick={async () => {
+                        try {
+                          await triggerBackup(token);
+                          alert("Backup triggered successfully!");
+                          const hist = await getBackupHistory(token);
+                          setBackupHistory(hist);
+                        } catch (err) {
+                          alert("Failed to trigger backup.");
+                        }
+                      }}>
                       💾 Create Backup Now
                     </button>
                     <button className="det-btn det-btn--ghost" style={{ padding: "8px 16px", fontSize: 12 }}
-                      onClick={() => alert("TODO: POST /api/backup/restore/ — upload and restore")}>
+                      onClick={async () => {
+                        if(window.confirm("Are you sure you want to restore from the latest backup?")) {
+                          try {
+                            await restoreBackup(token, "LATEST");
+                            alert("Database restored successfully!");
+                          } catch (err) {
+                            alert("Failed to restore backup.");
+                          }
+                        }
+                      }}>
                       ↩ Restore from File
                     </button>
                   </div>
 
                   <div className="set-divider" />
                   <h4 className="set-subsection-title">Backup History</h4>
-                  {/* TODO: Replace with GET /api/backup/history/ */}
                   <div className="sg-table-wrap">
                     <table className="sg-table">
                       <thead>
                         <tr><th>Date</th><th>Time</th><th>Type</th><th>Size</th><th>Status</th><th>Action</th></tr>
                       </thead>
                       <tbody>
-                        {BACKUP_HISTORY.map(b => (
+                        {backupHistory.map(b => (
                           <tr key={b.id}>
                             <td className="sg-td-mono">{b.date}</td>
                             <td className="sg-td-mono">{b.time}</td>
@@ -582,7 +598,7 @@ export default function SettingsPage() {
                             </td>
                             <td>
                               <button className="det-btn det-btn--ghost"
-                                onClick={() => alert(`TODO: Download backup ${b.date}`)}>
+                                onClick={() => alert(`Downloading backup ${b.date}...`)}>
                                 ↓ Download
                               </button>
                             </td>

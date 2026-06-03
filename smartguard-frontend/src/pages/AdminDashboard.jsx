@@ -4,6 +4,8 @@ import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext.jsx";
 import { getCameras } from "../api/cameraApi.js";
 import { getAlerts, getAnalytics } from "../api/alertApi.js";
+import { getIncidentCounts } from "../api/incidentApi.js";
+import { getSystemHealth, getFailedLoginsCount } from "../api/settingsApi.js";
 import "./AdminDashboard.css";
 
 const NAV_ITEMS = [
@@ -92,12 +94,21 @@ function AdminDashboard() {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(window.innerWidth <= 768);
 
   const [analytics, setAnalytics]           = useState({ points: [], topCameras: [] });
+  const [incidentCount, setIncidentCount]   = useState(0);
+  const [failedLogins, setFailedLogins]     = useState(0);
+  const [sysHealth, setSysHealth]           = useState(null);
 
   useEffect(() => {
     if (!token) return;
     async function loadData() {
       try {
-        const [cams, alerts, analyticsData] = await Promise.all([getCameras(token), getAlerts(token), getAnalytics(token)]);
+        const [
+          cams, alerts, analyticsData,
+          incCountData, failedLoginsData, healthData
+        ] = await Promise.all([
+          getCameras(token), getAlerts(token), getAnalytics(token),
+          getIncidentCounts(token), getFailedLoginsCount(token), getSystemHealth(token)
+        ]);
         const camList   = Array.isArray(cams)   ? cams   : [];
         const alertList = Array.isArray(alerts) ? alerts : [];
         const online    = camList.filter(c => ["ONLINE","online"].includes(c.status)).length;
@@ -115,6 +126,10 @@ function AdminDashboard() {
         setRecentAlerts(alertList.slice(0, 6));
         setSeverityCounts(counts);
         setAnalytics(analyticsData);
+        
+        setIncidentCount(incCountData.open || 0);
+        setFailedLogins(failedLoginsData.count || 0);
+        setSysHealth(healthData);
       } catch (err) {
         console.error("Failed to load dashboard data", err);
       } finally {
@@ -194,9 +209,9 @@ function AdminDashboard() {
             <button className="sg-icon-btn" title="Notifications">
               🔔<span className="sg-icon-badge">1</span>
             </button>
-            {/* TODO: Wire to GET /api/reports/dashboard/?format=pdf */}
-            <button className="sg-pdf-btn" onClick={() => alert("TODO: Export dashboard report")}>
-              ⬇ Download PDF
+            {/* Open Weekly Report Print View */}
+            <button className="sg-pdf-btn" onClick={() => window.open("/admin/report", "_blank")}>
+              Export PDF Report
             </button>
           </div>
         </header>
@@ -226,8 +241,7 @@ function AdminDashboard() {
             <div className="sg-kpi kpi-amber">
               <div className="sg-kpi-icon-wrap kpi-icon-amber">⚠</div>
               <div>
-                {/* TODO: Replace with GET /api/incidents/?status=OPEN count */}
-                <div className="sg-kpi-val">2</div>
+                <div className="sg-kpi-val">{loading ? "—" : incidentCount}</div>
                 <div className="sg-kpi-label">Open Incidents</div>
               </div>
             </div>
@@ -244,8 +258,7 @@ function AdminDashboard() {
             <div className="sg-kpi kpi-purple">
               <div className="sg-kpi-icon-wrap kpi-icon-purple">🔒</div>
               <div>
-                {/* TODO: Replace with GET /api/logs/?type=FAILED_LOGIN&period=24h count */}
-                <div className="sg-kpi-val">3</div>
+                <div className="sg-kpi-val">{loading ? "—" : failedLogins}</div>
                 <div className="sg-kpi-label">Failed Logins (24h)</div>
               </div>
             </div>
@@ -444,13 +457,12 @@ function AdminDashboard() {
                 <div className="sg-card-header">
                   <h2 className="sg-card-title">System Health</h2>
                 </div>
-                {/* TODO: Replace with GET /api/system/health/ */}
                 {[
-                  { label: "CPU Usage",           val: "—",       pct: 0    },
-                  { label: "Memory Usage",         val: "—",       pct: 0    },
-                  { label: "Storage",              val: "—",       pct: 0    },
-                  { label: "AI Detection Engine",  val: "Running", ok: true  },
-                  { label: "Alert Queue",          val: "Active",  ok: true  },
+                  { label: "CPU Usage",           val: sysHealth ? `${sysHealth.cpu}%` : "—",       pct: sysHealth?.cpu || 0 },
+                  { label: "Memory Usage",        val: sysHealth ? `${sysHealth.memory}%` : "—",    pct: sysHealth?.memory || 0 },
+                  { label: "Storage",             val: sysHealth ? `${sysHealth.storage}%` : "—",   pct: sysHealth?.storage || 0 },
+                  { label: "AI Detection Engine", val: "Running", ok: true  },
+                  { label: "Alert Queue",         val: "Active",  ok: true  },
                 ].map(row => (
                   <div key={row.label} className="sg-health-row">
                     <span className="sg-health-label">{row.label}</span>
