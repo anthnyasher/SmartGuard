@@ -12,7 +12,7 @@ const SEVERITY_COLORS = {
   LOW:      "#3b82f6",
 };
 
-function CameraTile({ cam, token, onSelect, paused, onDetection }) {
+function CameraTile({ cam, token, onSelect, paused, onDetection, onManualAlertClick }) {
   const isOnline  = cam.status === "ONLINE" || cam.status === "online";
   const hasStream = !!(cam.stream_mjpeg_url);
 
@@ -51,9 +51,20 @@ function CameraTile({ cam, token, onSelect, paused, onDetection }) {
           <span className={`lm-status-dot ${isOnline ? "dot-online" : "dot-offline"}`} />
           <span className="lm-tile-name">{cam.name}</span>
         </div>
-        <span className={`lm-status-chip ${isOnline ? "chip-online" : "chip-offline"}`}>
-          {cam.status || "UNKNOWN"}
-        </span>
+        <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+          {onManualAlertClick && (
+            <button 
+              className="sg-btn sg-btn-danger" 
+              style={{ padding: '2px 8px', fontSize: '11px' }}
+              onClick={(e) => { e.stopPropagation(); onManualAlertClick(cam); }}
+            >
+              🚨 Manual
+            </button>
+          )}
+          <span className={`lm-status-chip ${isOnline ? "chip-online" : "chip-offline"}`}>
+            {cam.status || "UNKNOWN"}
+          </span>
+        </div>
       </div>
 
       {/* Video */}

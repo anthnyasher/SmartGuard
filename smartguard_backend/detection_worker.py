@@ -8,7 +8,13 @@ import sys
 import time
 import threading
 import logging
+import os
+import sys
+import time
+import threading
+import logging
 import base64
+import json
 import collections
 from datetime import datetime, timedelta, timezone
 
@@ -769,6 +775,42 @@ def camera_worker(camera: Camera):
         time.sleep(10)  
 
 
+def manual_override_listener():
+    """Listens on Redis for manual override triggers from the dashboard."""
+    import redis
+    redis_host = os.environ.get("REDIS_HOST", "127.0.0.1")
+    redis_pass = os.environ.get("REDIS_PASSWORD", None)
+    
+    while True:
+        try:
+            r = redis.Redis(host=redis_host, port=6379, password=redis_pass)
+            pubsub = r.pubsub()
+            pubsub.subscribe("manual_override")
+            log.info("Subscribed to Redis channel 'manual_override'.")
+            
+            for message in pubsub.listen():
+                if message["type"] == "message":
+                    data = json.loads(message["data"])
+                    cam_id = int(data["camera_id"])
+                    behavior = data["behavior_type"]
+                    user = data.get("user", "Unknown")
+                    log.info(f"Received MANUAL OVERRIDE for Camera {cam_id}: {behavior} by {user}")
+                    
+                    try:
+                        camera = Camera.objects.get(id=cam_id)
+                        # Inject the detection with 100% confidence
+                        # If a frame exists in the buffer, grab the latest one
+                        frame_bgr = None
+                        if cam_id in _frame_buffers and len(_frame_buffers[cam_id]) > 0:
+                            _, frame_bgr = _frame_buffers[cam_id][-1]
+                            
+                        handle_detection(camera, behavior, 1.0, frame_bgr)
+                    except Camera.DoesNotExist:
+                        log.warning(f"Manual override requested for unknown Camera ID {cam_id}")
+        except Exception as e:
+            log.error(f"Redis manual_override listener error: {e}")
+            time.sleep(5)
+
 # ── Main ──────────────────────────────────────────────────────────────────────
 def main():
     import argparse
@@ -798,6 +840,12 @@ def main():
     log.info("Found %d active camera(s). Starting detection threads…", len(cameras))
 
     threads = []
+    
+    # Start Redis listener thread
+    rt = threading.Thread(target=manual_override_listener, daemon=True, name="redis-manual-override")
+    rt.start()
+    threads.append(rt)
+
     for cam in cameras:
         t = threading.Thread(
             target=camera_worker,

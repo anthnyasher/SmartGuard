@@ -10,7 +10,8 @@ import "./AdminDashboard.css";
 import "./LiveMonitoring.css";
 import { useAllDetections } from "../hooks/useAllDetections.js";
 import AlertToast from "../components/AlertToast.jsx";
-
+import ManualAlertModal from "../components/ManualAlertModal.jsx";
+import { createManualAlert } from "../api/alertApi.js";
 
 // ── Updated 8-tab nav ──────────────────────────────────────────────────────────
 const NAV_ITEMS = [
@@ -412,6 +413,7 @@ function LiveMonitoring() {
   const [showConfig, setShowConfig] = useState(false);
   const [selectedCam, setSelectedCam] = useState(null);
   const [gridKey, setGridKey] = useState("2x2");
+  const [manualAlertCamId, setManualAlertCamId] = useState(null);
   const { feed } = useAllDetections(cameras, token);
   useEffect(() => { setCurrentPage(0); }, [gridKey]);
 
@@ -567,12 +569,19 @@ function LiveMonitoring() {
                 <button className="lm-inline-add-btn" onClick={() => setShowConfig(true)}>Add a camera →</button>
               </div>
             ) : (
-              <div
-                className="lm-grid"
-                style={{ gridTemplateColumns: `repeat(${activeGrid.cols}, 1fr)` }}
-              >
+              <div className="lm-grid" style={{
+                display: "grid", gap: "15px",
+                gridTemplateColumns: `repeat(${activeGrid.cols}, 1fr)`,
+                gridAutoRows: activeGrid.cols === 1 ? "500px" : activeGrid.cols === 2 ? "350px" : "250px"
+              }}>
                 {visibleCams.map(cam => (
-                  <CameraTile key={cam.id} cam={cam} token={token} onSelect={setSelectedCam} paused={selectedCam?.id === cam.id} onDetection={() => { }} />
+                  <CameraTile
+                    key={cam.id}
+                    cam={cam}
+                    token={token}
+                    onSelect={setSelectedCam}
+                    onManualAlertClick={(cam) => setManualAlertCamId(cam.id)}
+                  />
                 ))}
                 {visibleCams.length < activeGrid.perPage &&
                   Array.from({ length: activeGrid.perPage - visibleCams.length }).map((_, i) => (
@@ -602,6 +611,20 @@ function LiveMonitoring() {
         />
       )}
        <AlertToast detections={feed} />
+      {/* Manual Alert Modal */}
+      <ManualAlertModal 
+        isOpen={!!manualAlertCamId} 
+        cameraId={manualAlertCamId}
+        onClose={() => setManualAlertCamId(null)}
+        onSubmit={async (camId, behavior, notes) => {
+          try {
+            await createManualAlert(token, camId, behavior, notes);
+            alert("Manual alert triggered successfully!");
+          } catch (e) {
+            alert("Failed to trigger manual alert.");
+          }
+        }}
+      />
     </div>
   );
 }

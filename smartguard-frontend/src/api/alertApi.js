@@ -80,3 +80,20 @@ export async function getWeeklyReport(token) {
 
   return await res.json();
 }
+
+export async function createManualAlert(token, camera_id, behavior_type, notes) {
+  const res = await fetch(`${BASE_URL}/api/alerts/manual-override/`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify({ camera_id, behavior_type, notes }),
+  });
+
+  if (!res.ok) {
+    throw new Error("Failed to trigger manual alert");
+  }
+
+  return await res.json();
+}

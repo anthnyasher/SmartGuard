@@ -9,8 +9,9 @@ import CameraTile from "./CameraTile.jsx";
 import AlertToast from "../components/AlertToast.jsx";
 import { useAllDetections } from "../hooks/useAllDetections.js";
 import { getCameras } from "../api/cameraApi.js";
-import { getAlerts } from "../api/alertApi.js";
+import { getAlerts, createManualAlert } from "../api/alertApi.js";
 import AuthenticatedStream from "../components/AuthenticatedStream.jsx";
+import ManualAlertModal from "../components/ManualAlertModal.jsx";
 import "./AdminDashboard.css";
 import "./LiveMonitoring.css";
 
@@ -69,6 +70,7 @@ export default function OpsLivePage() {
   const [gridKey,     setGridKey]     = useState("2x2");
   const [page,        setPage]        = useState(0);
   const [selectedCam, setSelectedCam] = useState(null);
+  const [manualAlertCamId, setManualAlertCamId] = useState(null);
   const [collapsed, setCollapsed] = useState(window.innerWidth <= 768);
 
   const loadCameras = useCallback(async () => {
@@ -118,7 +120,9 @@ export default function OpsLivePage() {
             <div className="lm-grid" style={{ gridTemplateColumns: `repeat(${grid.cols}, 1fr)` }}>
               {visible.map(cam => (
                 <CameraTile key={cam.id} cam={cam} token={token}
-                  onSelect={setSelectedCam} paused={false} onDetection={() => {}} />
+                  onSelect={setSelectedCam} paused={false} onDetection={() => {}} 
+                  onManualAlertClick={(cam) => setManualAlertCamId(cam.id)}
+                />
               ))}
               {visible.length < grid.perPage && Array.from({ length: grid.perPage - visible.length }).map((_, i) => (
                 <div key={`e-${i}`} className="lm-tile lm-tile--empty" />
@@ -140,6 +144,21 @@ export default function OpsLivePage() {
       )}
 
       <AlertToast detections={feed} />
+
+      {/* Manual Alert Modal */}
+      <ManualAlertModal 
+        isOpen={!!manualAlertCamId} 
+        cameraId={manualAlertCamId}
+        onClose={() => setManualAlertCamId(null)}
+        onSubmit={async (camId, behavior, notes) => {
+          try {
+            await createManualAlert(token, camId, behavior, notes);
+            alert("Manual alert triggered successfully!");
+          } catch (e) {
+            alert("Failed to trigger manual alert.");
+          }
+        }}
+      />
     </OpsLayout>
   );
 }

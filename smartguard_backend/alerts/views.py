@@ -1,6 +1,7 @@
 from rest_framework import generics, status
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from rest_framework.permissions import IsAuthenticated
 
 from .models import Alert
 from .serializers import AlertSerializer, DetectionAlertInputSerializer
@@ -203,3 +204,53 @@ class WeeklyReportView(APIView):
                 "last_week": evidence_last_week
             }
         })
+
+class ManualAlertCreateView(APIView):
+    """
+    POST /api/alerts/manual-override/
+    Allows STAFF, OPS, ADMIN to manually trigger a detection on a camera.
+    Publishes a Redis message so the detection_worker can clip the evidence.
+    """
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        role = getattr(request.user, "role", None)
+        if role not in ["STAFF", "OPERATIONS_MANAGER", "ADMIN"]:
+            return Response({"error": "Insufficient permissions"}, status=status.HTTP_403_FORBIDDEN)
+        
+        camera_id = request.data.get("camera_id")
+        behavior = request.data.get("behavior_type", "Suspicious - Manual")
+        notes = request.data.get("notes", "")
+
+        if not camera_id:
+            return Response({"error": "camera_id is required"}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Publish to Redis
+        import redis
+        import json
+        import os
+        
+        redis_host = os.environ.get("REDIS_HOST", "127.0.0.1")
+        redis_pass = os.environ.get("REDIS_PASSWORD", None)
+        r = redis.Redis(host=redis_host, port=6379, password=redis_pass)
+        
+        message = {
+            "camera_id": camera_id,
+            "behavior_type": behavior,
+            "notes": notes,
+            "user": request.user.email
+        }
+        r.publish("manual_override", json.dumps(message))
+
+        # Log audit
+        from logging_info.models import AuditLog
+        AuditLog.objects.create(
+            user=request.user,
+            action="MANUAL_ALERT_TRIGGERED",
+            target_type="Camera",
+            target_id=str(camera_id),
+            severity="HIGH",
+            details=f"User manually triggered '{behavior}' alert on Camera {camera_id}. Notes: {notes}"
+        )
+
+        return Response({"message": "Manual alert triggered successfully. Evidence clipping initiated."}, status=status.HTTP_200_OK)
