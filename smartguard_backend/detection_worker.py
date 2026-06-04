@@ -572,6 +572,7 @@ def draw_hud(frame: np.ndarray, cam_name: str, fps: float,
 
 # ── Redis frame sharing (for MJPEG stream) ────────────────────────────────────
 _redis_frame_client = None
+_latest_redis_frames = {}
 
 def _get_redis_client():
     """Return a reusable Redis connection (created once, shared across frames)."""
@@ -584,13 +585,34 @@ def _get_redis_client():
     return _redis_frame_client
 
 def publish_frame_to_redis(camera_id: int, frame_bgr):
-    try:
-        r = _get_redis_client()
-        _, buf = cv2.imencode(".jpg", frame_bgr, [cv2.IMWRITE_JPEG_QUALITY, JPEG_QUALITY])
-        r.set(f"frame:{camera_id}", buf.tobytes(), ex=5)
-    except Exception as e:
-        log.warning("Redis frame publish failed: %s", e)
+    """
+    Instead of publishing synchronously and blocking the AI loop on network latency,
+    we just drop the latest frame into a dictionary.
+    A separate background thread handles encoding and uploading.
+    """
+    _latest_redis_frames[camera_id] = frame_bgr
 
+def redis_publisher_thread():
+    """Background thread that continuously grabs the latest frames and uploads them to Redis."""
+    while True:
+        # Create a snapshot of keys so we don't hold the dict lock
+        cam_ids = list(_latest_redis_frames.keys())
+        for cam_id in cam_ids:
+            frame_bgr = _latest_redis_frames.get(cam_id)
+            if frame_bgr is None:
+                continue
+            try:
+                r = _get_redis_client()
+                _, buf = cv2.imencode(".jpg", frame_bgr, [cv2.IMWRITE_JPEG_QUALITY, JPEG_QUALITY])
+                r.set(f"frame:{cam_id}", buf.tobytes(), ex=5)
+                # Optional: Clear it after sending so we don't resend the exact same frame if inference is slow
+                # but leaving it is fine too (MJPEG stream will just show the last frame until a new one arrives).
+            except Exception as e:
+                log.warning("Redis background publish failed for Cam %s: %s", cam_id, e)
+        
+        # Sleep briefly to cap the publish rate at roughly ~10 FPS to save bandwidth
+        # (Dashboard streams don't need 30 FPS)
+        time.sleep(0.1)
 
 # ── Camera worker thread ──────────────────────────────────────────────────────
 def camera_worker(camera: Camera):
@@ -841,10 +863,15 @@ def main():
 
     threads = []
     
-    # Start Redis listener thread
+    # Start Redis manual override listener thread
     rt = threading.Thread(target=manual_override_listener, daemon=True, name="redis-manual-override")
     rt.start()
     threads.append(rt)
+
+    # Start Async Redis Publisher thread
+    pub_t = threading.Thread(target=redis_publisher_thread, daemon=True, name="redis-async-publisher")
+    pub_t.start()
+    threads.append(pub_t)
 
     for cam in cameras:
         t = threading.Thread(
