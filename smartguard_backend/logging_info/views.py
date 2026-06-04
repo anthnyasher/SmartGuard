@@ -98,6 +98,6 @@ class FailedLoginCountView(APIView):
     def get(self, request):
         from django.utils import timezone
         import datetime
-        last_24h = timezone.now() - datetime.timedelta(hours=24)
-        count = AuditLog.objects.filter(action="LOGIN_FAILED", created_at__gte=last_24h).count()
+        yesterday = timezone.now() - datetime.timedelta(days=1)
+        count = AuditLog.objects.filter(action="LOGIN_FAILED", timestamp__gte=yesterday).count()
         return Response({"count": count}, status=status.HTTP_200_OK)
