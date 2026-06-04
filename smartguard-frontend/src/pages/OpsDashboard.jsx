@@ -83,7 +83,8 @@ export default function OpsDashboard() {
     async function loadData() {
       try {
         const [cams, alrts] = await Promise.all([getCameras(token), getAlerts(token)]);
-        setCameras(cams || []);
+        const camList = Array.isArray(cams) ? cams : (Array.isArray(cams?.results) ? cams.results : []);
+        setCameras(camList);
         setAlerts(Array.isArray(alrts) ? alrts : []);
       } catch (err) {
         console.error("Failed to load ops data", err);

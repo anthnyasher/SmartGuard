@@ -167,7 +167,7 @@ function DetectionsPage() {
     if (!token) return;
     try {
       const cams = await getCameras(token);
-      setCameras(Array.isArray(cams) ? cams : []);
+      setCameras(Array.isArray(cams) ? cams : (Array.isArray(cams?.results) ? cams.results : []));
     } catch (e) {
       console.error("Failed to load cameras", e);
     } finally {

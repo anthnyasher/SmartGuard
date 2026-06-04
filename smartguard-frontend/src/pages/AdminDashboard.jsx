@@ -109,7 +109,7 @@ function AdminDashboard() {
           getCameras(token), getAlerts(token), getAnalytics(token),
           getIncidentCounts(token), getFailedLoginsCount(token), getSystemHealth(token)
         ]);
-        const camList   = Array.isArray(cams)   ? cams   : [];
+        const camList   = Array.isArray(cams)   ? cams   : (Array.isArray(cams?.results) ? cams.results : []);
         const alertList = Array.isArray(alerts) ? alerts : [];
         const online    = camList.filter(c => ["ONLINE","online"].includes(c.status)).length;
         const unreviewed = alertList.filter(a => a.status === "NEW").length;
