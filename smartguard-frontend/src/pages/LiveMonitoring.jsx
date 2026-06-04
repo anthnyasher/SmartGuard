@@ -564,9 +564,11 @@ function LiveMonitoring() {
             {loading ? (
               <div className="sg-loading"><div className="sg-spinner" /> Loading cameras...</div>
             ) : cameras.length === 0 ? (
-              <div className="sg-empty">
-                No cameras configured.{" "}
-                <button className="lm-inline-add-btn" onClick={() => setShowConfig(true)}>Add a camera →</button>
+              <div className="sg-empty" style={{ textAlign: 'center', padding: '60px 20px', color: 'var(--text-muted)' }}>
+                <div style={{ fontSize: 40, marginBottom: 15 }}>📷</div>
+                <div style={{ fontSize: 18, color: 'var(--text-primary)', marginBottom: 5 }}>No cameras configured</div>
+                <div style={{ color: 'var(--text-muted)', marginBottom: 20 }}>Add your first camera to start monitoring live video feeds.</div>
+                <button className="sg-btn sg-btn-primary" onClick={() => setShowConfig(true)}>+ Add Camera</button>
               </div>
             ) : (
               <div className="lm-grid" style={{

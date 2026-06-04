@@ -614,6 +614,64 @@ def redis_publisher_thread():
         # (Dashboard streams don't need 30 FPS)
         time.sleep(0.1)
 
+# ── Threaded Camera ───────────────────────────────────────────────────────────
+class ThreadedCamera:
+    def __init__(self, source, width, height, test_video=False):
+        self.cap = cv2.VideoCapture(source)
+        self.cap.set(cv2.CAP_PROP_BUFFERSIZE, 1)
+        self.cap.set(cv2.CAP_PROP_FRAME_WIDTH, width)
+        self.cap.set(cv2.CAP_PROP_FRAME_HEIGHT, height)
+        self.test_video = test_video
+        self.ret = False
+        self.frame = None
+        self.fresh = False
+        self.stopped = False
+        self.read_errors = 0
+        if self.cap.isOpened():
+            self.ret, self.frame = self.cap.read()
+            self.fresh = True
+            self.thread = threading.Thread(target=self.update, args=(), daemon=True)
+            self.thread.start()
+
+    def update(self):
+        while not self.stopped:
+            ret, frame = self.cap.read()
+            if not ret:
+                if self.test_video:
+                    self.cap.set(cv2.CAP_PROP_POS_FRAMES, 0)
+                    continue
+                self.read_errors += 1
+                if self.read_errors >= 10:
+                    self.stopped = True
+                    break
+                time.sleep(0.1)
+                continue
+            self.read_errors = 0
+            self.ret = ret
+            self.frame = frame
+            self.fresh = True
+            # Small sleep to prevent CPU pegging if source is faster than needed
+            time.sleep(0.01)
+
+    def read(self):
+        # Only return True if it's a new frame we haven't read yet
+        if not self.fresh:
+            return False, None
+        self.fresh = False
+        return self.ret, self.frame.copy() if self.frame is not None else None
+
+    def release(self):
+        self.stopped = True
+        if hasattr(self, 'thread'):
+            self.thread.join(timeout=1.0)
+        self.cap.release()
+
+    def isOpened(self):
+        return self.cap.isOpened()
+    
+    def get(self, propId):
+        return self.cap.get(propId)
+
 # ── Camera worker thread ──────────────────────────────────────────────────────
 def camera_worker(camera: Camera):
     cam_id   = camera.id
@@ -640,13 +698,11 @@ def camera_worker(camera: Camera):
     while True:
         source = int(rtsp_url) if rtsp_url.isdigit() else rtsp_url
 
-        cap = cv2.VideoCapture(source)
-        cap.set(cv2.CAP_PROP_BUFFERSIZE, 1)   # ← fix C
-        cap.set(cv2.CAP_PROP_FRAME_WIDTH, CAPTURE_WIDTH)
-        cap.set(cv2.CAP_PROP_FRAME_HEIGHT, CAPTURE_HEIGHT)
+        cap = ThreadedCamera(source, CAPTURE_WIDTH, CAPTURE_HEIGHT, test_video=bool(TEST_VIDEO_PATH))
 
         if not cap.isOpened():
             log.warning("[CAM %s] Cannot open stream '%s'. Retrying in 10s…", cam_id, source)
+            cap.release()
             time.sleep(10)
             continue
 
@@ -659,24 +715,14 @@ def camera_worker(camera: Camera):
             status="ONLINE", last_heartbeat=dj_timezone.now(),
         )
 
-        read_errors     = 0
-        MAX_READ_ERRORS = 10
-
-        while True:
+        while not cap.stopped:
             ret, frame = cap.read()
-            if not ret:
-                if TEST_VIDEO_PATH:
-                    log.info("[CAM %s] Test video ended — looping.", cam_id)
-                    cap.set(cv2.CAP_PROP_POS_FRAMES, 0)
-                    continue
-                read_errors += 1
-                if read_errors >= MAX_READ_ERRORS:
-                    log.error("[CAM %s] Too many read errors — reconnecting.", cam_id)
-                    break
-                time.sleep(0.1)
+            if not ret or frame is None:
+                # ThreadedCamera will return (False, None) if the frame is old or stream died.
+                # Just sleep briefly and check again.
+                time.sleep(0.02)
                 continue
 
-            read_errors  = 0
             frame_count += 1
 
             # ── Append frame to rolling evidence buffer (only during active incidents)
@@ -722,7 +768,7 @@ def camera_worker(camera: Camera):
                 results         = results_list[0]
                 annotated_frame = results.plot()  # YOLOv8's built-in render method
             except Exception as e:
-                log.error("[CAM %s] Inference error: %s", cam_id, e)
+                log.error("[CAM %s] Inference error: %s", cam_id, e, exc_info=True)
                 continue
 
             # ── Publish annotated frame to Redis for the live MJPEG stream ────

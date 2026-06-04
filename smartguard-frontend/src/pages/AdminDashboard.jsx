@@ -277,7 +277,10 @@ function AdminDashboard() {
                 {loading ? (
                   <div className="sg-loading"><div className="sg-spinner" /> Loading alerts...</div>
                 ) : recentAlerts.length === 0 ? (
-                  <div className="sg-empty">No alerts recorded yet.</div>
+                  <div className="sg-empty" style={{ textAlign: 'center', padding: '40px 10px', color: 'var(--text-muted)' }}>
+                    <div style={{ fontSize: 28, marginBottom: 8 }}>✅</div>
+                    <p style={{ margin: 0, fontSize: 14 }}>All clear! No recent alerts recorded.</p>
+                  </div>
                 ) : (
                   <div className="sg-table-wrap">
                     <table className="sg-table">

@@ -384,7 +384,12 @@ export default function OpsDashboard() {
                 <div className="sg-cam-bar-track" style={{ marginBottom: 14 }}>
                   <div className="sg-cam-bar-fill" style={{ width: `${(onlineCams / Math.max(cameras.length, 1)) * 100}%` }} />
                 </div>
-                {cameras.map(z => (
+                {cameras.length === 0 ? (
+                  <div style={{ textAlign: 'center', padding: '30px 10px', color: 'var(--text-muted)' }}>
+                    <div style={{ fontSize: 24, marginBottom: 8 }}>📷</div>
+                    <p style={{ fontSize: 13, margin: 0 }}>No cameras connected yet.</p>
+                  </div>
+                ) : cameras.map(z => (
                   <div key={z.id} className="ops-cam-row">
                     <div className="ops-cam-info">
                       <span className={`ops-zone-dot ops-zone-dot--${(z.status || "offline").toLowerCase()}`} />
@@ -402,7 +407,11 @@ export default function OpsDashboard() {
 
               <section className="sg-card">
                 <div className="sg-card-header"><h2 className="sg-card-title">Alerts by Camera</h2></div>
-                {cameras.map(z => {
+                {cameras.length === 0 ? (
+                  <div style={{ textAlign: 'center', padding: '30px 10px', color: 'var(--text-muted)' }}>
+                    <p style={{ fontSize: 13, margin: 0 }}>No cameras available.</p>
+                  </div>
+                ) : cameras.map(z => {
                   const count = alerts.filter(a =>
                     (a.camera?.name || a.camera_name || "").includes((z.name || "").split("—")[0].trim())
                   ).length;
