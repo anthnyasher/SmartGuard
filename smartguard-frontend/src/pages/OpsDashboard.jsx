@@ -401,9 +401,9 @@ export default function OpsDashboard() {
 
               <section className="sg-card">
                 <div className="sg-card-header"><h2 className="sg-card-title">Alerts by Camera</h2></div>
-                {ASSIGNED_ZONES.map(z => {
+                {cameras.map(z => {
                   const count = alerts.filter(a =>
-                    (a.camera?.name || a.camera_name || "").includes(z.name.split("—")[0].trim())
+                    (a.camera?.name || a.camera_name || "").includes((z.name || "").split("—")[0].trim())
                   ).length;
                   return (
                     <div key={z.id} className="sg-top-cam-bar-row" style={{ marginBottom: 8 }}>
