@@ -15,7 +15,10 @@ import {
   resetPasswordConfirmApi,
 } from "../api/authApi";
 import { useAuth } from "../context/AuthContext.jsx";
+import ReCAPTCHA from "react-google-recaptcha";
 import "./LoginPage.css";
+
+const RECAPTCHA_SITE_KEY = import.meta.env.VITE_RECAPTCHA_SITE_KEY || "6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI";
 
 // ── Shared 6-box OTP input ─────────────────────────────────────────────────
 function OTPBoxes({ onComplete, disabled }) {
@@ -144,13 +147,14 @@ function CredentialsStep({ onSuccess, onForgotPassword }) {
   const [error,     setError]     = useState(null);
   const [locked,    setLocked]    = useState(false);
   const [remaining, setRemaining] = useState(null);
+  const [captchaToken, setCaptchaToken] = useState(null);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (locked) return;
+    if (locked || !captchaToken) return;
     setError(null); setLoading(true);
     try {
-      const data = await loginApi(id, pw);
+      const data = await loginApi(id, pw, captchaToken);
       onSuccess(data);
     } catch (err) {
       const res    = err?.response?.data;
@@ -214,7 +218,15 @@ function CredentialsStep({ onSuccess, onForgotPassword }) {
           </div>
         </div>
 
-        <button className="login-btn" type="submit" disabled={loading}>
+        <div className="login-field" style={{ display: "flex", justifyContent: "center", marginTop: 10, marginBottom: 10 }}>
+          <ReCAPTCHA
+            sitekey={RECAPTCHA_SITE_KEY}
+            onChange={(token) => setCaptchaToken(token)}
+            theme="light"
+          />
+        </div>
+
+        <button className="login-btn" type="submit" disabled={loading || !captchaToken}>
           {loading ? <><span className="login-btn-spinner" /> Signing in...</> : "Sign In"}
         </button>
       </form>

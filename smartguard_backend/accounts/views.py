@@ -124,6 +124,39 @@ def login_view(request):
             status=status.HTTP_400_BAD_REQUEST,
         )
 
+    # ── CAPTCHA Verification ──────────────────────────────────────────────────
+    captcha_token = request.data.get("captcha_token")
+    if not captcha_token:
+        return Response(
+            {"detail": "Captcha verification is required."},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    import urllib.request
+    import urllib.parse
+    import json
+    import os
+
+    secret_key = os.environ.get("RECAPTCHA_SECRET_KEY", "6LeIxAcTAAAAAGG-vFI1TnRWxMZNFuojJ4WifJWe")
+    try:
+        data = urllib.parse.urlencode({
+            'secret': secret_key,
+            'response': captcha_token
+        }).encode()
+        req = urllib.request.Request("https://www.google.com/recaptcha/api/siteverify", data=data)
+        with urllib.request.urlopen(req) as response:
+            result = json.loads(response.read().decode())
+            if not result.get("success"):
+                return Response(
+                    {"detail": "Captcha verification failed. Please try again."},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+    except Exception as e:
+        return Response(
+            {"detail": "Error verifying captcha. Please try again."},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
     # ── Find user (by username or email) ──────────────────────────────────────
     user = None
     for field in ("username", "email"):

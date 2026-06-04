@@ -142,7 +142,7 @@ export default function OpsDashboard() {
 };
 
   const displayed   = statusFilter === "ALL" ? alerts : alerts.filter(a => a.status === statusFilter);
-  const onlineCams  = cameras.filter(z => z.status === "ONLINE" || z.status === "online").length;
+  const onlineCams  = cameras.filter(z => (z.status || "").toUpperCase() === "ONLINE").length;
   const offlineCams = cameras.length - onlineCams;
 
   return (
@@ -174,7 +174,7 @@ export default function OpsDashboard() {
             <div className="ops-zone-title">MY ASSIGNED ZONES</div>
             {cameras.map(z => (
               <div key={z.id} className="ops-zone-row">
-                <span className={`ops-zone-dot ops-zone-dot--${z.status.toLowerCase()}`} />
+                <span className={`ops-zone-dot ops-zone-dot--${(z.status || "offline").toLowerCase()}`} />
                 <span className="ops-zone-name">{z.name}</span>
               </div>
             ))}
@@ -386,10 +386,10 @@ export default function OpsDashboard() {
                 {cameras.map(z => (
                   <div key={z.id} className="ops-cam-row">
                     <div className="ops-cam-info">
-                      <span className={`ops-zone-dot ops-zone-dot--${z.status.toLowerCase()}`} />
+                      <span className={`ops-zone-dot ops-zone-dot--${(z.status || "offline").toLowerCase()}`} />
                       <span className="ops-cam-name">{z.name}</span>
                     </div>
-                    <span className={`sg-chip ${z.status === "ONLINE" || z.status === "online" ? "sg-stat-REVIEWED" : "sg-stat-ESCALATED"}`} style={{ fontSize: 9 }}>{z.status.toUpperCase()}</span>
+                    <span className={`sg-chip ${(z.status || "").toUpperCase() === "ONLINE" ? "sg-stat-REVIEWED" : "sg-stat-ESCALATED"}`} style={{ fontSize: 9 }}>{(z.status || "OFFLINE").toUpperCase()}</span>
                   </div>
                 ))}
                 {offlineCams > 0 && (
