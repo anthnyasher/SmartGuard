@@ -193,6 +193,8 @@ CORS_ALLOW_HEADERS = [
 
 CSRF_TRUSTED_ORIGINS = [
     'http://localhost:5173',
+    'https://smartguard.54.206.184.54.nip.io',
+    'http://smartguard.54.206.184.54.nip.io',
 ]
 
 # ── Login redirects (DRF browsable API) ───────────────────────────────────────
