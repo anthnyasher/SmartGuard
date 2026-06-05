@@ -246,11 +246,12 @@ class ManualAlertCreateView(APIView):
         from logging_info.models import AuditLog
         AuditLog.objects.create(
             user=request.user,
-            action="MANUAL_ALERT_TRIGGERED",
-            target_type="Camera",
-            target_id=str(camera_id),
-            severity="HIGH",
-            details=f"User manually triggered '{behavior}' alert on Camera {camera_id}. Notes: {notes}"
+            action="ALERT_CREATED",
+            category="DETECTION",
+            level="HIGH",
+            message=f"User manually triggered '{behavior}' alert on Camera {camera_id}. Notes: {notes}",
+            source="Manual Override",
+            extra={"camera_id": camera_id, "behavior_type": behavior}
         )
 
         return Response({"message": "Manual alert triggered successfully. Evidence clipping initiated."}, status=status.HTTP_200_OK)
