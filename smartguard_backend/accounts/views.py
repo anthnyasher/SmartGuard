@@ -40,6 +40,28 @@ logger = logging.getLogger(__name__)
 
 
 # ── Helpers ────────────────────────────────────────────────────────────────────
+from rest_framework.throttling import AnonRateThrottle
+
+@api_view(["PATCH"])
+@permission_classes([IsAuthenticated])
+def dpa_consent_view(request):
+    """
+    PATCH /api/auth/consent/
+    Sets the dpa_consent_timestamp to current time for the logged in user.
+    """
+    user = request.user
+    if not user.dpa_consent_timestamp:
+        user.dpa_consent_timestamp = timezone.now()
+        user.save(update_fields=['dpa_consent_timestamp'])
+        
+        _safe_log(
+            action="DPA_CONSENT",
+            message=f"User '{user.username}' agreed to Data Privacy Agreement.",
+            category="SECURITY", level="INFO",
+            source="Access Control",
+            user=user, username=user.username,
+        )
+    return Response({"detail": "Consent recorded.", "dpa_consent_timestamp": user.dpa_consent_timestamp})
 
 def get_client_ip(request):
     xff = request.META.get("HTTP_X_FORWARDED_FOR")
@@ -103,8 +125,11 @@ def _notify_lockout_admins(username, ip):
 
 # ── Login ──────────────────────────────────────────────────────────────────────
 
+from rest_framework.decorators import throttle_classes
+
 @api_view(["POST"])
 @permission_classes([AllowAny])
+@throttle_classes([AnonRateThrottle])
 def login_view(request):
     """
     POST /api/auth/login/

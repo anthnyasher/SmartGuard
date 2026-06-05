@@ -16,6 +16,7 @@ from .views import (
     reset_user_password,
     unlock_user_account,
     toggle_user_active,
+    dpa_consent_view,
 )
 
 urlpatterns = [
@@ -28,6 +29,7 @@ urlpatterns = [
     path("auth/refresh/",                TokenRefreshView.as_view(),   name="token-refresh"),
     path("auth/register/",               RegisterView.as_view(),       name="register"),
     path("auth/me/",                     UserProfileView.as_view(),    name="user-profile"),
+    path("auth/consent/",                dpa_consent_view,             name="dpa-consent"),
 
     # ── Admin: User Management ─────────────────────────────────────────────────
     path("users/",                         UsersListCreateView.as_view(), name="user-list-create"),

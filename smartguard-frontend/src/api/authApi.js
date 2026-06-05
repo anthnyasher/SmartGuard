@@ -96,6 +96,23 @@ export async function getMe(token) {
   return res.json();
 }
 
+// ── DPA Consent ───────────────────────────────────────────────────────────────
+export async function submitDpaConsentApi(token) {
+  const res = await fetch(`${BASE_URL}/api/auth/consent/`, {
+    method: "PATCH",
+    headers: { 
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}` 
+    },
+  });
+  if (!res.ok) {
+    const err = new Error("Failed to submit consent");
+    err.response = { status: res.status };
+    throw err;
+  }
+  return res.json();
+}
+
 // ── Token refresh ─────────────────────────────────────────────────────────────
 export async function refreshTokenApi(refreshToken) {
   const res = await fetch(`${BASE_URL}/api/auth/refresh/`, {

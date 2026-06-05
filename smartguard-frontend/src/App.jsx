@@ -18,10 +18,14 @@ import IncidentResponse from "./pages/IncidentResponse.jsx";
 import AccessControl from "./pages/AccessControl.jsx";
 import SettingsPage from "./pages/SettingsPage.jsx";
 
+import DPAModal from "./components/DPAModal.jsx";
+import { submitDpaConsentApi } from "./api/authApi";
+
 function RequireAuth({ children, allowedRoles }) {
-  const { user, loading } = useAuth();
+  const { user, token, setUser, loading } = useAuth();
   if (loading) return null;
   if (!user) return <Navigate to="/login" replace />;
+  
   if (allowedRoles && !allowedRoles.includes(user.role)) {
     // Route to correct dashboard instead of kicking to login
     if (user.role === "ADMIN")       return <Navigate to="/admin/dashboard" replace />;
@@ -29,7 +33,22 @@ function RequireAuth({ children, allowedRoles }) {
     if (user.role === "STAFF")       return <Navigate to="/staff/dashboard"  replace />;
     return <Navigate to="/login" replace />;
   }
-  return children;
+
+  const handleDpaAgree = async () => {
+    try {
+      const res = await submitDpaConsentApi(token);
+      setUser({ ...user, dpa_consent_timestamp: res.dpa_consent_timestamp });
+    } catch (err) {
+      console.error("Failed to submit DPA consent", err);
+    }
+  };
+
+  return (
+    <>
+      {!user.dpa_consent_timestamp && <DPAModal onAgree={handleDpaAgree} />}
+      {children}
+    </>
+  );
 }
 
 const OPS_ROLES   = ["OPS_MANAGER", "ADMIN"];

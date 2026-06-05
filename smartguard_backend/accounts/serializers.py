@@ -36,9 +36,9 @@ class UserSerializer(serializers.ModelSerializer):
         model  = User
         fields = [
             "id", "username", "email", "first_name", "last_name",
-            "role", "is_locked", "phone_number",
+            "role", "is_locked", "phone_number", "dpa_consent_timestamp",
         ]
-        read_only_fields = ["id", "is_locked"]
+        read_only_fields = ["id", "is_locked", "dpa_consent_timestamp"]
 
 
 class RegisterSerializer(serializers.ModelSerializer):

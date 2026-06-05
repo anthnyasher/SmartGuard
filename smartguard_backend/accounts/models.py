@@ -36,6 +36,9 @@ class CustomUser(AbstractUser):
     # ── New-device detection ───────────────────────────────────────────────────
     last_login_ip = models.GenericIPAddressField(null=True, blank=True)
 
+    # ── Data Privacy Agreement Consent ─────────────────────────────────────────
+    dpa_consent_timestamp = models.DateTimeField(null=True, blank=True)
+
     # ── FRS 1.B: 3 failed attempts → permanent lock (admin must unlock) ────────
     MAX_ATTEMPTS = 3
 
