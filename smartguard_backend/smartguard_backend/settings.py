@@ -223,6 +223,8 @@ print(">>> LOGIN_URL =", LOGIN_URL)
 #LOGIN_LOCK_DURATION_SECONDS = 2 * 60  # 2 minutes, match your model constant
 
 # ── Media files (snapshots, evidence clips) ────────────────────────────────────
+STATIC_URL = "static/"
+STATIC_ROOT = BASE_DIR / "staticfiles"
 MEDIA_ROOT = BASE_DIR / "media"
 MEDIA_URL  = "/media/"
 
