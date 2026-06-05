@@ -45,7 +45,6 @@ const DEFAULT_SETTINGS = {
     notifyOn:      { CRITICAL: true, HIGH: true, MEDIUM: false, LOW: false },
   },
   ai: {
-    model:                "YOLOv5s",
     frameRate:            15,
     confidenceThreshold:  65,
     loiteringDuration:    60,          // seconds before loitering alert
@@ -127,7 +126,6 @@ export default function SettingsPage() {
             },
           },
           ai: {
-            model:               data.ai_model               || DEFAULT_SETTINGS.ai.model,
             frameRate:           data.frame_rate              || DEFAULT_SETTINGS.ai.frameRate,
             confidenceThreshold: data.confidence_threshold    || DEFAULT_SETTINGS.ai.confidenceThreshold,
             loiteringDuration:   data.loitering_duration      || DEFAULT_SETTINGS.ai.loiteringDuration,
@@ -179,7 +177,6 @@ export default function SettingsPage() {
         notify_on_high:           settings.notifications.notifyOn.HIGH,
         notify_on_medium:         settings.notifications.notifyOn.MEDIUM,
         notify_on_low:            settings.notifications.notifyOn.LOW,
-        ai_model:                 settings.ai.model,
         frame_rate:               settings.ai.frameRate,
         confidence_threshold:     settings.ai.confidenceThreshold,
         loitering_duration:       settings.ai.loiteringDuration,
@@ -353,16 +350,7 @@ export default function SettingsPage() {
                 <div className="set-section">
                   <h3 className="set-section-title">AI Detection Settings</h3>
 
-                  <div className="set-field">
-                    <label className="set-label">Detection Model</label>
-                    <select className="set-input"
-                      value={settings.ai.model}
-                      onChange={e => update("ai","model",e.target.value)}>
-                      <option value="YOLOv5s">YOLOv5s — Faster, lower accuracy (recommended for real-time)</option>
-                      <option value="YOLOv5m">YOLOv5m — Balanced speed and accuracy</option>
-                      <option value="YOLOv5l">YOLOv5l — Highest accuracy, requires more resources</option>
-                    </select>
-                  </div>
+
 
                   <div className="set-field">
                     <label className="set-label">Detection Confidence Threshold — {settings.ai.confidenceThreshold}%</label>

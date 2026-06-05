@@ -32,7 +32,6 @@ class SystemConfig(models.Model):
     notify_on_low = models.BooleanField(default=False)
 
     # ── AI Detection ──────────────────────────────────────────────────────────
-    ai_model = models.CharField(max_length=20, default="YOLOv5s")
     frame_rate = models.IntegerField(default=15)
     confidence_threshold = models.IntegerField(default=65)  # percentage (10-99)
     loitering_duration = models.IntegerField(default=60)  # seconds

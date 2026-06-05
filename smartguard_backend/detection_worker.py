@@ -51,7 +51,7 @@ logging.basicConfig(
 )
 log = logging.getLogger(__name__)
 
-# ── Configuration ─────────────────────────────────────────────────────────────
+# ── Configuration (Defaults, overridden by DB) ────────────────────────────────
 MODEL_PATH           = os.path.join(os.path.dirname(os.path.abspath(__file__)), "best.pt")
 CONFIDENCE_THRESHOLD = 0.4
 FRAME_SKIP           = 15         # run inference every N frames
@@ -60,6 +60,8 @@ EMAIL_COOLDOWN       = 60         # seconds between emails per camera
 INCIDENT_TIMEOUT     = 30         # seconds before incident is considered over
 TARGET_CLASS         = "shoplifting"   # Class name in custom best.pt model
 CLIP_DURATION        = 10         # seconds of video to capture per evidence clip
+AUTO_EVIDENCE        = True
+ENABLED_BEHAVIORS    = {}
 SHOW_PREVIEW         = True       # set True to show local cv2 window (causes lag on Windows)
 REDIS_PUBLISH_SKIP   = 5          # publish to Redis every N non-inference frames
 JPEG_QUALITY         = 50         # JPEG quality for Redis stream (lower = less bandwidth)
@@ -715,7 +717,26 @@ def camera_worker(camera: Camera):
             status="ONLINE", last_heartbeat=dj_timezone.now(),
         )
 
+        last_config_check = 0
+
         while not cap.stopped:
+            # ── 0. Fetch live settings from DB periodically ───────────────────────
+            now = time.time()
+            if now - last_config_check > 5.0:
+                from config.models import SystemConfig
+                try:
+                    sc = SystemConfig.get_solo()
+                    global CONFIDENCE_THRESHOLD, FRAME_SKIP, INCIDENT_TIMEOUT, AUTO_EVIDENCE, ENABLED_BEHAVIORS
+                    CONFIDENCE_THRESHOLD = sc.confidence_threshold / 100.0
+                    if sc.frame_rate > 0:
+                        FRAME_SKIP = max(1, 30 // sc.frame_rate)
+                    INCIDENT_TIMEOUT = sc.loitering_duration
+                    AUTO_EVIDENCE = sc.auto_create_evidence
+                    ENABLED_BEHAVIORS = sc.enabled_behaviors
+                except Exception as e:
+                    log.warning("Failed to load SystemConfig: %s", e)
+                last_config_check = now
+
             ret, frame = cap.read()
             if not ret or frame is None:
                 # ThreadedCamera will return (False, None) if the frame is old or stream died.
@@ -784,6 +805,11 @@ def camera_worker(camera: Camera):
                     conf_val = float(box.conf[0])
                     class_name = model.names[cls_id].lower()
                     if class_name == TARGET_CLASS and conf_val >= CONFIDENCE_THRESHOLD:
+                        # Check if this behavior is enabled
+                        behavior_enum = "SHOPLIFTING"  # Map TARGET_CLASS to enum if needed
+                        if ENABLED_BEHAVIORS and ENABLED_BEHAVIORS.get(behavior_enum) is False:
+                            continue  # Skip detection if disabled in settings
+                            
                         shoplifting_detected = True
                         if conf_val > best_conf:
                             best_conf = conf_val
@@ -809,7 +835,7 @@ def camera_worker(camera: Camera):
                 )
 
                 # ── Record evidence clip on NEW incidents ─────────────────────
-                if is_new:
+                if is_new and AUTO_EVIDENCE:
                     try:
                         from evidence.clip_recorder import record_evidence_clip_async
                         alert_obj = Alert.objects.get(id=alert_id)
