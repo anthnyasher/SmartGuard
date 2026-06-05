@@ -126,7 +126,9 @@ def _notify_lockout_admins(username, ip):
 # ── Login ──────────────────────────────────────────────────────────────────────
 
 from rest_framework.decorators import throttle_classes
+from django.views.decorators.csrf import csrf_exempt
 
+@csrf_exempt
 @api_view(["POST"])
 @permission_classes([AllowAny])
 @throttle_classes([AnonRateThrottle])
@@ -393,6 +395,7 @@ def logout_view(request):
 
 # ── OTP Verification (2FA) ───────────────────────────────────────────────
 
+@csrf_exempt
 @api_view(["POST"])
 @permission_classes([AllowAny])
 def verify_otp_view(request):
@@ -486,6 +489,7 @@ def verify_otp_view(request):
 
 # ── Forgot Password (all roles) ────────────────────────────────────────────────
 
+@csrf_exempt
 @api_view(["POST"])
 @permission_classes([AllowAny])
 def forgot_password_view(request):
@@ -545,6 +549,7 @@ def forgot_password_view(request):
         )
 
 
+@csrf_exempt
 @api_view(["POST"])
 @permission_classes([AllowAny])
 def reset_password_confirm_view(request):
