@@ -197,6 +197,11 @@ CSRF_TRUSTED_ORIGINS = [
     'http://smartguard.54.206.184.54.nip.io',
 ]
 
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+USE_X_FORWARDED_HOST = True
+CSRF_COOKIE_SECURE = True
+SESSION_COOKIE_SECURE = True
+
 # ── Login redirects (DRF browsable API) ───────────────────────────────────────
 LOGIN_REDIRECT_URL = '/api/alerts/'
 LOGIN_URL          = '/api-auth/login/'
