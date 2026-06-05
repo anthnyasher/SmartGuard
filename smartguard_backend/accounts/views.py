@@ -263,17 +263,17 @@ def login_view(request):
             status=status.HTTP_403_FORBIDDEN,
         )
 
-    # ── Admin → 2FA OTP (sent async so response is fast) ──────────────────────
-    if user.role == "ADMIN":
+    # ── Admin & Ops Manager → 2FA OTP (sent async so response is fast) ────────
+    if user.role in ["ADMIN", "OPERATIONS_MANAGER"]:
         otp = OTPToken.create_for_user(user, token_type="LOGIN", ip_address=ip)
 
         masked_email = f"{user.email[:3]}***{user.email[user.email.index('@'):]}"
 
         _send_email_async(
-            subject="[SmartGuard] Your Admin Verification Code",
+            subject="[SmartGuard] Your Verification Code",
             body=(
                 f"Hello {user.first_name or user.username},\n\n"
-                f"Your SmartGuard admin verification code is:\n\n"
+                f"Your SmartGuard verification code is:\n\n"
                 f"  {otp.token}\n\n"
                 f"Valid for {OTPToken.OTP_LIFETIME_MINUTES} minutes, single use.\n\n"
                 f"If you did not attempt to log in, change your password immediately."
@@ -283,7 +283,7 @@ def login_view(request):
 
         _safe_log(
             action="OTP_SENT",
-            message=f"2FA OTP sent to admin '{user.username}' ({masked_email}).",
+            message=f"2FA OTP sent to {user.role} '{user.username}' ({masked_email}).",
             category="USER_ACTIVITY", level="INFO",
             source="Authentication",
             user=user, username=user.username,
@@ -299,7 +299,7 @@ def login_view(request):
             status=status.HTTP_200_OK,
         )
 
-    # ── Non-admin → issue JWT ─────────────────────────────────────────────────
+    # ── Staff → issue JWT ─────────────────────────────────────────────────
     was_new_ip = user.record_successful_login(ip_address=ip)
     user.last_login = timezone.now()
     user.save(update_fields=["last_login"])
@@ -366,7 +366,7 @@ def logout_view(request):
     return Response({"detail": "Logged out successfully."}, status=status.HTTP_200_OK)
 
 
-# ── OTP Verification (Admin 2FA) ───────────────────────────────────────────────
+# ── OTP Verification (2FA) ───────────────────────────────────────────────
 
 @api_view(["POST"])
 @permission_classes([AllowAny])
@@ -402,7 +402,7 @@ def verify_otp_view(request):
     if not otp.is_valid():
         _safe_log(
             action="OTP_EXPIRED",
-            message=f"OTP expired for admin '{user.username}' from {ip}.",
+            message=f"OTP expired for {user.role} '{user.username}' from {ip}.",
             category="SECURITY", level="WARNING",
             source="Authentication",
             user=user, username=user.username,
@@ -416,7 +416,7 @@ def verify_otp_view(request):
     if otp.token != code:
         _safe_log(
             action="OTP_FAILED",
-            message=f"Wrong OTP entered for admin '{user.username}' from {ip}.",
+            message=f"Wrong OTP entered for {user.role} '{user.username}' from {ip}.",
             category="SECURITY", level="HIGH",
             source="Authentication",
             user=user, username=user.username,
@@ -435,7 +435,7 @@ def verify_otp_view(request):
 
     _safe_log(
         action="OTP_SUCCESS",
-        message=f"Admin '{user.username}' completed 2FA from {ip}.",
+        message=f"{user.role} '{user.username}' completed 2FA from {ip}.",
         category="USER_ACTIVITY", level="INFO",
         source="Authentication",
         user=user, username=user.username,
@@ -445,7 +445,7 @@ def verify_otp_view(request):
     if was_new_ip:
         _safe_log(
             action="NEW_IP_LOGIN",
-            message=f"Admin '{user.username}' logged in from new IP: {ip}.",
+            message=f"{user.role} '{user.username}' logged in from new IP: {ip}.",
             category="SECURITY", level="WARNING",
             source="Login Security",
             user=user, username=user.username,

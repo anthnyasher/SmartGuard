@@ -453,7 +453,7 @@ export default function LoginPage() {
 
   const headings = {
     [STEP.CREDS]:       { title: "Welcome back",         sub: "Sign in to your SmartGuard account"         },
-    [STEP.OTP]:         { title: "Verify your identity", sub: "Admin two-factor authentication required"    },
+    [STEP.OTP]:         { title: "Verify your identity", sub: "Two-factor authentication required"    },
     [STEP.FORGOT_EMAIL]:{ title: "Forgot password",      sub: "Enter your email to receive a reset code"   },
     [STEP.FORGOT_OTP]:  { title: "Reset password",       sub: "Enter the code and choose a new password"   },
     [STEP.RESET_DONE]:  { title: "All done",             sub: "Your password has been updated successfully" },
@@ -467,7 +467,7 @@ export default function LoginPage() {
           onSuccess={data => {
             if (data.requires_otp) {
               setOtpSession(data.otp_session_id);
-              setMaskedEmail(data.detail || "your admin email");
+              setMaskedEmail(data.detail || "your email");
               setStep(STEP.OTP);
             } else {
               login(data.access, data.refresh);
