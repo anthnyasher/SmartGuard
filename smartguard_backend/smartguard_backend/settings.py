@@ -18,7 +18,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 # ── Core ───────────────────────────────────────────────────────────────────────
 SECRET_KEY = 'django-insecure-^==a$(7@an64!0t!8y)-0tt))ibbz%^(nd34)38_7x4po8p*z%'
-DEBUG      = True
+DEBUG      = False
 ALLOWED_HOSTS = ["*"]
 STREAM_BASE_URL = os.environ.get("STREAM_BASE_URL", "http://localhost:8001")
 
