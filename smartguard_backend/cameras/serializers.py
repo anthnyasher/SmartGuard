@@ -13,6 +13,17 @@ class CameraSerializer(serializers.ModelSerializer):
 
     def to_representation(self, instance):
         ret = super().to_representation(instance)
+        
+        # Dynamically set status to OFFLINE if heartbeat is older than 60 seconds
+        from django.utils import timezone
+        import datetime
+        if ret.get("status") == "ONLINE" and instance.last_heartbeat:
+            now = timezone.now()
+            if (now - instance.last_heartbeat).total_seconds() > 60:
+                ret["status"] = "OFFLINE"
+        elif ret.get("status") == "ONLINE" and not instance.last_heartbeat:
+             ret["status"] = "OFFLINE"
+
         # Auto-compute the MJPEG URL if left blank
         if not ret.get("stream_mjpeg_url") and ret.get("id"):
             base = getattr(settings, 'STREAM_BASE_URL', 'http://localhost:8001')
