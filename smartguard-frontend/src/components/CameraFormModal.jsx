@@ -141,7 +141,7 @@ export default function CameraFormModal({
                     <div className="cfm-field">
                         <label className="cfm-label">
                             RTSP Stream URL <span className="cfm-required">*</span>
-                            <span className="cfm-label-hint"> — used by the YOLOv5 detection engine</span>
+                            <span className="cfm-label-hint"> — used by the YOLO11 detection engine</span>
                         </label>
                         <input
                             className="cfm-input cfm-input--mono"

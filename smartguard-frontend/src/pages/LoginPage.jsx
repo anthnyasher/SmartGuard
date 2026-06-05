@@ -514,7 +514,7 @@ export default function LoginPage() {
           <p className="login-sub">Real-time behavior analysis, secure evidence handling, and role-based access control — built for FairPrice.</p>
           <div className="login-features">
             {[
-              { icon: "AI",   label: "YOLOv5 Detection",  desc: "Concealment, Loitering, Rapid Exit detection" },
+              { icon: "AI",   label: "YOLO11 Detection",  desc: "Concealment, Loitering, Rapid Exit detection" },
               { icon: "2FA",  label: "Two-Factor Auth",   desc: "OTP-secured admin login"                      },
               { icon: "ENC",  label: "Evidence Vault",    desc: "AES-256 encrypted clips"                      },
               { icon: "RBAC", label: "Role-Based Access", desc: "Admin, Ops Manager, Staff"                    },
