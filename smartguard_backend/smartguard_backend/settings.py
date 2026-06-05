@@ -167,6 +167,12 @@ SIMPLE_JWT = {
 
 # ── CORS ──────────────────────────────────────────────────────────────────────
 CORS_ALLOW_ALL_ORIGINS = True
+CORS_ALLOW_CREDENTIALS = True
+
+CSRF_TRUSTED_ORIGINS = [
+    "https://smartguard.54.206.184.54.nip.io",
+    "http://smartguard.54.206.184.54.nip.io",
+]
 
 CORS_ALLOW_METHODS = [
     "DELETE",
