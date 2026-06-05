@@ -289,7 +289,7 @@ def login_view(request):
         )
 
     # ── Admin & Ops Manager → 2FA OTP (sent async so response is fast) ────────
-    if user.role in ["ADMIN", "OPERATIONS_MANAGER"]:
+    if user.role in ["ADMIN"]:
         otp = OTPToken.create_for_user(user, token_type="LOGIN", ip_address=ip)
 
         masked_email = f"{user.email[:3]}***{user.email[user.email.index('@'):]}"
