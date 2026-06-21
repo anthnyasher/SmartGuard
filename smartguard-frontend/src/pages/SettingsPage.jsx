@@ -57,6 +57,7 @@ const DEFAULT_SETTINGS = {
       FIGHTING:     false,
     },
     autoCreateEvidence: true,
+    motionGatedDetection: true,
   },
   security: {
     maxFailedLogins:  5,
@@ -132,6 +133,7 @@ export default function SettingsPage() {
             concealmentZones:    data.concealment_zones       || DEFAULT_SETTINGS.ai.concealmentZones,
             behaviors:           data.enabled_behaviors       || DEFAULT_SETTINGS.ai.behaviors,
             autoCreateEvidence:  data.auto_create_evidence    ?? DEFAULT_SETTINGS.ai.autoCreateEvidence,
+            motionGatedDetection: data.motion_gated_detection ?? DEFAULT_SETTINGS.ai.motionGatedDetection,
           },
           security: {
             maxFailedLogins:       data.max_failed_logins       || DEFAULT_SETTINGS.security.maxFailedLogins,
@@ -183,6 +185,7 @@ export default function SettingsPage() {
         concealment_zones:        settings.ai.concealmentZones,
         enabled_behaviors:        settings.ai.behaviors,
         auto_create_evidence:     settings.ai.autoCreateEvidence,
+        motion_gated_detection:   settings.ai.motionGatedDetection,
         max_failed_logins:        settings.security.maxFailedLogins,
         lockout_duration_minutes: settings.security.lockoutDuration,
         require_strong_password:  settings.security.requireStrongPassword,
@@ -429,6 +432,14 @@ export default function SettingsPage() {
                       <div className="set-hint">Automatically save a video clip whenever a detection is triggered</div>
                     </div>
                     <Toggle value={settings.ai.autoCreateEvidence} onChange={v => update("ai","autoCreateEvidence",v)} />
+                  </div>
+
+                  <div className="set-toggle-row">
+                    <div>
+                      <div className="set-label">Power-Saving Mode (Detect Only on Activity)</div>
+                      <div className="set-hint">When ON, AI inference and recording run only when the camera detects scene activity, saving power on an idle/empty store. When OFF, the AI processes every frame continuously.</div>
+                    </div>
+                    <Toggle value={settings.ai.motionGatedDetection} onChange={v => update("ai","motionGatedDetection",v)} />
                   </div>
                 </div>
               )}

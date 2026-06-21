@@ -59,7 +59,7 @@ HEARTBEAT_EVERY      = 30         # seconds between heartbeat pushes
 EMAIL_COOLDOWN       = 60         # seconds between emails per camera
 INCIDENT_TIMEOUT     = 30         # seconds before incident is considered over
 TARGET_CLASS         = "shoplifting"   # Class name in custom best.pt model
-CLIP_DURATION        = 10         # seconds of video to capture per evidence clip
+CLIP_DURATION        = 30         # MAX seconds of video to capture per evidence clip (Pre-roll buffer)
 AUTO_EVIDENCE        = True
 ENABLED_BEHAVIORS    = {}
 SHOW_PREVIEW         = True       # set True to show local cv2 window (causes lag on Windows)
@@ -67,6 +67,17 @@ REDIS_PUBLISH_SKIP   = 5          # publish to Redis every N non-inference frame
 JPEG_QUALITY         = 50         # JPEG quality for Redis stream (lower = less bandwidth)
 CAPTURE_WIDTH        = 640        # downscale webcam capture width
 CAPTURE_HEIGHT       = 480        # downscale webcam capture height
+
+# ── Motion gate (power saving) ────────────────────────────────────────────────
+# When the scene is static (empty store, nobody around) the worker skips the
+# expensive YOLO inference entirely and just keeps the live stream flowing.
+# A cheap frame-difference check decides if "something is going on". The moment
+# motion appears, full detection resumes. This is the main laptop power saver.
+MOTION_GATE_ENABLED   = True      # set False to always run YOLO (old behavior)
+MOTION_THRESHOLD      = 22        # per-pixel grayscale diff to count as "changed"
+MOTION_MIN_AREA_RATIO = 0.004     # fraction of frame that must change to be "motion"
+MOTION_IDLE_GRACE     = 4.0       # keep running inference this long after last motion
+MOTION_IDLE_RECHECK   = 12.0      # safety net: run YOLO at least once every N idle seconds
 
 # ── FIX 3 — Test mode ─────────────────────────────────────────────────────────
 # Set TEST_VIDEO_PATH to a local video file to override all camera RTSP streams.
@@ -94,10 +105,10 @@ def get_model():
             else:
                 log.warning("No CUDA GPU found — falling back to CPU (inference will be slow).")
 
-            log.info("Loading YOLOv8 model from: %s  →  device: %s", MODEL_PATH, DEVICE)
+            log.info("Loading YOLO model from: %s  →  device: %s", MODEL_PATH, DEVICE)
             _model = YOLO(MODEL_PATH)
             _model.to(DEVICE)
-            # YOLOv8 doesn't use _model.conf globally, we pass conf to predict() instead
+            # YOLO doesn't use _model.conf globally, we pass conf to predict() instead
             log.info("Model loaded on %s. Classes: %s", DEVICE.upper(), _model.names)
     return _model
 
@@ -146,6 +157,20 @@ def save_alert(camera: Camera, behavior_type: str, confidence: float,
             _, buf = cv2.imencode(".jpg", frame_bgr, [cv2.IMWRITE_JPEG_QUALITY, 80])
             filename = f"alert_{alert.id}_{camera.id}.jpg"
             alert.snapshot.save(filename, ContentFile(buf.tobytes()), save=True)
+            
+            # Sync to AWS
+            try:
+                import urllib.request
+                import os
+                aws_base = os.environ.get('AWS_API_BASE_URL', f"http://{os.environ.get('DATABASE_HOST', '54.206.184.54')}:8000")
+                url = f"{aws_base}/api/alerts/upload-media/"
+                req = urllib.request.Request(url, data=buf.tobytes(), method='POST')
+                req.add_header('X-Relative-Path', alert.snapshot.name)
+                req.add_header('X-Sync-Secret', os.environ.get('MEDIA_SYNC_SECRET', ''))
+                urllib.request.urlopen(req, timeout=5)
+            except Exception as sync_e:
+                log.warning("[CAM %s] Failed to sync snapshot to AWS: %s", camera.id, sync_e)
+                
         except Exception as e:
             log.warning("[CAM %s] Failed to save snapshot: %s", camera.id, e)
 
@@ -163,6 +188,39 @@ _incidents: dict = {}   # {camera_id: {alert_id, last_seen, max_conf}}
 # Each camera gets a rolling deque of (timestamp, frame_bgr) tuples.
 # Buffer size = CLIP_DURATION * estimated_fps frames.
 _frame_buffers: dict = {}   # {camera_id: deque}
+
+# Store actual FPS per camera to pass to background threads
+_camera_fps: dict = {}      # {camera_id: float}
+
+# ── Motion gate state ─────────────────────────────────────────────────────────
+# Holds the previous downscaled grayscale frame per camera for frame-differencing.
+_prev_gray: dict = {}       # {camera_id: np.ndarray}
+
+def detect_motion(camera_id: int, frame_bgr) -> bool:
+    """
+    Cheap frame-difference motion check used to gate YOLO inference.
+
+    Downscales to a tiny grayscale image and compares against the previous one.
+    Returns True if a meaningful fraction of the frame changed (something is
+    going on), False if the scene is essentially static. Cost is negligible
+    compared to a YOLO forward pass, so it's safe to run every cycle.
+    """
+    small = cv2.resize(frame_bgr, (160, 120))
+    gray  = cv2.cvtColor(small, cv2.COLOR_BGR2GRAY)
+    gray  = cv2.GaussianBlur(gray, (5, 5), 0)
+
+    prev = _prev_gray.get(camera_id)
+    _prev_gray[camera_id] = gray
+
+    # No baseline yet — assume motion so we don't miss the first activity.
+    if prev is None or prev.shape != gray.shape:
+        return True
+
+    delta  = cv2.absdiff(prev, gray)
+    thresh = cv2.threshold(delta, MOTION_THRESHOLD, 255, cv2.THRESH_BINARY)[1]
+    changed = cv2.countNonZero(thresh)
+    ratio   = changed / float(gray.shape[0] * gray.shape[1])
+    return ratio >= MOTION_MIN_AREA_RATIO
 
 def handle_detection(camera: Camera, behavior_type: str, confidence: float,
                      frame_bgr=None):
@@ -335,7 +393,7 @@ def send_alert_email(camera_name: str, behavior_type: str,
 
         # ── Gather recipients ─────────────────────────────────────────────────
         ops_qs = CustomUser.objects.filter(
-            role__in=["OPERATIONS_MANAGER", "ADMIN"], is_active=True,
+            role__in=["OPS_MANAGER", "ADMIN"], is_active=True,
         )
         staff_qs = CustomUser.objects.filter(role="STAFF", is_active=True)
 
@@ -434,11 +492,11 @@ def _filled_rect(img, x1, y1, x2, y2, color, alpha=0.55):
 
 
 def draw_hud(frame: np.ndarray, cam_name: str, fps: float,
-             detection: dict | None) -> np.ndarray:
+             detection: dict | None, live_conf: float = 0.0, live_behavior: str = "SHOPLIFTING") -> np.ndarray:
     """
-    Draws the SmartGuard HUD on top of the YOLO-annotated frame.
+    Draws the SmartGuard HUD on top of the frame.
 
-    detection = None                    → idle state (no current detection)
+    detection = None                    → idle state (no current active alert)
     detection = {
         behavior_type, confidence,
         severity, alert_id
@@ -471,7 +529,7 @@ def draw_hud(frame: np.ndarray, cam_name: str, fps: float,
     if detection is None:
         # ── Idle state ────────────────────────────────────────────────────────
         _text(out, "MONITORING", (12, h - 33), 0.50, (80, 140, 200), thickness=1)
-        _text(out, "No suspicious behavior detected",
+        _text(out, f"Target: {live_behavior}",
               (12, h - 12), 0.40, (100, 120, 140), thickness=1)
 
         # Green "LIVE" pill
@@ -481,6 +539,12 @@ def draw_hud(frame: np.ndarray, cam_name: str, fps: float,
                       (w - 10, h - panel_h + 32), (0, 220, 80), 1)
         _text(out, "LIVE", (w - 58, h - panel_h + 25),
               0.38, (255, 255, 255), thickness=1, shadow=False)
+              
+        # Set variables for the confidence bar below
+        disp_sev = "LOW"
+        disp_conf = live_conf
+        sev_col = (100, 120, 140)
+        badge_x = 220
 
     else:
         # ── Active detection state ────────────────────────────────────────────
@@ -511,42 +575,46 @@ def draw_hud(frame: np.ndarray, cam_name: str, fps: float,
         _text(out, sev,
               (badge_x + 8, h - panel_h + 27),
               0.38, (255, 255, 255), thickness=1, shadow=False)
+              
+        # Set variables for the confidence bar below
+        disp_conf = conf
+        
+    # ── Confidence bar (Always Drawn) ──────────────────────────────────────
+    bar_x     = badge_x + 100 if detection else 220
+    bar_y     = h - panel_h + 16
+    bar_total = 180
+    bar_fill  = int(bar_total * disp_conf)
+    bar_color = sev_col
 
-        # ── Confidence bar ────────────────────────────────────────────────────
-        bar_x     = badge_x + badge_w + 16
-        bar_y     = h - panel_h + 16
-        bar_total = 180
-        bar_fill  = int(bar_total * conf)
-        bar_color = sev_col
-
-        # Track
+    # Track
+    cv2.rectangle(out,
+                  (bar_x, bar_y),
+                  (bar_x + bar_total, bar_y + 12),
+                  (40, 50, 65), -1)
+    # Fill
+    if bar_fill > 0:
         cv2.rectangle(out,
                       (bar_x, bar_y),
-                      (bar_x + bar_total, bar_y + 12),
-                      (40, 50, 65), -1)
-        # Fill
-        if bar_fill > 0:
-            cv2.rectangle(out,
-                          (bar_x, bar_y),
-                          (bar_x + bar_fill, bar_y + 12),
-                          bar_color, -1)
-        # Border
-        cv2.rectangle(out,
-                      (bar_x, bar_y),
-                      (bar_x + bar_total, bar_y + 12),
-                      (80, 100, 120), 1)
+                      (bar_x + bar_fill, bar_y + 12),
+                      bar_color, -1)
+    # Border
+    cv2.rectangle(out,
+                  (bar_x, bar_y),
+                  (bar_x + bar_total, bar_y + 12),
+                  (80, 100, 120), 1)
 
-        # Confidence percentage
-        conf_pct = f"{round(conf * 100)}%"
-        _text(out, conf_pct,
-              (bar_x + bar_total + 8, bar_y + 11),
-              0.42, (220, 230, 240), thickness=1)
+    # Confidence percentage
+    conf_pct = f"{round(disp_conf * 100)}%"
+    _text(out, conf_pct,
+          (bar_x + bar_total + 8, bar_y + 11),
+          0.42, (220, 230, 240), thickness=1)
 
-        # Confidence label above bar
-        _text(out, "CONFIDENCE",
-              (bar_x, bar_y - 3),
-              0.28, (100, 130, 160), thickness=1)
+    # Confidence label above bar
+    _text(out, "CONFIDENCE",
+          (bar_x, bar_y - 3),
+          0.28, (100, 130, 160), thickness=1)
 
+    if detection:
         # ── Flashing ALERT pill (pulses via frame time) ───────────────────────
         pulse = int(time.time() * 2) % 2 == 0
         pill_color = (0, 0, 200) if pulse else (0, 0, 160)
@@ -583,7 +651,7 @@ def _get_redis_client():
         import redis
         redis_host = os.environ.get("REDIS_HOST", "127.0.0.1")
         redis_pass = os.environ.get("REDIS_PASSWORD", None)
-        _redis_frame_client = redis.Redis(host=redis_host, port=6379, password=redis_pass)
+        _redis_frame_client = redis.Redis(host=redis_host, port=int(os.environ.get("CLOUD_REDIS_PORT", 6379)), password=redis_pass)
     return _redis_frame_client
 
 def publish_frame_to_redis(camera_id: int, frame_bgr):
@@ -619,7 +687,17 @@ def redis_publisher_thread():
 # ── Threaded Camera ───────────────────────────────────────────────────────────
 class ThreadedCamera:
     def __init__(self, source, width, height, test_video=False):
-        self.cap = cv2.VideoCapture(source)
+        # Check if source is a local USB camera (e.g., '0' or '1')
+        if isinstance(source, int) or (isinstance(source, str) and source.isdigit()):
+            # Use DirectShow backend on Windows for better hardware control
+            self.cap = cv2.VideoCapture(int(source), cv2.CAP_DSHOW)
+            # Force MJPEG compression to bypass the strict USB 2.0 bandwidth limits
+            self.cap.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc(*'MJPG'))
+            # Try to force a high framerate
+            self.cap.set(cv2.CAP_PROP_FPS, 30.0)
+        else:
+            self.cap = cv2.VideoCapture(source)
+            
         self.cap.set(cv2.CAP_PROP_BUFFERSIZE, 1)
         self.cap.set(cv2.CAP_PROP_FRAME_WIDTH, width)
         self.cap.set(cv2.CAP_PROP_FRAME_HEIGHT, height)
@@ -689,6 +767,8 @@ def camera_worker(camera: Camera):
     fps                 = 0.0
     last_heartbeat      = time.time()
     last_alert_email_ts = 0
+    last_motion_ts      = time.time()   # last time motion was seen (motion gate)
+    last_inference_ts   = 0.0           # last time YOLO actually ran (idle re-check)
 
     # ── Rolling frame buffer for evidence clips ───────────────────────────────
     # Buffer holds ~CLIP_DURATION seconds of frames. Initial guess at 15 FPS;
@@ -726,29 +806,27 @@ def camera_worker(camera: Camera):
                 from config.models import SystemConfig
                 try:
                     sc = SystemConfig.get_solo()
-                    global CONFIDENCE_THRESHOLD, FRAME_SKIP, INCIDENT_TIMEOUT, AUTO_EVIDENCE, ENABLED_BEHAVIORS
+                    global CONFIDENCE_THRESHOLD, FRAME_SKIP, INCIDENT_TIMEOUT, AUTO_EVIDENCE, ENABLED_BEHAVIORS, MOTION_GATE_ENABLED
                     CONFIDENCE_THRESHOLD = sc.confidence_threshold / 100.0
                     if sc.frame_rate > 0:
                         FRAME_SKIP = max(1, 30 // sc.frame_rate)
                     INCIDENT_TIMEOUT = sc.loitering_duration
                     AUTO_EVIDENCE = sc.auto_create_evidence
                     ENABLED_BEHAVIORS = sc.enabled_behaviors
+                    MOTION_GATE_ENABLED = sc.motion_gated_detection
                 except Exception as e:
                     log.warning("Failed to load SystemConfig: %s", e)
                 last_config_check = now
 
             ret, frame = cap.read()
             if not ret or frame is None:
-                # ThreadedCamera will return (False, None) if the frame is old or stream died.
-                # Just sleep briefly and check again.
                 time.sleep(0.02)
                 continue
 
             frame_count += 1
 
-            # ── Append frame to rolling evidence buffer (only during active incidents)
-            if cam_id in _incidents:
-                frame_buffer.append((time.time(), frame.copy()))
+            # ── Append frame to rolling evidence buffer
+            frame_buffer.append((time.time(), frame.copy()))
 
             # FPS tracking
             elapsed = time.time() - fps_timer
@@ -756,6 +834,7 @@ def camera_worker(camera: Camera):
                 fps         = frame_count / elapsed
                 frame_count = 0
                 fps_timer   = time.time()
+                _camera_fps[cam_id] = fps
                 # Dynamically resize buffer to hold exactly CLIP_DURATION seconds
                 new_max = max(int(CLIP_DURATION * fps), 30)
                 if new_max != frame_buffer.maxlen:
@@ -779,21 +858,40 @@ def camera_worker(camera: Camera):
                     publish_frame_to_redis(cam_id, frame)
                 continue
 
+            # ── Motion gate — skip YOLO when nothing is going on ──────────────
+            # Saves power: an empty/static scene runs no inference and records
+            # nothing. The moment something moves, full detection resumes.
+            if MOTION_GATE_ENABLED:
+                now_ts = time.time()
+                if detect_motion(cam_id, frame):
+                    last_motion_ts = now_ts
+                idle_for        = now_ts - last_motion_ts
+                recheck_due     = (now_ts - last_inference_ts) >= MOTION_IDLE_RECHECK
+                active_incident = cam_id in _incidents
+                if idle_for > MOTION_IDLE_GRACE and not active_incident and not recheck_due:
+                    # Nothing happening — skip the expensive YOLO pass.
+                    # Keep the live dashboard stream alive with an idle HUD frame.
+                    idle_frame = draw_hud(frame, cam_name, fps, None,
+                                          live_conf=0.0, live_behavior=TARGET_CLASS)
+                    publish_frame_to_redis(cam_id, idle_frame)
+                    continue
+
             cleanup_incidents()
+            last_inference_ts = time.time()
 
             # ── Inference ─────────────────────────────────────────────────────
             try:
-                results_list    = model(frame, verbose=False)
+                # Optimized inference: FP16 precision, 416 resolution
+                results_list    = model(frame, imgsz=416, half=True, verbose=False)
                 if not results_list:
                     continue
                 results         = results_list[0]
-                annotated_frame = results.plot()  # YOLOv8's built-in render method
+                
+                # By default, skip the heavy CPU bounding box drawing to save massive FPS
+                annotated_frame = frame
             except Exception as e:
                 log.error("[CAM %s] Inference error: %s", cam_id, e, exc_info=True)
                 continue
-
-            # ── Publish annotated frame to Redis for the live MJPEG stream ────
-            publish_frame_to_redis(cam_id, annotated_frame)
 
             # ── Parse detections ──────────────────────────────────────────────
             shoplifting_detected = False
@@ -804,22 +902,28 @@ def camera_worker(camera: Camera):
                     cls_id = int(box.cls[0])
                     conf_val = float(box.conf[0])
                     class_name = model.names[cls_id].lower()
-                    if class_name == TARGET_CLASS and conf_val >= CONFIDENCE_THRESHOLD:
-                        # Check if this behavior is enabled
-                        behavior_enum = "SHOPLIFTING"  # Map TARGET_CLASS to enum if needed
-                        if ENABLED_BEHAVIORS and ENABLED_BEHAVIORS.get(behavior_enum) is False:
-                            continue  # Skip detection if disabled in settings
-                            
-                        shoplifting_detected = True
+                    
+                    if class_name == TARGET_CLASS:
+                        # Always track highest confidence for the live HUD readout
                         if conf_val > best_conf:
                             best_conf = conf_val
+                            
+                        # If it exceeds threshold, mark as active detection
+                        if conf_val >= CONFIDENCE_THRESHOLD:
+                            # Check if this behavior is enabled
+                            behavior_enum = "SHOPLIFTING"  # Map TARGET_CLASS to enum if needed
+                            if not (ENABLED_BEHAVIORS and ENABLED_BEHAVIORS.get(behavior_enum) is False):
+                                shoplifting_detected = True
 
             current_detection = None
 
             if shoplifting_detected:
+                # Only draw the heavy bounding boxes when we actually catch someone!
+                annotated_frame = results.plot()
+                
                 alert_id, severity, is_new = handle_detection(
                     camera, "SHOPLIFTING", best_conf,
-                    frame_bgr=annotated_frame,
+                    frame_bgr=frame,
                 )
                 current_detection = {
                     "behavior_type": "SHOPLIFTING",
@@ -831,7 +935,7 @@ def camera_worker(camera: Camera):
                     camera_id=cam_id, camera_name=cam_name,
                     behavior_type="SHOPLIFTING", confidence=best_conf,
                     severity=severity, alert_id=alert_id,
-                    frame_bgr=annotated_frame,
+                    frame_bgr=frame,
                 )
 
                 # ── Record evidence clip on NEW incidents ─────────────────────
@@ -840,7 +944,7 @@ def camera_worker(camera: Camera):
                         from evidence.clip_recorder import record_evidence_clip_async
                         alert_obj = Alert.objects.get(id=alert_id)
                         record_evidence_clip_async(
-                            camera, alert_obj, frame_buffer, fps,
+                            camera, alert_obj, lambda: _frame_buffers.get(cam_id), fps, pre_roll_seconds=10
                         )
                     except Exception as ev_err:
                         log.error("[CAM %s] Evidence clip recording failed: %s", cam_id, ev_err)
@@ -848,13 +952,25 @@ def camera_worker(camera: Camera):
                 now = time.time()
                 if severity in ("HIGH", "CRITICAL") and \
                         now - last_alert_email_ts >= EMAIL_COOLDOWN:
-                    send_alert_email(cam_name, "SHOPLIFTING", best_conf, severity, alert_id)
+                    threading.Thread(
+                        target=send_alert_email,
+                        args=(cam_name, "SHOPLIFTING", best_conf, severity, alert_id),
+                        daemon=True
+                    ).start()
                     last_alert_email_ts = now
+
+            # ── Draw HUD & Publish ────────────────────────────────────────────
+            # Create a clean HUD frame over the YOLO boxes
+            hud_frame = draw_hud(annotated_frame, cam_name, fps, current_detection, live_conf=best_conf, live_behavior=TARGET_CLASS)
+
+            # Publish to Redis for the live MJPEG stream
+            publish_frame_to_redis(cam_id, hud_frame)
 
             # ── Preview window (optional — disable to reduce CPU/GPU usage) ──
             if SHOW_PREVIEW:
-                display_frame = draw_hud(annotated_frame, cam_name, fps, current_detection)
-                cv2.imshow(f"SmartGuard - {cam_name}", display_frame)
+                window_name = f"SmartGuard - {cam_name}"
+                cv2.namedWindow(window_name, cv2.WINDOW_NORMAL)
+                cv2.imshow(window_name, hud_frame)
                 if cv2.waitKey(1) & 0xFF == ord("q"):
                     log.info("[CAM %s] Preview closed by user.", cam_id)
                     cap.release()
@@ -877,7 +993,7 @@ def manual_override_listener():
     
     while True:
         try:
-            r = redis.Redis(host=redis_host, port=6379, password=redis_pass)
+            r = redis.Redis(host=redis_host, port=int(os.environ.get("CLOUD_REDIS_PORT", 6379)), password=redis_pass)
             pubsub = r.pubsub()
             pubsub.subscribe("manual_override")
             log.info("Subscribed to Redis channel 'manual_override'.")
@@ -895,10 +1011,36 @@ def manual_override_listener():
                         # Inject the detection with 100% confidence
                         # If a frame exists in the buffer, grab the latest one
                         frame_bgr = None
-                        if cam_id in _frame_buffers and len(_frame_buffers[cam_id]) > 0:
-                            _, frame_bgr = _frame_buffers[cam_id][-1]
+                        log.info(f"[DEBUG] _frame_buffers keys: {list(_frame_buffers.keys())}")
+                        if cam_id in _frame_buffers:
+                            log.info(f"[DEBUG] _frame_buffers[{cam_id}] len: {len(_frame_buffers[cam_id])}")
+                            if len(_frame_buffers[cam_id]) > 0:
+                                _, frame_bgr = _frame_buffers[cam_id][-1]
+                                log.info(f"[DEBUG] frame_bgr acquired successfully (shape: {frame_bgr.shape if hasattr(frame_bgr, 'shape') else 'None'})")
+                        else:
+                            log.warning(f"[DEBUG] cam_id {cam_id} NOT IN _frame_buffers")
+                        # Force a new alert by clearing any existing incident deduplication state
+                        _incidents.pop(cam_id, None)
+                        alert_id, sev, is_new = handle_detection(camera, behavior, 1.0, frame_bgr)
+                        
+                        if is_new:
+                            # Push websocket event instantly so frontend sees it
+                            push_detection(cam_id, camera.name, behavior, 1.0, sev, alert_id, frame_bgr)
                             
-                        handle_detection(camera, behavior, 1.0, frame_bgr)
+                            # Dispatch email in background
+                            threading.Thread(
+                                target=send_alert_email,
+                                args=(camera.name, behavior, 1.0, sev, alert_id),
+                                daemon=True
+                            ).start()
+                        
+                        if is_new and cam_id in _frame_buffers:
+                            from evidence.clip_recorder import record_evidence_clip_async
+                            alert_obj = Alert.objects.get(id=alert_id)
+                            duration = data.get("duration", 10)
+                            real_fps = _camera_fps.get(cam_id, 15.0)
+                            # Call the async clip recorder with a lambda to fetch the current buffer
+                            record_evidence_clip_async(camera, alert_obj, lambda: _frame_buffers.get(cam_id), real_fps, pre_roll_seconds=duration)
                     except Camera.DoesNotExist:
                         log.warning(f"Manual override requested for unknown Camera ID {cam_id}")
         except Exception as e:
@@ -920,55 +1062,49 @@ def main():
     # Pre-load model before spawning threads
     get_model()
 
-    qs = Camera.objects.filter(is_active=True).exclude(rtsp_url="")
-    if args.camera_id:
-        qs = qs.filter(id=args.camera_id)
-        
-    cameras = list(qs)
-
-    if not cameras:
-        log.warning("No active cameras found in the database matching criteria.")
-        log.warning("Add a camera via the dashboard and restart this worker.")
-        return
-
-    log.info("Found %d active camera(s). Starting detection threads…", len(cameras))
-
-    threads = []
-    
     # Start Redis manual override listener thread
     rt = threading.Thread(target=manual_override_listener, daemon=True, name="redis-manual-override")
     rt.start()
-    threads.append(rt)
 
     # Start Async Redis Publisher thread
     pub_t = threading.Thread(target=redis_publisher_thread, daemon=True, name="redis-async-publisher")
     pub_t.start()
-    threads.append(pub_t)
 
-    for cam in cameras:
-        t = threading.Thread(
-            target=camera_worker,
-            args=(cam,),
-            name=f"worker-cam-{cam.id}",
-            daemon=True,
-        )
-        t.start()
-        threads.append(t)
-        log.info("  Started thread for camera: [%s] %s", cam.id, cam.name)
-
-    log.info("All workers started. Press Ctrl+C to stop.")
+    log.info("Detection worker is running! It will automatically detect new cameras added to the dashboard.")
     if TEST_VIDEO_PATH:
         log.info("Video is looping — press Q in the preview window or Ctrl+C to stop.")
 
+    active_threads = {}
+
     try:
         while True:
-            alive = [t.name for t in threads if t.is_alive()]
-            if alive:
-                log.info("Alive workers: %s", alive)
-            else:
-                log.warning("All worker threads have stopped.")
-                break
-            time.sleep(60)
+            # Query the database for active cameras
+            qs = Camera.objects.filter(is_active=True).exclude(rtsp_url="")
+            if args.camera_id:
+                qs = qs.filter(id=args.camera_id)
+            
+            current_cameras = {cam.id: cam for cam in qs}
+
+            # Spawn threads for any NEW cameras that don't have a running thread
+            for cam_id, cam in current_cameras.items():
+                if cam_id not in active_threads or not active_threads[cam_id].is_alive():
+                    t = threading.Thread(
+                        target=camera_worker,
+                        args=(cam,),
+                        name=f"worker-cam-{cam.id}",
+                        daemon=True,
+                    )
+                    t.start()
+                    active_threads[cam_id] = t
+                    log.info("Started new detection thread for camera: [%s] %s", cam.id, cam.name)
+
+            # Optional: Clean up dead threads from the tracking dictionary
+            dead_cams = [cid for cid, t in active_threads.items() if not t.is_alive()]
+            for cid in dead_cams:
+                del active_threads[cid]
+
+            time.sleep(10)  # Check for new cameras every 10 seconds
+
     except KeyboardInterrupt:
         log.info("Shutdown requested. Stopping workers…")
 
