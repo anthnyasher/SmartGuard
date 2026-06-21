@@ -10,9 +10,23 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.RemoveField(
-            model_name='systemconfig',
-            name='ai_model',
+        # The `ai_model` field was removed from the model earlier without a
+        # migration, so some databases still have the column and others never
+        # did. Sync Django's state and drop the column only if it actually
+        # exists, so this migration applies cleanly in every environment.
+        migrations.SeparateDatabaseAndState(
+            state_operations=[
+                migrations.RemoveField(
+                    model_name='systemconfig',
+                    name='ai_model',
+                ),
+            ],
+            database_operations=[
+                migrations.RunSQL(
+                    sql='ALTER TABLE config_systemconfig DROP COLUMN IF EXISTS ai_model;',
+                    reverse_sql=migrations.RunSQL.noop,
+                ),
+            ],
         ),
         migrations.AddField(
             model_name='systemconfig',
