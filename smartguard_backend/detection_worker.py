@@ -62,7 +62,7 @@ TARGET_CLASS         = "shoplifting"   # Class name in custom best.pt model
 CLIP_DURATION        = 30         # MAX seconds of video to capture per evidence clip (Pre-roll buffer)
 AUTO_EVIDENCE        = True
 ENABLED_BEHAVIORS    = {}
-SHOW_PREVIEW         = True       # set True to show local cv2 window (causes lag on Windows)
+SHOW_PREVIEW         = False      # local cv2 window — keep False on Windows (big FPS hit); view via web dashboard instead
 REDIS_PUBLISH_SKIP   = 5          # publish to Redis every N non-inference frames
 JPEG_QUALITY         = 50         # JPEG quality for Redis stream (lower = less bandwidth)
 CAPTURE_WIDTH        = 640        # downscale webcam capture width
