@@ -754,6 +754,9 @@ class ThreadedCamera:
 
 # ── Camera worker thread ──────────────────────────────────────────────────────
 def camera_worker(camera: Camera):
+    # CLIP_DURATION is both read (buffer sizing, below) and written (live config
+    # reload), so it must be declared global before its first use in this scope.
+    global CLIP_DURATION
     cam_id   = camera.id
     cam_name = camera.name
     rtsp_url = camera.rtsp_url
@@ -814,6 +817,8 @@ def camera_worker(camera: Camera):
                     AUTO_EVIDENCE = sc.auto_create_evidence
                     ENABLED_BEHAVIORS = sc.enabled_behaviors
                     MOTION_GATE_ENABLED = sc.motion_gated_detection
+                    if sc.clip_duration > 0:
+                        CLIP_DURATION = sc.clip_duration
                 except Exception as e:
                     log.warning("Failed to load SystemConfig: %s", e)
                 last_config_check = now

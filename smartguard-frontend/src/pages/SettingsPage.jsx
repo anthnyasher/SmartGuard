@@ -58,6 +58,7 @@ const DEFAULT_SETTINGS = {
     },
     autoCreateEvidence: true,
     motionGatedDetection: true,
+    clipDuration: 30,
   },
   security: {
     maxFailedLogins:  5,
@@ -134,6 +135,7 @@ export default function SettingsPage() {
             behaviors:           data.enabled_behaviors       || DEFAULT_SETTINGS.ai.behaviors,
             autoCreateEvidence:  data.auto_create_evidence    ?? DEFAULT_SETTINGS.ai.autoCreateEvidence,
             motionGatedDetection: data.motion_gated_detection ?? DEFAULT_SETTINGS.ai.motionGatedDetection,
+            clipDuration:        data.clip_duration          || DEFAULT_SETTINGS.ai.clipDuration,
           },
           security: {
             maxFailedLogins:       data.max_failed_logins       || DEFAULT_SETTINGS.security.maxFailedLogins,
@@ -186,6 +188,7 @@ export default function SettingsPage() {
         enabled_behaviors:        settings.ai.behaviors,
         auto_create_evidence:     settings.ai.autoCreateEvidence,
         motion_gated_detection:   settings.ai.motionGatedDetection,
+        clip_duration:            settings.ai.clipDuration,
         max_failed_logins:        settings.security.maxFailedLogins,
         lockout_duration_minutes: settings.security.lockoutDuration,
         require_strong_password:  settings.security.requireStrongPassword,
@@ -440,6 +443,19 @@ export default function SettingsPage() {
                       <div className="set-hint">When ON, AI inference and recording run only when the camera detects scene activity, saving power on an idle/empty store. When OFF, the AI processes every frame continuously.</div>
                     </div>
                     <Toggle value={settings.ai.motionGatedDetection} onChange={v => update("ai","motionGatedDetection",v)} />
+                  </div>
+
+                  <div className="set-field">
+                    <label className="set-label">Evidence Clip Duration</label>
+                    <div className="set-hint" style={{ marginBottom: 8 }}>
+                      How many seconds of video are buffered for each evidence clip. Higher values capture more footage but use more memory (RAM) per camera.
+                    </div>
+                    <div className="set-input-row">
+                      <input className="set-input set-input--short" type="number" min={5} max={120}
+                        value={settings.ai.clipDuration}
+                        onChange={e => update("ai","clipDuration",Number(e.target.value))} />
+                      <span className="set-unit">seconds</span>
+                    </div>
                   </div>
                 </div>
               )}

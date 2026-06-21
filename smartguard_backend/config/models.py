@@ -42,6 +42,8 @@ class SystemConfig(models.Model):
         help_text="e.g. {SHOPLIFTING: true, CONCEALMENT: true, LOITERING: true}",
     )
     auto_create_evidence = models.BooleanField(default=True)
+    # Seconds of rolling video kept in memory for evidence clips (pre-roll buffer).
+    clip_duration = models.IntegerField(default=30)
     # Power saving: when True, YOLO inference (and therefore recording) only runs
     # when scene activity/motion is detected. When False, inference runs
     # continuously regardless of whether anything is happening.
