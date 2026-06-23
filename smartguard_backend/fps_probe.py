@@ -77,6 +77,12 @@ def measure_with_yolo(cap, seconds=8):
     model_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "best.pt")
     m = YOLO(model_path)
     m.to("cuda:0" if torch.cuda.is_available() else "cpu")
+    # Warm up: the first inference pays one-time CUDA/cuDNN init (several
+    # seconds) which would otherwise dominate a short timing window.
+    ok, warm = cap.read()
+    if ok and warm is not None:
+        for _ in range(5):
+            m(warm, imgsz=416, half=True, verbose=False)
     n, t0 = 0, time.time()
     while time.time() - t0 < seconds:
         ret, frame = cap.read()
