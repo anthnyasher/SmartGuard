@@ -24,6 +24,12 @@ class CameraSerializer(serializers.ModelSerializer):
         elif ret.get("status") == "ONLINE" and not instance.last_heartbeat:
              ret["status"] = "OFFLINE"
 
+        # Hide rtsp_url from non-admins to prevent internal IP leakage
+        request = self.context.get('request')
+        if request and hasattr(request, 'user') and request.user.is_authenticated:
+            if getattr(request.user, 'role', '') != 'ADMIN':
+                ret.pop('rtsp_url', None)
+
         # Auto-compute the MJPEG URL if left blank
         if not ret.get("stream_mjpeg_url") and ret.get("id"):
             base = getattr(settings, 'STREAM_BASE_URL', 'http://localhost:8001')
