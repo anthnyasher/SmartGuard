@@ -6,6 +6,8 @@ import { getCameras } from "../api/cameraApi.js";
 import { getAlerts, getAnalytics } from "../api/alertApi.js";
 import { getIncidentCounts } from "../api/incidentApi.js";
 import { getSystemHealth, getFailedLoginsCount } from "../api/settingsApi.js";
+import NotificationBell from "../components/NotificationBell.jsx";
+import WeeklyReportModal from "./WeeklyReportModal.jsx";
 import "./AdminDashboard.css";
 import useDocumentTitle from "../utils/useDocumentTitle.js";
 
@@ -94,6 +96,7 @@ function AdminDashboard() {
   const [loading, setLoading]               = useState(true);
   const [searchQuery, setSearchQuery]       = useState("");
   const [sidebarCollapsed, setSidebarCollapsed] = useState(window.innerWidth <= 768);
+  const [showReportModal, setShowReportModal] = useState(false);
 
   const [analytics, setAnalytics]           = useState({ points: [], topCameras: [] });
   const [incidentCount, setIncidentCount]   = useState(0);
@@ -208,11 +211,8 @@ function AdminDashboard() {
             </div>
           </div>
           <div className="sg-topbar-right">
-            <button className="sg-icon-btn" title="Notifications">
-              🔔<span className="sg-icon-badge">1</span>
-            </button>
-            {/* Open Weekly Report Print View */}
-            <button className="sg-pdf-btn" onClick={() => window.open("/admin/report", "_blank")}>
+            <NotificationBell />
+            <button className="sg-pdf-btn" onClick={() => setShowReportModal(true)}>
               Export PDF Report
             </button>
           </div>
@@ -492,6 +492,7 @@ function AdminDashboard() {
           </div>
         </div>
       </div>
+      {showReportModal && <WeeklyReportModal onClose={() => setShowReportModal(false)} />}
     </div>
   );
 }

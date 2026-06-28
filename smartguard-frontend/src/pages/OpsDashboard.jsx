@@ -7,6 +7,7 @@ import { getCameras } from "../api/cameraApi.js";
 import "./AdminDashboard.css";
 import "./shared-components.css";
 import "./OpsDashboard.css";
+import NotificationBell from "../components/NotificationBell.jsx";
 import useDocumentTitle from "../utils/useDocumentTitle.js";
 
 const NAV_ITEMS = [
@@ -208,6 +209,7 @@ export default function OpsDashboard() {
             </div>
           </div>
           <div className="sg-topbar-right">
+            <NotificationBell />
             <div className="ops-zone-chip">
               <span>📍</span>
               <span>All Zones · {onlineCams}/{cameras.length} cameras online</span>

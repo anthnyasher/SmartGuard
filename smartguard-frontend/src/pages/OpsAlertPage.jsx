@@ -4,6 +4,7 @@ import { useAuth } from "../context/AuthContext.jsx";
 import { getCameras } from "../api/cameraApi.js";
 import { useAllDetections } from "../hooks/useAllDetections.js";
 import OpsLayout from "./OpsLayout.jsx";
+import NotificationBell from "../components/NotificationBell.jsx";
 import "./AdminDashboard.css";
 import "./DetectionsPage.css";
 import useDocumentTitle from "../utils/useDocumentTitle.js";
@@ -277,9 +278,12 @@ export default function OpsAlertsPage() {
       sidebarCollapsed={sidebarCollapsed}
       onToggleSidebar={() => setSidebarCollapsed(!sidebarCollapsed)}
       topbarRight={
-        <div className={`dp-ws-status ${connCount > 0 ? "dp-ws-status--on" : "dp-ws-status--off"}`}>
-          <span className="dp-ws-dot" />
-          {connCount > 0 ? `${connCount} camera${connCount !== 1 ? "s" : ""} live` : "Disconnected"}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+          <div className={`dp-ws-status ${connCount > 0 ? "dp-ws-status--on" : "dp-ws-status--off"}`}>
+            <span className="dp-ws-dot" />
+            {connCount > 0 ? `${connCount} camera${connCount !== 1 ? "s" : ""} live` : "Disconnected"}
+          </div>
+          <NotificationBell />
         </div>
       }
     >
