@@ -6,6 +6,7 @@ import { getSettings, updateSettings, getBackupHistory, triggerBackup, restoreBa
 import "./AdminDashboard.css";
 import "./shared-components.css";
 import "./SettingsPage.css";
+import useDocumentTitle from "../utils/useDocumentTitle.js";
 
 const NAV_ITEMS = [
   { id: "dashboard",  label: "Dashboard",          icon: "⊞", path: "/admin"            },
@@ -88,6 +89,7 @@ function Toggle({ value, onChange }) {
 }
 
 export default function SettingsPage() {
+  useDocumentTitle("Settings");
   const { user, token, logout } = useAuth();
   const navigate = useNavigate();
   const [sidebarCollapsed, setSidebarCollapsed] = useState(window.innerWidth <= 768);

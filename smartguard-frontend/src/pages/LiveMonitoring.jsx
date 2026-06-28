@@ -39,6 +39,7 @@ const GRID_OPTIONS = [
 //
 // 1. Import at top of LiveMonitoring.jsx:
 //    import AuthenticatedStream from "../components/AuthenticatedStream.jsx";
+import useDocumentTitle from "../utils/useDocumentTitle.js";
 //
 // 2. Replace the lm-tile-video-wrap content inside CameraTile with this:
 
@@ -404,6 +405,7 @@ function CameraFullscreen({ cam, onClose }) {
 
 // ── Main ───────────────────────────────────────────────────────────────────────
 function LiveMonitoring() {
+  useDocumentTitle("Live Monitoring");
   const { user, token, logout } = useAuth();
   const navigate = useNavigate();
   const [cameras, setCameras] = useState([]);

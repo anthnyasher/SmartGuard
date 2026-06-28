@@ -15,6 +15,7 @@ import {
 import "./AdminDashboard.css";
 import "./shared-components.css";
 import "./AccessControl.css";
+import useDocumentTitle from "../utils/useDocumentTitle.js";
 
 // ── Nav ───────────────────────────────────────────────────────────────────────
 const NAV_ITEMS = [
@@ -621,6 +622,7 @@ function UnlockConfirmModal({ user, working, onConfirm, onClose }) {
 // Main component
 // ══════════════════════════════════════════════════════════════════════════════
 export default function AccessControl() {
+  useDocumentTitle("Access Control");
   const { user: currentUser, token, logout } = useAuth();
   const navigate = useNavigate();
 

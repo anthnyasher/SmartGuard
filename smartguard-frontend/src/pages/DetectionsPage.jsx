@@ -8,6 +8,7 @@ import { getCameras } from "../api/cameraApi.js";
 import { useAllDetections } from "../hooks/useAllDetections.js";
 import "./AdminDashboard.css";
 import "./DetectionsPage.css";
+import useDocumentTitle from "../utils/useDocumentTitle.js";
 
 // ── Nav ────────────────────────────────────────────────────────────────────────
 const NAV_ITEMS = [
@@ -152,6 +153,7 @@ function FeedRow({ event, index, onViewSnapshot, onDelete }) {
 }
 
 function DetectionsPage() {
+  useDocumentTitle("Detections & Alerts");
   const { user, token, logout } = useAuth();
   const navigate = useNavigate();
   const [cameras, setCameras]           = useState([]);

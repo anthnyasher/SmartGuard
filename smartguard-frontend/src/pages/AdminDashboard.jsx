@@ -7,6 +7,7 @@ import { getAlerts, getAnalytics } from "../api/alertApi.js";
 import { getIncidentCounts } from "../api/incidentApi.js";
 import { getSystemHealth, getFailedLoginsCount } from "../api/settingsApi.js";
 import "./AdminDashboard.css";
+import useDocumentTitle from "../utils/useDocumentTitle.js";
 
 const NAV_ITEMS = [
   { id: "dashboard",  label: "Dashboard",          icon: "⊞", path: "/admin"            },
@@ -80,6 +81,7 @@ function SeverityDonut({ counts }) {
 }
 
 function AdminDashboard() {
+  useDocumentTitle("Dashboard");
   const { user, token, logout } = useAuth();
   const navigate = useNavigate();
 

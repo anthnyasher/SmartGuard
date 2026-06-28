@@ -6,6 +6,7 @@ import { getEvidence, verifyEvidence, reviewEvidence, getEvidenceStats } from ".
 import "./AdminDashboard.css";
 import "./shared-components.css";
 import "./EvidenceVault.css";
+import useDocumentTitle from "../utils/useDocumentTitle.js";
 
 const ADMIN_NAV_ITEMS = [
   { id: "dashboard",  label: "Dashboard",          icon: "⊞", path: "/admin"            },
@@ -48,6 +49,7 @@ function formatTimeUntilExpiry(seconds) {
 }
 
 export default function EvidenceVault() {
+  useDocumentTitle("Evidence Vault");
   const { user, token, logout } = useAuth();
   const navigate = useNavigate();
   const [sidebarCollapsed, setSidebarCollapsed] = useState(window.innerWidth <= 768);

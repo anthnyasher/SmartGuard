@@ -15,6 +15,7 @@ import { getIncidents, createIncident, updateIncident } from "../api/incidentApi
 import "./AdminDashboard.css";
 import "./shared-components.css";
 import "./IncidentResponse.css";
+import useDocumentTitle from "../utils/useDocumentTitle.js";
 
 const NAV_ITEMS = [
   { id: "dashboard",  label: "Dashboard",          icon: "⊞", path: "/admin"            },
@@ -57,6 +58,7 @@ function actionLabel(a) {
 }
 
 export default function IncidentResponse() {
+  useDocumentTitle("Incident Response");
   const { user, token, logout } = useAuth();
   const navigate = useNavigate();
   const [sidebarCollapsed, setSidebarCollapsed] = useState(window.innerWidth <= 768);

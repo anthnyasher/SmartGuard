@@ -7,12 +7,13 @@ import { getCameras } from "../api/cameraApi.js";
 import "./AdminDashboard.css";
 import "./shared-components.css";
 import "./OpsDashboard.css";
+import useDocumentTitle from "../utils/useDocumentTitle.js";
 
 const NAV_ITEMS = [
   { id: "dashboard", label: "Dashboard",       icon: "⊞", path: "/ops"          },
   { id: "live",      label: "Live Monitoring", icon: "◉", path: "/ops/live"     },
-  { id: "alerts",    label: "Alerts",          icon: "✦", path: "/ops/alerts"   },
-  { id: "evidence",  label: "Evidence",        icon: "🎞", path: "/ops/evidence" },
+  { id: "alerts",    label: "Alerts & Events", icon: "✦", path: "/ops/alerts"   },
+  { id: "evidence",  label: "Evidence Vault",  icon: "🔒", path: "/ops/evidence" },
 ];
 
 // Removed hardcoded ASSIGNED_ZONES and SAMPLE_INCIDENTS
@@ -67,6 +68,7 @@ function NotesModal({ alert, onSave, onClose }) {
 }
 
 export default function OpsDashboard() {
+  useDocumentTitle("Operations Dashboard");
   const { user, token, logout } = useAuth();
   const navigate = useNavigate();
 

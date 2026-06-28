@@ -8,6 +8,7 @@ import { useAuth } from "../context/AuthContext.jsx";
 import "./AdminDashboard.css";
 import "./shared-components.css";
 import "./LogsPage.css";
+import useDocumentTitle from "../utils/useDocumentTitle.js";
 
 const BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8000";
 
@@ -66,6 +67,7 @@ function formatDate(ts) {
 }
 
 export default function LogsPage() {
+  useDocumentTitle("System Logs");
   const { user, token, logout } = useAuth();
   const navigate = useNavigate();
 

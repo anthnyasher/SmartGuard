@@ -6,6 +6,7 @@ import { getCameras, createCamera, updateCamera, deleteCamera } from "../api/cam
 import CameraFormModal from "../components/CameraFormModal.jsx";
 import "./AdminDashboard.css";
 import "./CameraManagement.css";
+import useDocumentTitle from "../utils/useDocumentTitle.js";
 
 const NAV_ITEMS = [
   { id: "dashboard",  label: "Dashboard",          icon: "⊞", path: "/admin",            functional: true },
@@ -43,6 +44,7 @@ function DeleteConfirmModal({ camera, onConfirm, onCancel, deleting }) {
 
 // ── Main ───────────────────────────────────────────────────────────────────────
 function CameraManagement() {
+  useDocumentTitle("Camera Management");
   const { user, token, logout } = useAuth();
   const navigate = useNavigate();
 

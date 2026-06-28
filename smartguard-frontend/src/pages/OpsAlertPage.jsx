@@ -11,6 +11,7 @@ import OpsLayout from "./Opslayout.jsx";
 import "./AdminDashboard.css";
 import "./shared-components.css";
 import "./OpsDashboard.css";
+import useDocumentTitle from "../utils/useDocumentTitle.js";
 
 const BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8000";
 
@@ -176,6 +177,7 @@ function AlertDetailPanel({ alert, onClose, onUpdate }) {
 // Main OpsAlertsPage
 // ══════════════════════════════════════════════════════════════════════════════
 export default function OpsAlertsPage() {
+  useDocumentTitle("Alerts & Events");
   const { token } = useAuth();
 
   const [alerts,   setAlerts]   = useState([]);
