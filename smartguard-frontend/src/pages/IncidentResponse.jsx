@@ -336,7 +336,7 @@ export default function IncidentResponse() {
             {/* Editable fields */}
             <div className="ir-edit-section">
               <div className="ir-field">
-                <label className="ir-field-label">Status</label>
+                <label className="ir-field-label">Status *</label>
                 <select className="ir-select" value={editFields.status || ""} onChange={e => setEditFields(p => ({ ...p, status: e.target.value }))}>
                   {STATUS_CHOICES.map(s => <option key={s.value} value={s.value}>{s.label}</option>)}
                 </select>
@@ -352,11 +352,11 @@ export default function IncidentResponse() {
                 <textarea className="ir-textarea" rows={3} value={editFields.description || ""} onChange={e => setEditFields(p => ({ ...p, description: e.target.value }))} placeholder="Describe the incident and response..." />
               </div>
               <div className="ir-field">
-                <label className="ir-field-label">Notes</label>
+                <label className="ir-field-label">Notes (optional)</label>
                 <textarea className="ir-textarea" rows={2} value={editFields.notes || ""} onChange={e => setEditFields(p => ({ ...p, notes: e.target.value }))} placeholder="Additional notes or follow-up..." />
               </div>
               <div className="ir-field">
-                <label className="ir-field-label">External Reference</label>
+                <label className="ir-field-label">External Reference (optional)</label>
                 <input className="ir-input" value={editFields.external_reference || ""} onChange={e => setEditFields(p => ({ ...p, external_reference: e.target.value }))} placeholder="Police blotter #, barangay report #..." />
               </div>
             </div>
@@ -394,7 +394,7 @@ export default function IncidentResponse() {
                 </select>
               </div>
               <div className="ir-field">
-                <label className="ir-field-label">Status</label>
+                <label className="ir-field-label">Status *</label>
                 <select className="ir-select" value={newIR.status} onChange={e => setNewIR(p => ({ ...p, status: e.target.value }))}>
                   {STATUS_CHOICES.map(s => <option key={s.value} value={s.value}>{s.label}</option>)}
                 </select>
@@ -410,11 +410,11 @@ export default function IncidentResponse() {
                 <textarea className="ir-textarea" rows={3} value={newIR.description} onChange={e => setNewIR(p => ({ ...p, description: e.target.value }))} placeholder="Describe the incident..." />
               </div>
               <div className="ir-field">
-                <label className="ir-field-label">Notes</label>
+                <label className="ir-field-label">Notes (optional)</label>
                 <textarea className="ir-textarea" rows={2} value={newIR.notes} onChange={e => setNewIR(p => ({ ...p, notes: e.target.value }))} placeholder="Additional notes..." />
               </div>
               <div className="ir-field">
-                <label className="ir-field-label">External Reference</label>
+                <label className="ir-field-label">External Reference (optional)</label>
                 <input className="ir-input" value={newIR.external_reference} onChange={e => setNewIR(p => ({ ...p, external_reference: e.target.value }))} placeholder="Police blotter #, barangay report #..." />
               </div>
             </div>
