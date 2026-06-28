@@ -2,6 +2,7 @@
 import { useEffect, useRef, useState } from "react";
 import AuthenticatedStream from "../components/AuthenticatedStream.jsx";
 import { useDetectionSocket } from "../hooks/useDetectionSocket.js";
+import { useAuth } from "../context/AuthContext.jsx";
 
 const OVERLAY_DURATION_MS = 5000;
 
@@ -13,6 +14,10 @@ const SEVERITY_COLORS = {
 };
 
 function CameraTile({ cam, token, onSelect, paused, onDetection, onManualAlertClick }) {
+  const { user } = useAuth();
+  const isStaff = user?.role === "STAFF";
+  const [accessRequested, setAccessRequested] = useState(false);
+  
   const isOnline  = cam.status === "ONLINE" || cam.status === "online";
   const hasStream = !!(cam.stream_mjpeg_url);
 
@@ -42,7 +47,7 @@ function CameraTile({ cam, token, onSelect, paused, onDetection, onManualAlertCl
   return (
     <div
       className={`lm-tile ${isOnline ? "lm-tile--online" : "lm-tile--offline"}${activeAlert ? " lm-tile--alert" : ""}`}
-      onClick={() => onSelect?.(cam)}
+      onClick={() => { if (!isStaff) onSelect?.(cam); }}
       style={activeAlert ? { "--alert-color": alertColor } : undefined}
     >
       {/* Header */}
@@ -69,7 +74,24 @@ function CameraTile({ cam, token, onSelect, paused, onDetection, onManualAlertCl
 
       {/* Video */}
       <div className="lm-tile-video-wrap">
-        {hasStream && isOnline && token && !paused ? (
+        {isStaff ? (
+          <div className="lm-tile-offline-screen" style={{ background: "rgba(15, 22, 35, 0.95)" }}>
+            <span style={{ fontSize: 32, marginBottom: 12 }}>🔒</span>
+            <span className="lm-tile-offline-label" style={{ marginBottom: 12 }}>Live Feed Restricted</span>
+            <button 
+              className={`det-btn ${accessRequested ? "det-btn--ghost" : "det-btn--request"}`}
+              onClick={(e) => {
+                e.stopPropagation();
+                if (!accessRequested) {
+                  setAccessRequested(true);
+                  alert(`Access request submitted for ${cam.name}. An administrator will review your request.`);
+                }
+              }}
+            >
+              {accessRequested ? "✓ Access Requested" : "Request Access"}
+            </button>
+          </div>
+        ) : hasStream && isOnline && token && !paused ? (
           <AuthenticatedStream
             streamUrl={cam.stream_mjpeg_url}
             token={token}
