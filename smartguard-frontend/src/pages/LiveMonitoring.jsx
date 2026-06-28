@@ -446,7 +446,7 @@ function LiveMonitoring() {
       {/* ── Sidebar ── */}
       <aside className={`sg-sidebar ${sidebarCollapsed ? "collapsed" : ""}`}>
         <div className="sg-sidebar-logo">
-          <div className="sg-logo-icon">🛡</div>
+          <img src="/favicon.png" alt="Logo" className="sg-logo-icon" style={{ width: "24px", height: "24px", objectFit: "contain" }} />
           {!sidebarCollapsed && (
             <span className="sg-logo-text">
               <span className="sg-logo-smart">SMART</span>

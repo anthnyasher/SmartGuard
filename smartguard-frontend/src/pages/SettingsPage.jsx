@@ -211,7 +211,7 @@ export default function SettingsPage() {
     <div className="sg-layout">
       <aside className={`sg-sidebar ${sidebarCollapsed ? "collapsed" : ""}`}>
         <div className="sg-sidebar-logo">
-          <div className="sg-logo-icon">🛡</div>
+          <img src="/favicon.png" alt="Logo" className="sg-logo-icon" style={{ width: "24px", height: "24px", objectFit: "contain" }} />
           {!sidebarCollapsed && <span className="sg-logo-text"><span className="sg-logo-smart">SMART</span><span className="sg-logo-guard">GUARD</span></span>}
         </div>
         <nav className="sg-sidebar-nav">

@@ -502,7 +502,7 @@ export default function LoginPage() {
         <div className="login-glow-purple" />
         <div className="login-brand-inner">
           <div className="login-logo-row">
-            <div className="login-logo-icon">🛡</div>
+            <img src="/favicon.png" alt="Logo" className="login-logo-icon" style={{ width: "32px", height: "32px", objectFit: "contain" }} />
             <span className="login-logo-text">
               <span className="login-logo-smart">SMART</span>
               <span className="login-logo-guard">GUARD</span>
