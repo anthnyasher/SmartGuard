@@ -19,7 +19,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # ── Core ───────────────────────────────────────────────────────────────────────
 SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', 'django-insecure-fallback-do-not-use-in-prod')
 DEBUG      = False
-ALLOWED_HOSTS = ["smartguard.54.206.184.54.nip.io", "54.206.184.54", "localhost", "127.0.0.1"]
+ALLOWED_HOSTS = ["smart-guard.duckdns.org", "smartguard.54.206.184.54.nip.io", "54.206.184.54", "localhost", "127.0.0.1"]
 STREAM_BASE_URL = os.environ.get("STREAM_BASE_URL", "http://localhost:8001")
 
 # ── Apps ───────────────────────────────────────────────────────────────────────
