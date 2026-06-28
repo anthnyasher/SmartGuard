@@ -17,6 +17,12 @@ class DetectionAlertCreateView(APIView):
     permission_classes = []
 
     def post(self, request, *args, **kwargs):
+        import os
+        secret = request.headers.get("X-Sync-Secret")
+        expected_secret = os.environ.get("MEDIA_SYNC_SECRET")
+        if not expected_secret or secret != expected_secret:
+            return Response({"error": "Unauthorized"}, status=status.HTTP_403_FORBIDDEN)
+
         serializer = DetectionAlertInputSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         alert = serializer.save()
@@ -30,7 +36,7 @@ class AlertListView(generics.ListAPIView):
     Supports ?severity=HIGH and ?status=NEW query params.
     """
     queryset = Alert.objects.select_related(
-        "camera", "acknowledged_by", "reviewed_by", "assigned_to"
+        "camera", "reviewed_by", "assigned_to"
     ).order_by("-created_at")
     serializer_class   = AlertSerializer
     permission_classes = [AlertPermission]
@@ -39,7 +45,7 @@ class AlertListView(generics.ListAPIView):
         qs   = super().get_queryset()
         role = getattr(self.request.user, "role", None)
 
-        if role in ("STAFF", "OPERATIONS_MANAGER"):
+        if role in ("STAFF", "OPS_MANAGER"):
             qs = qs.filter(alert_category="SHOPLIFTING")
 
         severity = self.request.query_params.get("severity")
@@ -55,11 +61,12 @@ class AlertListView(generics.ListAPIView):
 
 class AlertDetailView(generics.RetrieveUpdateDestroyAPIView):
     """
-    GET   /api/alerts/<pk>/  — fetch single alert
-    PATCH /api/alerts/<pk>/  — update status, notes, acknowledgement
+    GET    /api/alerts/<pk>/  — fetch single alert
+    PATCH  /api/alerts/<pk>/  — update status, notes
+    DELETE /api/alerts/<pk>/  — delete alert + evidence clips + files
     """
     queryset = Alert.objects.select_related(
-        "camera", "acknowledged_by", "reviewed_by", "assigned_to"
+        "camera", "reviewed_by", "assigned_to"
     )
     serializer_class   = AlertSerializer
     permission_classes = [AlertPermission]
@@ -74,10 +81,37 @@ class AlertDetailView(generics.RetrieveUpdateDestroyAPIView):
         qs   = super().get_queryset()
         role = getattr(self.request.user, "role", None)
 
-        if role in ("STAFF", "OPERATIONS_MANAGER"):
+        if role in ("STAFF", "OPS_MANAGER"):
             qs = qs.filter(alert_category="SHOPLIFTING")
 
         return qs
+
+    def perform_destroy(self, instance):
+        """Delete evidence clip files from disk before CASCADE removes DB rows."""
+        import os
+        for clip in instance.evidence_clips.all():
+            # Delete the clip file
+            if clip.file and hasattr(clip.file, 'path'):
+                try:
+                    if os.path.exists(clip.file.path):
+                        os.remove(clip.file.path)
+                except Exception:
+                    pass
+            # Also try file_path field
+            if clip.file_path:
+                try:
+                    if os.path.exists(clip.file_path):
+                        os.remove(clip.file_path)
+                except Exception:
+                    pass
+        # Delete snapshot if present
+        if instance.snapshot and hasattr(instance.snapshot, 'path'):
+            try:
+                if os.path.exists(instance.snapshot.path):
+                    os.remove(instance.snapshot.path)
+            except Exception:
+                pass
+        instance.delete()
 
 
 class DashboardAnalyticsView(APIView):
@@ -98,7 +132,7 @@ class DashboardAnalyticsView(APIView):
         # Base queryset matching user's permissions
         role = getattr(request.user, "role", None)
         qs = Alert.objects.filter(created_at__gte=last_24h)
-        if role in ("STAFF", "OPERATIONS_MANAGER"):
+        if role in ("STAFF", "OPS_MANAGER"):
             qs = qs.filter(alert_category="SHOPLIFTING")
 
         # 1. Detections Over Time (Last 24 Hours) - bucketed every 2 hours (12 points)
@@ -184,9 +218,22 @@ class WeeklyReportView(APIView):
         categories = Alert.objects.filter(created_at__gte=one_week_ago).values('alert_category').annotate(count=Count('id'))
         category_breakdown = {c['alert_category']: c['count'] for c in categories}
 
+        # Behavior breakdown (this week)
+        behaviors = Alert.objects.filter(created_at__gte=one_week_ago).values('behavior_type').annotate(count=Count('id'))
+        behavior_breakdown = {b['behavior_type']: b['count'] for b in behaviors}
+
+        # Top cameras (this week)
+        top_cameras = Alert.objects.filter(created_at__gte=one_week_ago).values('camera__name').annotate(count=Count('id')).order_by('-count')[:5]
+        top_cameras_data = [{"camera": c['camera__name'], "count": c['count']} for c in top_cameras]
+
         # Status breakdown (this week)
         statuses = Alert.objects.filter(created_at__gte=one_week_ago).values('status').annotate(count=Count('id'))
         status_breakdown = {s['status']: s['count'] for s in statuses}
+
+        # Incidents (this week vs last week)
+        from ir.models import IncidentReport
+        incidents_this_week = IncidentReport.objects.filter(created_at__gte=one_week_ago).count()
+        incidents_last_week = IncidentReport.objects.filter(created_at__gte=two_weeks_ago, created_at__lt=one_week_ago).count()
 
         return Response({
             "date_range": {
@@ -197,11 +244,17 @@ class WeeklyReportView(APIView):
                 "this_week": alerts_this_week,
                 "last_week": alerts_last_week,
                 "category_breakdown": category_breakdown,
+                "behavior_breakdown": behavior_breakdown,
+                "top_cameras": top_cameras_data,
                 "status_breakdown": status_breakdown
             },
             "evidence": {
                 "this_week": evidence_this_week,
                 "last_week": evidence_last_week
+            },
+            "incidents": {
+                "this_week": incidents_this_week,
+                "last_week": incidents_last_week
             }
         })
 
@@ -215,12 +268,13 @@ class ManualAlertCreateView(APIView):
 
     def post(self, request):
         role = getattr(request.user, "role", None)
-        if role not in ["STAFF", "OPERATIONS_MANAGER", "ADMIN"]:
+        if role not in ["STAFF", "OPS_MANAGER", "ADMIN"]:
             return Response({"error": "Insufficient permissions"}, status=status.HTTP_403_FORBIDDEN)
         
         camera_id = request.data.get("camera_id")
         behavior = request.data.get("behavior_type", "Suspicious - Manual")
         notes = request.data.get("notes", "")
+        duration = request.data.get("duration", 10)
 
         if not camera_id:
             return Response({"error": "camera_id is required"}, status=status.HTTP_400_BAD_REQUEST)
@@ -231,16 +285,23 @@ class ManualAlertCreateView(APIView):
         import os
         
         redis_host = os.environ.get("REDIS_HOST", "127.0.0.1")
+        redis_port = int(os.environ.get("REDIS_PORT", "6379"))
         redis_pass = os.environ.get("REDIS_PASSWORD", None)
-        r = redis.Redis(host=redis_host, port=6379, password=redis_pass)
         
-        message = {
-            "camera_id": camera_id,
-            "behavior_type": behavior,
-            "notes": notes,
-            "user": request.user.email
-        }
-        r.publish("manual_override", json.dumps(message))
+        try:
+            r = redis.Redis(host=redis_host, port=redis_port, password=redis_pass, db=0)
+            payload = {
+                "camera_id": camera_id,
+                "behavior_type": behavior,
+                "confidence": 1.0,
+                "severity": "CRITICAL",  # Manual alerts default to highest severity
+                "notes": notes,
+                "duration": duration,
+                "user": request.user.email
+            }
+            r.publish("manual_override", json.dumps(payload))
+        except Exception as e:
+            return Response({"error": f"Failed to publish to Redis: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
         # Log audit
         from logging_info.models import AuditLog
@@ -255,3 +316,68 @@ class ManualAlertCreateView(APIView):
         )
 
         return Response({"message": "Manual alert triggered successfully. Evidence clipping initiated."}, status=status.HTTP_200_OK)
+
+class UploadMediaView(APIView):
+    """
+    POST /api/alerts/upload-media/
+    Accepts raw file bytes from the local worker to sync local media to the AWS server.
+    """
+    permission_classes = []
+
+    def post(self, request):
+        import os
+        secret = request.headers.get("X-Sync-Secret")
+        expected_secret = os.environ.get("MEDIA_SYNC_SECRET")
+        if not expected_secret or secret != expected_secret:
+            return Response({"error": "Unauthorized"}, status=status.HTTP_403_FORBIDDEN)
+        
+        rel_path = request.headers.get("X-Relative-Path")
+        if not rel_path:
+            return Response({"error": "Missing X-Relative-Path header"}, status=status.HTTP_400_BAD_REQUEST)
+            
+        from django.conf import settings
+        full_path = os.path.join(settings.MEDIA_ROOT, rel_path)
+        
+        # Security check
+        if not os.path.abspath(full_path).startswith(os.path.abspath(settings.MEDIA_ROOT)):
+            return Response({"error": "Invalid path"}, status=status.HTTP_403_FORBIDDEN)
+            
+        os.makedirs(os.path.dirname(full_path), exist_ok=True)
+        with open(full_path, 'wb') as f:
+            f.write(request.body)
+            
+        return Response({"status": "ok", "path": rel_path}, status=status.HTTP_200_OK)
+class ManualAlertTriggerView(APIView):
+    """
+    POST /api/alerts/manual/
+    Allows STAFF to instantly trigger a critical manual alert for a specific camera.
+    """
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        if request.user.role not in ["STAFF", "OPS_MANAGER", "ADMIN"]:
+            return Response({"error": "Unauthorized"}, status=403)
+            
+        camera_id = request.data.get("camera_id")
+        if not camera_id:
+            return Response({"error": "camera_id is required"}, status=400)
+            
+        from cameras.models import Camera
+        try:
+            camera = Camera.objects.get(pk=camera_id)
+        except Camera.DoesNotExist:
+            return Response({"error": "Camera not found"}, status=404)
+            
+        # Create a CRITICAL alert instantly
+        alert = Alert.objects.create(
+            camera=camera,
+            behavior_type="MANUAL_TRIGGER",
+            confidence=1.0,
+            severity="CRITICAL",
+            alert_category="SHOPLIFTING",
+            status="NEW",
+            notes=f"Manually triggered by {request.user.username}"
+        )
+        
+        return Response(AlertSerializer(alert).data, status=status.HTTP_201_CREATED)
+

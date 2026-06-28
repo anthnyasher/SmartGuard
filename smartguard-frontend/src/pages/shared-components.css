@@ -121,10 +121,12 @@
 .det-btn--view:hover    { background: #2563eb; border-color: #2563eb; color: #fff; box-shadow: 0 2px 6px rgba(37,99,235,0.2); }
 .det-btn--review  { border: 1px solid rgba(22,163,74,0.25);  background: rgba(22,163,74,0.06);  color: #16a34a; }
 .det-btn--review:hover  { background: #16a34a; border-color: #16a34a; color: #fff; box-shadow: 0 2px 6px rgba(22,163,74,0.2); }
-.det-btn--escalate{ border: 1px solid rgba(234,88,12,0.25);  background: rgba(234,88,12,0.06);  color: #ea580c; }
-.det-btn--escalate:hover{ background: #ea580c; border-color: #ea580c; color: #fff; box-shadow: 0 2px 6px rgba(234,88,12,0.2); }
+.det-btn--escalate{ border: 1px solid rgba(22,163,74,0.25);  background: rgba(22,163,74,0.06);  color: #16a34a; }
+.det-btn--escalate:hover{ background: #16a34a; border-color: #16a34a; color: #fff; box-shadow: 0 2px 6px rgba(22,163,74,0.2); }
 .det-btn--danger  { border: 1px solid rgba(220,38,38,0.25);  background: rgba(220,38,38,0.06);  color: #dc2626; }
 .det-btn--danger:hover  { background: #dc2626; border-color: #dc2626; color: #fff; box-shadow: 0 2px 6px rgba(220,38,38,0.2); }
+.det-btn--delete  { border: 1px solid rgba(220,38,38,0.25);  background: rgba(220,38,38,0.06);  color: #dc2626; }
+.det-btn--delete:hover  { background: #dc2626; border-color: #dc2626; color: #fff; box-shadow: 0 2px 6px rgba(220,38,38,0.2); }
 .det-btn--ghost   { border: 1px solid var(--border); background: var(--bg-base); color: var(--text-secondary); }
 .det-btn--ghost:hover   { background: var(--bg-elevated); color: var(--text-primary); }
 .det-btn--request { border: 1px solid rgba(124,58,237,0.25); background: rgba(124,58,237,0.06); color: #7c3aed; }
