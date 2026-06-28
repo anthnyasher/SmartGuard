@@ -334,6 +334,7 @@ function DetectionsPage() {
             </div>
           </div>
           <div className="sg-topbar-right">
+              <NotificationBell />
             <div className={`dp-ws-status ${connCount > 0 ? "dp-ws-status--on" : "dp-ws-status--off"}`}>
               <span className="dp-ws-dot" />
               {connCount > 0 ? `${connCount} camera${connCount !== 1 ? "s" : ""} live` : "Disconnected"}

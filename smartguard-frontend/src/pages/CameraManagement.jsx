@@ -180,6 +180,7 @@ function CameraManagement() {
             </div>
           </div>
           <div className="sg-topbar-right">
+              <NotificationBell />
             <Link to="/admin/live" className="cm-live-btn">◉ Live Monitoring</Link>
           </div>
         </header>

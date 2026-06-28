@@ -833,6 +833,7 @@ export default function AccessControl() {
             </div>
           </div>
           <div className="sg-topbar-right">
+              <NotificationBell />
             {/* Privacy toggle for phone numbers */}
             <button
               onClick={() => setShowPhones(p => !p)}

@@ -66,22 +66,22 @@
   letter-spacing: 0.5px; margin-bottom: 5px;
 }
 .ir-select, .ir-input {
-  width: 100%; padding: 8px 10px; font-size: 12px;
+  width: 100%; padding: 10px 14px; font-size: 13px;
   font-family: 'DM Sans', sans-serif;
-  background: var(--bg-surface); color: var(--text-primary);
-  border: 1px solid var(--border); border-radius: var(--radius-sm);
+  background: var(--bg-base); color: var(--text-primary);
+  border: 1px solid var(--border-subtle); border-radius: var(--radius-md);
   outline: none; transition: border-color 0.14s;
 }
 .ir-select:focus, .ir-input:focus, .ir-textarea:focus {
   border-color: var(--accent-blue);
 }
 .ir-textarea {
-  width: 100%; padding: 8px 10px; font-size: 12px;
+  width: 100%; padding: 10px 14px; font-size: 13px;
   font-family: 'DM Sans', sans-serif;
-  background: var(--bg-surface); color: var(--text-primary);
-  border: 1px solid var(--border); border-radius: var(--radius-sm);
+  background: var(--bg-base); color: var(--text-primary);
+  border: 1px solid var(--border-subtle); border-radius: var(--radius-md);
   outline: none; resize: vertical; transition: border-color 0.14s;
-  min-height: 40px;
+  min-height: 50px;
 }
 
 /* ── Create Modal ──────────────────────────────────────────────────────────── */
@@ -91,23 +91,24 @@
   z-index: 1000; backdrop-filter: blur(4px);
 }
 .ir-modal {
-  background: var(--bg-card); border: 1px solid var(--border);
+  background: var(--bg-surface); border: 1px solid var(--border);
   border-radius: var(--radius-lg); width: 520px; max-width: 94vw;
   max-height: 90vh; overflow-y: auto;
-  box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+  box-shadow: 0 25px 80px rgba(0,0,0,0.15), 0 0 0 1px var(--border-subtle);
 }
 .ir-modal-header {
   display: flex; align-items: center; justify-content: space-between;
-  padding: 18px 20px; border-bottom: 1px solid var(--border);
+  padding: 24px 28px; border-bottom: 1px solid var(--border-subtle);
 }
 .ir-modal-title {
   font-size: 15px; font-weight: 700; color: var(--text-primary);
   margin: 0;
 }
-.ir-modal-body { padding: 20px; }
+.ir-modal-body { padding: 24px 28px; }
 .ir-modal-footer {
-  display: flex; gap: 10px; padding: 16px 20px;
-  border-top: 1px solid var(--border);
+  display: flex; gap: 12px; padding: 20px 28px;
+  border-top: 1px solid var(--border-subtle);
+  background: var(--bg-base);
 }
 .ir-modal-footer .det-btn-full--ghost { flex: 1; }
 .ir-modal-footer .det-btn-full--primary { flex: 2; }

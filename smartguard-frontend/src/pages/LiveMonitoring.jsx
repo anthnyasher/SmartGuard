@@ -497,6 +497,7 @@ function LiveMonitoring() {
             </div>
           </div>
           <div className="sg-topbar-right">
+              <NotificationBell />
             <button className="lm-settings-btn" onClick={() => setShowConfig(true)}>
               ⚙ Configure Cameras
             </button>

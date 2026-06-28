@@ -38,3 +38,12 @@
   display: flex; align-items: center; justify-content: center; gap: 6px;
 }
 .ev-verify-btn:hover { background: var(--accent-blue); border-color: var(--accent-blue); color: #fff; }
+
+.ev-review-hint {
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-top: 10px;
+  font-style: italic;
+  line-height: 1.5;
+  text-align: center;
+}

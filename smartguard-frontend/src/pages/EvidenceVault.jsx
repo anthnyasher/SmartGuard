@@ -190,7 +190,10 @@ export default function EvidenceVault() {
               <span className="sg-breadcrumb-current">Evidence Vault</span>
             </div>
           </div>
-        </header>
+          <div className="sg-topbar-right">
+              <NotificationBell />
+            </div>
+          </header>
 
         <div className="sg-content">
           <h1 className="sg-page-title">Evidence Vault</h1>

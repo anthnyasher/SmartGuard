@@ -214,7 +214,10 @@ export default function IncidentResponse() {
               <span className="sg-breadcrumb-current">Incident Response</span>
             </div>
           </div>
-        </header>
+          <div className="sg-topbar-right">
+              <NotificationBell />
+            </div>
+          </header>
 
         <div className="sg-content">
           <div className="ir-page-header">

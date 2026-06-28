@@ -6,9 +6,12 @@
   grid-template-columns: repeat(5, 1fr);
   gap: 10px;
   margin-bottom: 20px;
+  width: 100%;
 }
 
 .ops-kpi {
+  flex: 1;
+  min-width: 150px;
   display: flex;
   align-items: center;
   gap: 12px;
@@ -167,9 +170,8 @@
 /* ── Responsive ──────────────────────────────────────────────────────────────── */
 @media (max-width: 960px) {
   .ops-grid { grid-template-columns: 1fr; }
-  .ops-kpi-strip { grid-template-columns: repeat(3, 1fr); }
   .ops-col-side { position: static; }
 }
 @media (max-width: 600px) {
-  .ops-kpi-strip { grid-template-columns: repeat(2, 1fr); }
+  /* ops-kpi-strip handles wrapping automatically via flex-wrap */
 }

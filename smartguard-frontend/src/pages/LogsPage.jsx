@@ -214,6 +214,7 @@ export default function LogsPage() {
             </div>
           </div>
           <div className="sg-topbar-right">
+              <NotificationBell />
             {/* Auto-refresh toggle */}
             <button
               onClick={() => setAutoRefresh(p => !p)}

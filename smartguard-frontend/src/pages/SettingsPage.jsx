@@ -241,6 +241,7 @@ export default function SettingsPage() {
             </div>
           </div>
           <div className="sg-topbar-right">
+              <NotificationBell />
             <button className="sg-pdf-btn" onClick={handleSave} style={{ background: "var(--accent-green)", color: "#fff", border: "none" }}>
               ✓ Save Changes
             </button>
