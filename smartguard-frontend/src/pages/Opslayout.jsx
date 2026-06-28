@@ -13,8 +13,8 @@ import "./AdminDashboard.css";
 export const OPS_NAV = [
   { id: "dashboard", label: "Dashboard",       icon: "⊞", path: "/ops/dashboard" },
   { id: "live",      label: "Live Monitoring", icon: "◉", path: "/ops/live"      },
-  { id: "alerts",    label: "Alerts",          icon: "✦", path: "/ops/alerts"    },
-  { id: "evidence",  label: "Evidence",        icon: "🎞", path: "/ops/evidence"  },
+  { id: "alerts",    label: "Alerts & Events", icon: "✦", path: "/ops/alerts"    },
+  { id: "evidence",  label: "Evidence Vault",  icon: "🔒", path: "/ops/evidence"  },
 ];
 
 export const STAFF_NAV = [

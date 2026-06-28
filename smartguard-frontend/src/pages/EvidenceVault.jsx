@@ -7,7 +7,7 @@ import "./AdminDashboard.css";
 import "./shared-components.css";
 import "./EvidenceVault.css";
 
-const NAV_ITEMS = [
+const ADMIN_NAV_ITEMS = [
   { id: "dashboard",  label: "Dashboard",          icon: "⊞", path: "/admin"            },
   { id: "live",       label: "Live Monitoring",     icon: "◉", path: "/admin/live"       },
   { id: "detections", label: "Detections & Alerts", icon: "✦", path: "/admin/detections" },
@@ -17,6 +17,13 @@ const NAV_ITEMS = [
   { id: "logs",       label: "Logs",                icon: "📋", path: "/admin/logs"       },
   { id: "access",     label: "Access Control",      icon: "🔑", path: "/admin/access"     },
   { id: "settings",   label: "Settings",            icon: "⚙",  path: "/admin/settings"   },
+];
+
+const OPS_NAV_ITEMS = [
+  { id: "dashboard", label: "Dashboard",       icon: "⊞", path: "/ops/dashboard" },
+  { id: "live",      label: "Live Monitoring", icon: "◉", path: "/ops/live"      },
+  { id: "alerts",    label: "Alerts & Events", icon: "✦", path: "/ops/alerts"    },
+  { id: "evidence",  label: "Evidence Vault",  icon: "🔒", path: "/ops/evidence"  },
 ];
 
 const REVIEW_STATUS_LABELS = {
@@ -155,7 +162,7 @@ export default function EvidenceVault() {
           {!sidebarCollapsed && <span className="sg-logo-text"><span className="sg-logo-smart">SMART</span><span className="sg-logo-guard">GUARD</span></span>}
         </div>
         <nav className="sg-sidebar-nav">
-          {NAV_ITEMS.map(item => (
+          {(user?.role === "OPS_MANAGER" ? OPS_NAV_ITEMS : ADMIN_NAV_ITEMS).map(item => (
             <Link key={item.id} to={item.path} className={`sg-nav-item${item.id === "evidence" ? " sg-nav-active" : ""}`}>
               <span className="sg-nav-icon">{item.icon}</span>
               {!sidebarCollapsed && <span className="sg-nav-label">{item.label}</span>}
@@ -165,7 +172,7 @@ export default function EvidenceVault() {
         <div className="sg-sidebar-footer">
           <div className="sg-user-row">
             <div className="sg-user-avatar">{user?.email?.[0]?.toUpperCase() || "A"}</div>
-            {!sidebarCollapsed && <div className="sg-user-info"><div className="sg-user-name">{user?.email}</div><div className="sg-user-role">{user?.role}</div></div>}
+            {!sidebarCollapsed && <div className="sg-user-info"><div className="sg-user-name">{user?.email}</div><div className="sg-user-role">{user?.role === "OPS_MANAGER" ? "Operations Manager" : user?.role === "ADMIN" ? "Administrator" : user?.role}</div></div>}
           </div>
           {!sidebarCollapsed && <button className="sg-logout-btn" onClick={handleLogout}>Logout</button>}
         </div>
