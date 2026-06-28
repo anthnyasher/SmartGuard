@@ -119,6 +119,8 @@ function SnapshotModal({ event, onClose }) {
 }
 
 function FeedRow({ event, index, onViewSnapshot, onDelete, onEscalate }) {
+  const { user } = useAuth();
+  const isStaff = user?.role === "STAFF";
   const cfg = SEVERITY_CONFIG[event.severity] ?? SEVERITY_CONFIG.HIGH;
   const isNew = index === 0;
 
@@ -150,7 +152,7 @@ function FeedRow({ event, index, onViewSnapshot, onDelete, onEscalate }) {
         </div>
       </div>
       <div className="dp-row-actions">
-        {event.alert_id && event.status === "NEW" && (
+        {!isStaff && event.alert_id && event.status === "NEW" && (
           <button className="dp-row-action-btn dp-row-action-btn--check" onClick={(e) => { e.stopPropagation(); onEscalate && onEscalate(event); }} title="Confirm Alert">✓</button>
         )}
         <button className="dp-row-snap-btn" onClick={() => onViewSnapshot(event)} title="View snapshot">
@@ -160,7 +162,7 @@ function FeedRow({ event, index, onViewSnapshot, onDelete, onEscalate }) {
             <span className="dp-row-no-thumb">🎞</span>
           )}
         </button>
-        {event.alert_id && onDelete && (
+        {!isStaff && event.alert_id && onDelete && (
           <button className="dp-row-action-btn dp-row-action-btn--cross" onClick={(e) => { e.stopPropagation(); onDelete(event); }} title="False Positive - Delete Alert and Clip">✕</button>
         )}
       </div>
