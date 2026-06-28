@@ -455,3 +455,29 @@
   font-weight: 600;
   color: #1e293b;
 }
+
+.dp-row-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-left: auto;
+}
+
+.dp-row-action-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+  font-size: 16px;
+  color: white;
+  font-weight: bold;
+  transition: opacity 0.15s;
+}
+
+.dp-row-action-btn:hover { opacity: 0.85; }
+.dp-row-action-btn--check { background: #16a34a; }
+.dp-row-action-btn--cross { background: #dc2626; }

@@ -81,6 +81,14 @@ function SnapshotModal({ event, onClose }) {
               {event.confidence != null ? `${Math.round(event.confidence * 100)}%` : "—"}
             </span>
           </div>
+          {(event.camera_location || event.camera_zone) && (
+            <div className="dp-snap-detail">
+              <span className="dp-snap-label">Location / Zone</span>
+              <span className="dp-snap-value">
+                {event.camera_location || "Unknown"} — {event.camera_zone || "Unknown"}
+              </span>
+            </div>
+          )}
           <div className="dp-snap-detail">
             <span className="dp-snap-label">Time</span>
             <span className="dp-snap-value">{formatTime(event.timestamp)}</span>
@@ -115,6 +123,11 @@ function FeedRow({ event, index, onViewSnapshot, onDelete, onEscalate }) {
         </div>
         <div className="dp-row-bottom">
           <span className="dp-row-camera">📷 {event.camera_name ?? `Camera ${event.camera_id}`}</span>
+          {(event.camera_location || event.camera_zone) && (
+            <span className="dp-row-camera">
+              📍 {event.camera_location || "Unknown"} ({event.camera_zone || "Unknown"})
+            </span>
+          )}
           <span className="dp-row-conf">
             {event.confidence != null ? `${Math.round(event.confidence * 100)}% confidence` : ""}
           </span>
@@ -122,19 +135,18 @@ function FeedRow({ event, index, onViewSnapshot, onDelete, onEscalate }) {
         </div>
       </div>
       <div className="dp-row-actions">
+        {event.alert_id && event.status === "NEW" && (
+          <button className="dp-row-action-btn dp-row-action-btn--check" onClick={(e) => { e.stopPropagation(); onEscalate && onEscalate(event); }} title="Confirm Alert">✓</button>
+        )}
         <button className="dp-row-snap-btn" onClick={() => onViewSnapshot(event)} title="View snapshot">
           {event.frame_jpg_b64 ? (
             <img className="dp-row-thumb" src={`data:image/jpeg;base64,${event.frame_jpg_b64}`} alt="snapshot" />
           ) : (
             <span className="dp-row-no-thumb">🎞</span>
           )}
-          <span className="dp-row-snap-label">View</span>
         </button>
-        {event.alert_id && event.status === "NEW" && (
-          <button style={{ background: "#16a34a", color: "white", border: "none", borderRadius: "4px", padding: "4px 8px", cursor: "pointer", fontSize: "11px", fontWeight: "bold" }} onClick={(e) => { e.stopPropagation(); onEscalate && onEscalate(event); }} title="Escalate Alert">✓ Escalate</button>
-        )}
         {event.alert_id && onDelete && (
-          <button style={{ background: "#dc2626", color: "white", border: "none", borderRadius: "4px", padding: "4px 8px", cursor: "pointer", fontSize: "11px", fontWeight: "bold" }} onClick={(e) => { e.stopPropagation(); onDelete(event); }} title="False Positive - Delete Alert and Clip">✕ FP / Delete</button>
+          <button className="dp-row-action-btn dp-row-action-btn--cross" onClick={(e) => { e.stopPropagation(); onDelete(event); }} title="False Positive - Delete Alert and Clip">✕</button>
         )}
       </div>
     </div>
@@ -177,16 +189,18 @@ export default function OpsAlertsPage() {
       const data = await res.json();
       const alerts = Array.isArray(data) ? data : (data.results ?? []);
       const shaped = alerts.slice(0, 50).map(a => ({
-        camera_id:      a.camera,
-        camera_name:    a.camera_name ?? `Camera ${a.camera}`,
-        behavior_type:  a.behavior_type,
-        confidence:     a.confidence,
-        severity:       a.severity,
-        alert_id:       a.id,
-        timestamp:      a.created_at,
-        status:         a.status,
-        frame_jpg_b64:  a.frame_jpg_b64 ?? null,
-        receivedAt:     new Date(a.created_at).getTime(),
+        camera_id:       a.camera,
+        camera_name:     a.camera_name ?? `Camera ${a.camera}`,
+        camera_location: a.camera_location ?? null,
+        camera_zone:     a.camera_zone ?? null,
+        behavior_type:   a.behavior_type,
+        confidence:      a.confidence,
+        severity:        a.severity,
+        alert_id:        a.id,
+        timestamp:       a.created_at,
+        status:          a.status,
+        frame_jpg_b64:   a.frame_jpg_b64 ?? null,
+        receivedAt:      new Date(a.created_at).getTime(),
       }));
       setHistoricalFeed(shaped);
     } catch (e) {

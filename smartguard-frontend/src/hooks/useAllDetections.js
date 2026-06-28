@@ -75,9 +75,11 @@ export function useAllDetections(cameras, token) {
             const liveCam = stableCamerasRef.current.find(c => c.id === camId);
             addToFeed({
               ...msg,
-              camera_id:   camId,
-              camera_name: liveCam?.name ?? cam.name,
-              receivedAt:  Date.now(),
+              camera_id:       camId,
+              camera_name:     liveCam?.name ?? cam.name,
+              camera_location: liveCam?.location ?? null,
+              camera_zone:     liveCam?.zone ?? null,
+              receivedAt:      Date.now(),
             });
           }
         } catch { /* ignore JSON parse errors */ }
