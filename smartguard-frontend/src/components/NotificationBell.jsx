@@ -35,8 +35,12 @@ export default function NotificationBell() {
 
     async function loadFeedData() {
       try {
+        const alertsPromise = getAlerts(token).catch(() => []);
+        const incPromise = getIncidents(token).catch(() => []);
+        const logsPromise = user?.role === 'ADMIN' ? getLogs(token).catch(() => []) : Promise.resolve([]);
+        
         const [alerts, incData, logData] = await Promise.all([
-          getAlerts(token), getIncidents(token), getLogs(token)
+          alertsPromise, incPromise, logsPromise
         ]);
         const alertList = Array.isArray(alerts) ? alerts : [];
         const incList   = Array.isArray(incData) ? incData : (Array.isArray(incData?.results) ? incData.results : []);
