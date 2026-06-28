@@ -17,6 +17,7 @@ import {
 import { useAuth } from "../context/AuthContext.jsx";
 import ReCAPTCHA from "react-google-recaptcha";
 import "./LoginPage.css";
+import useDocumentTitle from "../utils/useDocumentTitle.js";
 
 const RECAPTCHA_SITE_KEY = import.meta.env.VITE_RECAPTCHA_SITE_KEY || "6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI";
 
@@ -435,6 +436,7 @@ function ResetDone({ onLogin }) {
 const STEP = { CREDS: "CREDS", OTP: "OTP", FORGOT_EMAIL: "FORGOT_EMAIL", FORGOT_OTP: "FORGOT_OTP", RESET_DONE: "RESET_DONE" };
 
 export default function LoginPage() {
+  useDocumentTitle("Login");
   const [step,         setStep]         = useState(STEP.CREDS);
   const [otpSession,   setOtpSession]   = useState(null);
   const [maskedEmail,  setMaskedEmail]  = useState("");

@@ -6,6 +6,7 @@ import { getAlerts, acknowledgeAlert, triggerAlarm } from "../api/alertApi.js";
 import OpsLayout from "./Opslayout.jsx";
 import "./AdminDashboard.css";
 import "./StaffPortal.css";
+import useDocumentTitle from "../utils/useDocumentTitle.js";
 
 // ─── Alarm confirm modal ───────────────────────────────────────────────────────
 function AlarmConfirmModal({ alert, onConfirm, onCancel }) {
@@ -37,6 +38,7 @@ function AlarmConfirmModal({ alert, onConfirm, onCancel }) {
 
 // ─── Main component ────────────────────────────────────────────────────────────
 function StaffDashboard() {
+  useDocumentTitle("Staff Alerts");
   const { user, token, logout } = useAuth();
   const navigate = useNavigate();
 

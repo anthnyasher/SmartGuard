@@ -3,8 +3,10 @@ import { useParams, useNavigate } from "react-router-dom";
 import { getConfirmationDetails, submitConfirmation } from "../api/authApi";
 const showToast = (msg, type) => alert(`[${type.toUpperCase()}] ${msg}`);
 import sgLogo from "../assets/smartguard-logo.png.png";
+import useDocumentTitle from "../utils/useDocumentTitle.js";
 
 export default function ConfirmAccountPage() {
+  useDocumentTitle("Confirm Account");
   const { token } = useParams();
   const navigate = useNavigate();
   

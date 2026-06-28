@@ -14,6 +14,7 @@ import AuthenticatedStream from "../components/AuthenticatedStream.jsx";
 import ManualAlertModal from "../components/ManualAlertModal.jsx";
 import "./AdminDashboard.css";
 import "./LiveMonitoring.css";
+import useDocumentTitle from "../utils/useDocumentTitle.js";
 
 const GRID_OPTIONS = [
   { key: "1x1", cols: 1, perPage: 1  },
@@ -64,6 +65,7 @@ function CameraFullscreen({ cam, token, onClose }) {
 }
 
 export default function OpsLivePage() {
+  useDocumentTitle("Live Monitoring");
   const { token } = useAuth();
   const [cameras,     setCameras]     = useState([]);
   const [loading,     setLoading]     = useState(true);

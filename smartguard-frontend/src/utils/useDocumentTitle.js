@@ -2,6 +2,6 @@ import { useEffect } from 'react';
 
 export default function useDocumentTitle(title) {
   useEffect(() => {
-    document.title = title ? `${title} | SmartGuard` : 'Dashboard | SmartGuard';
+    document.title = title || 'Dashboard';
   }, [title]);
 }
