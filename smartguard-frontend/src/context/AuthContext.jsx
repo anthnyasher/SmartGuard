@@ -43,30 +43,37 @@ export function AuthProvider({ children }) {
   }, [token, refreshToken]);
 
   // ── Inactivity timer ───────────────────────────────────────────────────────
-  const resetTimer = useCallback(() => {
-    if (timeoutRef.current) clearTimeout(timeoutRef.current);
+  const updateActivity = useCallback(() => {
     if (token) {
-      timeoutRef.current = setTimeout(() => {
-        console.warn("[SmartGuard] Session timed out due to inactivity.");
-        logout();
-      }, SESSION_TIMEOUT_MS);
+      localStorage.setItem("lastActivity", Date.now().toString());
     }
-  }, [token, logout]);
+  }, [token]);
 
   useEffect(() => {
     if (!token) return;
 
+    // Set initial activity
+    updateActivity();
+
+    // Check inactivity every 30 seconds
+    const interval = setInterval(() => {
+      const lastActive = parseInt(localStorage.getItem("lastActivity") || "0", 10);
+      if (Date.now() - lastActive > SESSION_TIMEOUT_MS) {
+        console.warn("[SmartGuard] Session timed out due to inactivity.");
+        logout();
+      }
+    }, 30000);
+
     const events = ["mousedown", "keydown", "scroll", "touchstart", "mousemove"];
-    const handler = () => resetTimer();
+    const handler = () => updateActivity();
 
     events.forEach((e) => window.addEventListener(e, handler, { passive: true }));
-    resetTimer(); // start the timer
 
     return () => {
       events.forEach((e) => window.removeEventListener(e, handler));
-      if (timeoutRef.current) clearTimeout(timeoutRef.current);
+      clearInterval(interval);
     };
-  }, [token, resetTimer]);
+  }, [token, updateActivity, logout]);
 
   // ── Init: fetch user profile on mount ──────────────────────────────────────
   useEffect(() => {
@@ -79,11 +86,21 @@ export function AuthProvider({ children }) {
         const me = await getMe(token);
         setUser(me);
       } catch (err) {
-        localStorage.removeItem("accessToken");
-        localStorage.removeItem("refreshToken");
-        setToken(null);
-        setRefreshToken(null);
-        setUser(null);
+        if (err.response?.status === 401) {
+          localStorage.removeItem("accessToken");
+          localStorage.removeItem("refreshToken");
+          setToken(null);
+          setRefreshToken(null);
+          setUser(null);
+        } else {
+          // Network error or 5xx: keep tokens, just don't set user for now or show error
+          // (We'll leave user=null so it might redirect to login, but if we don't clear token, it might recover)
+          // Wait, if user=null, App.jsx redirects to /login. We should probably keep the old user or handle it better.
+          // But actually, if init fails due to network, we can't let them in without user object. 
+          // At least not clearing the token allows them to just reload when the server is back up without having to re-type credentials.
+          console.error("Network or server error during auth init", err);
+          setUser(null); // Still kicks them out to login screen if no user, but won't lose token.
+        }
       } finally {
         setLoading(false);
       }
