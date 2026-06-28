@@ -187,7 +187,7 @@ export default function OpsDashboard() {
             {!sidebarCollapsed && (
               <div className="sg-user-info">
                 <div className="sg-user-name">{user?.email}</div>
-                <div className="sg-user-role">{user?.role}</div>
+                <div className="sg-user-role">{user?.role === "OPS_MANAGER" ? "Operations Manager" : user?.role === "ADMIN" ? "Administrator" : user?.role}</div>
               </div>
             )}
           </div>

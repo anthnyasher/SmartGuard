@@ -273,7 +273,7 @@ export default function EvidenceVault() {
                         <td onClick={ev => ev.stopPropagation()}>
                           <div className="det-action-btns">
                             <button className="det-btn det-btn--view" onClick={() => setSelected(e)}>View</button>
-                            {isAdminOrOps && e.review_status === "PENDING" && (
+                            {isAdminOrOps && e.review_status === "PENDING" && (e.time_until_expiry == null || e.time_until_expiry > 0) && (
                               <>
                                 <button
                                   className="det-btn det-btn--confirm"
@@ -400,7 +400,7 @@ export default function EvidenceVault() {
             </div>
 
             {/* Review actions */}
-            {isAdminOrOps && selected.review_status === "PENDING" && (
+            {isAdminOrOps && selected.review_status === "PENDING" && (selected.time_until_expiry == null || selected.time_until_expiry > 0) && (
               <div className="ev-review-actions">
                 <div className="det-detail-key" style={{ marginBottom: 8 }}>Review Decision</div>
                 <button
