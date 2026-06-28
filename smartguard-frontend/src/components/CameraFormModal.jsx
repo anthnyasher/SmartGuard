@@ -175,7 +175,7 @@ export default function CameraFormModal({
                     {/* Location + Zone */}
                     <div className="cfm-row">
                         <div className="cfm-field" style={{ flex: 1 }}>
-                            <label className="cfm-label">Location</label>
+                            <label className="cfm-label">Location *</label>
                             <input
                                 className="cfm-input"
                                 type="text"
@@ -185,7 +185,7 @@ export default function CameraFormModal({
                             />
                         </div>
                         <div className="cfm-field" style={{ flex: 1 }}>
-                            <label className="cfm-label">Zone</label>
+                            <label className="cfm-label">Zone *</label>
                             <input
                                 className="cfm-input"
                                 type="text"

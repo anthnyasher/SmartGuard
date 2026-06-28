@@ -388,7 +388,7 @@ export default function IncidentResponse() {
                   <option value="">Select an Alert...</option>
                   {alertsList.map(a => (
                     <option key={a.id} value={a.id}>
-                      Alert #{a.id} - {a.camera_name || `Camera ${a.camera}`} ({new Date(a.timestamp).toLocaleString()})
+                      Alert #{a.id} - {a.camera_name || `Camera ${a.camera}`} ({new Date(a.created_at).toLocaleString([], { dateStyle: "short", timeStyle: "short" })} | {a.camera_location || "No Loc"} - {a.camera_zone || "No Zone"})
                     </option>
                   ))}
                 </select>
