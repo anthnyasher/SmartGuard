@@ -144,6 +144,7 @@ function LockedPanel({ onTryOther }) {
 function CredentialsStep({ onSuccess, onForgotPassword }) {
   const [id,        setId]        = useState("");
   const [pw,        setPw]        = useState("");
+  const [showPw,    setShowPw]    = useState(false);
   const [loading,   setLoading]   = useState(false);
   const [error,     setError]     = useState(null);
   const [locked,    setLocked]    = useState(false);
@@ -209,13 +210,25 @@ function CredentialsStep({ onSuccess, onForgotPassword }) {
 
         <div className="login-field">
           <label className="login-label" htmlFor="upw">Password</label>
-          <div className="login-input-wrap">
+          <div className="login-input-wrap" style={{ position: "relative" }}>
             <span className="login-input-icon">🔑</span>
-            <input id="upw" className="login-input" type="password"
+            <input id="upw" className="login-input" type={showPw ? "text" : "password"}
               placeholder="Enter your password"
               value={pw} onChange={e => setPw(e.target.value)}
               autoComplete="current-password" required
+              style={{ paddingRight: 40 }}
             />
+            <button type="button" tabIndex="-1"
+              onClick={() => setShowPw(!showPw)}
+              style={{
+                position: "absolute", right: 12, top: "50%", transform: "translateY(-50%)",
+                background: "none", border: "none", cursor: "pointer",
+                color: "#64748b", fontSize: 16, display: "flex", alignItems: "center"
+              }}
+              title={showPw ? "Hide password" : "Show password"}
+            >
+              {showPw ? "👁️‍🗨️" : "👁️"}
+            </button>
           </div>
         </div>
 
