@@ -583,7 +583,17 @@ export default function SettingsPage() {
                             </td>
                             <td>
                               <button className="det-btn det-btn--ghost"
-                                onClick={() => alert(`Downloading backup ${b.date}...`)}>
+                                onClick={() => {
+                                  const blob = new Blob(["Simulated backup data for " + b.id], { type: "application/zip" });
+                                  const url = URL.createObjectURL(blob);
+                                  const a = document.createElement("a");
+                                  a.href = url;
+                                  a.download = `smartguard_backup_${b.date}.zip`;
+                                  document.body.appendChild(a);
+                                  a.click();
+                                  document.body.removeChild(a);
+                                  URL.revokeObjectURL(url);
+                                }}>
                                 ↓ Download
                               </button>
                             </td>
