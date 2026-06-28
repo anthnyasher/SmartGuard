@@ -84,7 +84,16 @@ body { font-family: 'DM Sans', sans-serif; background: var(--bg-base); color: va
   flex-shrink: 0;
 }
 
-.sg-logo-icon { font-size: 20px; flex-shrink: 0; }
+.sg-logo-icon { 
+  font-size: 20px; 
+  flex-shrink: 0; 
+  width: 28px;
+  height: 28px;
+  background-image: url('/favicon.png');
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+}
 
 .sg-logo-text { font-size: 15px; font-weight: 700; letter-spacing: 0.04em; white-space: nowrap; }
 .sg-logo-smart { color: #ffffff; }

@@ -26,6 +26,8 @@ a:hover {
   color: #1d4ed8;
 }
 
+.sg-stat-FALSE_POSITIVE { background: #f3e8ff; color: #9333ea; border: 1px solid rgba(147, 51, 234, 0.22); }
+
 button {
   border-radius: 8px;
   border: 1px solid transparent;
