@@ -87,3 +87,4 @@
   .wrm-modal { box-shadow: none; max-width: none; border-radius: 0; }
   .no-print { display: none !important; }
 }
+.stat-false_positive { background: #f1f5f9; color: #64748b; }

@@ -44,7 +44,10 @@ export default function WeeklyReportModal({ onClose }) {
           {reportData && (
             <div className="wrm-report-document">
               <header className="wrm-doc-header">
-                <div className="wrm-doc-logo">SMARTGUARD</div>
+                <div className="wrm-doc-logo" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+                  <img src="/favicon.png" alt="SmartGuard Logo" style={{ width: '40px', height: '40px' }} />
+                  SMARTGUARD
+                </div>
                 <h1 className="wrm-doc-title">Weekly Statistics Report</h1>
                 <p className="wrm-doc-period">
                   <strong>Period:</strong> {new Date(reportData.date_range.start).toLocaleDateString()} to {new Date(reportData.date_range.end).toLocaleDateString()}
@@ -109,6 +112,34 @@ export default function WeeklyReportModal({ onClose }) {
                 </section>
 
                 <section className="wrm-section" style={{ marginTop: '20px' }}>
+                  <h2>Alert Categories</h2>
+                  <div className="wrm-table-wrapper">
+                    <table className="wrm-table">
+                      <thead>
+                        <tr>
+                          <th>Category</th>
+                          <th>Count</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {!reportData.alerts.category_breakdown || Object.entries(reportData.alerts.category_breakdown).length === 0 ? (
+                          <tr><td colSpan="2" className="wrm-table-empty">No categories recorded</td></tr>
+                        ) : (
+                          Object.entries(reportData.alerts.category_breakdown).map(([cat, count]) => (
+                            <tr key={cat}>
+                              <td>{cat}</td>
+                              <td>{count}</td>
+                            </tr>
+                          ))
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+                </section>
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
+                <section className="wrm-section" style={{ marginTop: '20px' }}>
                   <h2>Behavior Breakdown</h2>
                   <div className="wrm-table-wrapper">
                     <table className="wrm-table">
@@ -133,33 +164,33 @@ export default function WeeklyReportModal({ onClose }) {
                     </table>
                   </div>
                 </section>
-              </div>
 
-              <section className="wrm-section">
-                <h2>Alert Resolution Status</h2>
-                <div className="wrm-table-wrapper">
-                  <table className="wrm-table">
-                    <thead>
-                      <tr>
-                        <th>Status</th>
-                        <th>Count</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {Object.entries(reportData.alerts.status_breakdown).length === 0 ? (
-                        <tr><td colSpan="2" className="wrm-table-empty">No status changes this week</td></tr>
-                      ) : (
-                        Object.entries(reportData.alerts.status_breakdown).map(([stat, count]) => (
-                          <tr key={stat}>
-                            <td><span className={`wrm-status-badge stat-${stat.toLowerCase()}`}>{stat}</span></td>
-                            <td>{count}</td>
-                          </tr>
-                        ))
-                      )}
-                    </tbody>
-                  </table>
-                </div>
-              </section>
+                <section className="wrm-section" style={{ marginTop: '20px' }}>
+                  <h2>Alert Resolution Status</h2>
+                  <div className="wrm-table-wrapper">
+                    <table className="wrm-table">
+                      <thead>
+                        <tr>
+                          <th>Status</th>
+                          <th>Count</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {Object.entries(reportData.alerts.status_breakdown).length === 0 ? (
+                          <tr><td colSpan="2" className="wrm-table-empty">No status changes this week</td></tr>
+                        ) : (
+                          Object.entries(reportData.alerts.status_breakdown).map(([stat, count]) => (
+                            <tr key={stat}>
+                              <td><span className={`wrm-status-badge stat-${stat.toLowerCase()}`}>{stat === 'FALSE_POSITIVE' ? 'FALSE POSITIVE' : stat}</span></td>
+                              <td>{count}</td>
+                            </tr>
+                          ))
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+                </section>
+              </div>
 
               <footer className="wrm-doc-footer">
                 <p>Generated by SmartGuard AI Detection System</p>
