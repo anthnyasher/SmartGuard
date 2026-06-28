@@ -32,7 +32,8 @@ export default function WeeklyReportModal({ onClose }) {
           <h2 className="wrm-modal-title">Export Report</h2>
           <div className="wrm-btn-group">
             <button className="wrm-btn wrm-btn-ghost" onClick={onClose}>Cancel</button>
-            <button className="wrm-btn wrm-btn-primary" onClick={handlePrint}>🖨 Print / Download PDF</button>
+            <button className="wrm-btn wrm-btn-ghost" onClick={handlePrint}>🖨 Print</button>
+            <button className="wrm-btn wrm-btn-primary" onClick={() => { alert('Please select "Save as PDF" in the Print dialog.'); handlePrint(); }}>📥 Download PDF</button>
           </div>
         </div>
 
@@ -69,8 +70,70 @@ export default function WeeklyReportModal({ onClose }) {
                       <div className="wrm-stat-sub">Last week: {reportData.evidence.last_week}</div>
                     </div>
                   </div>
+                  <div className="wrm-stat-box">
+                    <span className="wrm-stat-icon">📝</span>
+                    <div className="wrm-stat-info">
+                      <h3>Incidents Logged</h3>
+                      <div className="wrm-stat-val">{reportData.incidents.this_week}</div>
+                      <div className="wrm-stat-sub">Last week: {reportData.incidents.last_week}</div>
+                    </div>
+                  </div>
                 </div>
               </section>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
+                <section className="wrm-section" style={{ marginTop: '20px' }}>
+                  <h2>Top Cameras (Detections)</h2>
+                  <div className="wrm-table-wrapper">
+                    <table className="wrm-table">
+                      <thead>
+                        <tr>
+                          <th>Camera Name</th>
+                          <th>Alerts</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {reportData.alerts.top_cameras.length === 0 ? (
+                          <tr><td colSpan="2" className="wrm-table-empty">No detections this week</td></tr>
+                        ) : (
+                          reportData.alerts.top_cameras.map(c => (
+                            <tr key={c.camera}>
+                              <td style={{fontWeight: 'bold'}}>{c.camera}</td>
+                              <td>{c.count}</td>
+                            </tr>
+                          ))
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+                </section>
+
+                <section className="wrm-section" style={{ marginTop: '20px' }}>
+                  <h2>Behavior Breakdown</h2>
+                  <div className="wrm-table-wrapper">
+                    <table className="wrm-table">
+                      <thead>
+                        <tr>
+                          <th>Behavior Type</th>
+                          <th>Count</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {Object.entries(reportData.alerts.behavior_breakdown).length === 0 ? (
+                          <tr><td colSpan="2" className="wrm-table-empty">No behaviors detected</td></tr>
+                        ) : (
+                          Object.entries(reportData.alerts.behavior_breakdown).map(([beh, count]) => (
+                            <tr key={beh}>
+                              <td>{beh}</td>
+                              <td>{count}</td>
+                            </tr>
+                          ))
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+                </section>
+              </div>
 
               <section className="wrm-section">
                 <h2>Alert Resolution Status</h2>

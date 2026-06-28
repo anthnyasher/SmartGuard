@@ -4,7 +4,8 @@ import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext.jsx";
 import { getCameras } from "../api/cameraApi.js";
 import { getAlerts, getAnalytics } from "../api/alertApi.js";
-import { getIncidentCounts } from "../api/incidentApi.js";
+import { getIncidentCounts, getIncidents } from "../api/incidentApi.js";
+import { getEvidence } from "../api/evidenceApi.js";
 import { getSystemHealth, getFailedLoginsCount } from "../api/settingsApi.js";
 import NotificationBell from "../components/NotificationBell.jsx";
 import WeeklyReportModal from "./WeeklyReportModal.jsx";
@@ -92,6 +93,8 @@ function AdminDashboard() {
   const [activeAlerts, setActiveAlerts]     = useState(0);
   const [todayAlerts, setTodayAlerts]       = useState(0);
   const [recentAlerts, setRecentAlerts]     = useState([]);
+  const [recentIncidents, setRecentIncidents] = useState([]);
+  const [recentEvidence, setRecentEvidence]   = useState([]);
   const [severityCounts, setSeverityCounts] = useState({ CRITICAL: 0, HIGH: 0, MEDIUM: 0, LOW: 0 });
   const [loading, setLoading]               = useState(true);
   const [searchQuery, setSearchQuery]       = useState("");
@@ -109,13 +112,17 @@ function AdminDashboard() {
       try {
         const [
           cams, alerts, analyticsData,
-          incCountData, failedLoginsData, healthData
+          incCountData, failedLoginsData, healthData,
+          incidentsData, evidenceData
         ] = await Promise.all([
           getCameras(token), getAlerts(token), getAnalytics(token),
-          getIncidentCounts(token), getFailedLoginsCount(token), getSystemHealth(token)
+          getIncidentCounts(token), getFailedLoginsCount(token), getSystemHealth(token),
+          getIncidents(token), getEvidence(token)
         ]);
         const camList   = Array.isArray(cams)   ? cams   : (Array.isArray(cams?.results) ? cams.results : []);
         const alertList = Array.isArray(alerts) ? alerts : [];
+        const incList   = Array.isArray(incidentsData) ? incidentsData : [];
+        const evList    = Array.isArray(evidenceData) ? evidenceData : [];
         const online    = camList.filter(c => ["ONLINE","online"].includes(c.status)).length;
         const unreviewed = alertList.filter(a => a.status === "NEW").length;
         const today     = alertList.filter(a => {
@@ -129,6 +136,8 @@ function AdminDashboard() {
         setActiveAlerts(unreviewed);
         setTodayAlerts(today);
         setRecentAlerts(alertList.slice(0, 6));
+        setRecentIncidents(incList.slice(0, 5));
+        setRecentEvidence(evList.slice(0, 5));
         setSeverityCounts(counts);
         setAnalytics(analyticsData);
         
@@ -323,8 +332,7 @@ function AdminDashboard() {
               <section className="sg-card">
                 <div className="sg-card-header">
                   <h2 className="sg-card-title">Incident Summary</h2>
-                  {/* TODO: Link to /admin/incidents when built */}
-                  <button className="sg-view-all-btn">View All →</button>
+                  <Link to="/admin/incidents" className="sg-view-all-btn">View All →</Link>
                 </div>
                 <div className="sg-table-wrap">
                   <table className="sg-table">
@@ -332,12 +340,11 @@ function AdminDashboard() {
                       <tr><th>Time</th><th>Incident ID</th><th>Camera</th><th>Severity</th><th>Status</th><th>Action</th></tr>
                     </thead>
                     <tbody>
-                      {/* Placeholder for now until Incidents API is integrated */}
-                      {[]?.map(inc => (
+                      {recentIncidents.map(inc => (
                         <tr key={inc.id}>
-                          <td className="sg-td-mono">{inc.time}</td>
+                          <td className="sg-td-mono">{new Date(inc.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</td>
                           <td className="sg-td-bold">{inc.id}</td>
-                          <td>{inc.camera}</td>
+                          <td>{inc.alert_camera_name || `Camera ${inc.alert_camera_id}`}</td>
                           <td><span className={`sg-chip sg-sev-${inc.severity}`}>{inc.severity}</span></td>
                           <td>
                             <span className={`sg-chip sg-stat-${inc.status}`}>
@@ -345,10 +352,13 @@ function AdminDashboard() {
                             </span>
                           </td>
                           <td>
-                            <button className="sg-action-btn">View →</button>
+                            <Link to="/admin/incidents" className="sg-action-btn" style={{ textDecoration: 'none' }}>View →</Link>
                           </td>
                         </tr>
                       ))}
+                      {recentIncidents.length === 0 && (
+                        <tr><td colSpan="6" style={{textAlign: "center", padding: "20px", color: "var(--text-muted)"}}>No recent incidents</td></tr>
+                      )}
                     </tbody>
                   </table>
                 </div>
@@ -366,23 +376,25 @@ function AdminDashboard() {
                       <tr><th>Time</th><th>Camera</th><th>Incident</th><th>Size</th><th>Integrity</th><th>Action</th></tr>
                     </thead>
                     <tbody>
-                      {/* Placeholder for now until Evidence API is integrated */}
-                      {[]?.map((ev, i) => (
-                        <tr key={i}>
-                          <td className="sg-td-mono">{ev.timestamp}</td>
-                          <td className="sg-td-bold">{ev.camera}</td>
-                          <td>{ev.incident}</td>
-                          <td>{ev.size}</td>
+                      {recentEvidence.map(ev => (
+                        <tr key={ev.id}>
+                          <td className="sg-td-mono">{new Date(ev.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</td>
+                          <td className="sg-td-bold">{ev.camera_name || `Camera ${ev.camera_id}`}</td>
+                          <td>{ev.incident ? ev.incident : "—"}</td>
+                          <td>{(ev.file_size / (1024 * 1024)).toFixed(2)} MB</td>
                           <td>
                             <span className={`sg-chip ${ev.verified ? "sg-stat-REVIEWED" : "sg-stat-ESCALATED"}`}>
                               {ev.verified ? "✓ Verified" : "⚠ Unverified"}
                             </span>
                           </td>
                           <td>
-                            <button className="sg-action-btn" onClick={() => navigate("/admin/evidence")}>View</button>
+                            <Link to="/admin/evidence" className="sg-action-btn" style={{ textDecoration: 'none' }}>View</Link>
                           </td>
                         </tr>
                       ))}
+                      {recentEvidence.length === 0 && (
+                        <tr><td colSpan="6" style={{textAlign: "center", padding: "20px", color: "var(--text-muted)"}}>No recent evidence</td></tr>
+                      )}
                     </tbody>
                   </table>
                 </div>
