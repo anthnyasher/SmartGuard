@@ -17,9 +17,9 @@ TWILIO_FROM_NUMBER  = os.environ.get("TWILIO_FROM_NUMBER",  "")
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # ── Core ───────────────────────────────────────────────────────────────────────
-SECRET_KEY = 'django-insecure-^==a$(7@an64!0t!8y)-0tt))ibbz%^(nd34)38_7x4po8p*z%'
+SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', 'django-insecure-fallback-do-not-use-in-prod')
 DEBUG      = False
-ALLOWED_HOSTS = ["*"]
+ALLOWED_HOSTS = ["smartguard.54.206.184.54.nip.io", "54.206.184.54", "localhost", "127.0.0.1"]
 STREAM_BASE_URL = os.environ.get("STREAM_BASE_URL", "http://localhost:8001")
 
 # ── Apps ───────────────────────────────────────────────────────────────────────
@@ -102,7 +102,7 @@ DATABASES = {
         'ENGINE':   'django.db.backends.postgresql',
         'NAME':     os.environ.get('DATABASE_NAME', 'smartguard_db'),
         'USER':     os.environ.get('DATABASE_USER', 'smartguard'),
-        'PASSWORD': os.environ.get('DATABASE_PASSWORD', 'smgh123!'),
+        'PASSWORD': os.environ.get('DATABASE_PASSWORD', ''),
         'HOST':     os.environ.get('DATABASE_HOST', 'localhost'),
         'PORT':     os.environ.get('DATABASE_PORT', '5432'),
     }
@@ -165,13 +165,15 @@ SIMPLE_JWT = {
 }
 
 # ── CORS ──────────────────────────────────────────────────────────────────────
-CORS_ALLOW_ALL_ORIGINS = True
-CORS_ALLOW_CREDENTIALS = True
-
-CSRF_TRUSTED_ORIGINS = [
+CORS_ALLOW_ALL_ORIGINS = False
+CORS_ALLOWED_ORIGINS = [
     "https://smartguard.54.206.184.54.nip.io",
     "http://smartguard.54.206.184.54.nip.io",
+    "http://localhost:5173",
 ]
+CORS_ALLOW_CREDENTIALS = True
+
+# Duplicate CSRF removed
 
 CORS_ALLOW_METHODS = [
     "DELETE",
@@ -198,8 +200,14 @@ CSRF_TRUSTED_ORIGINS = [
 
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 USE_X_FORWARDED_HOST = True
-CSRF_COOKIE_SECURE = False
-SESSION_COOKIE_SECURE = False
+CSRF_COOKIE_SECURE = True
+SESSION_COOKIE_SECURE = True
+SESSION_COOKIE_HTTPONLY = True
+CSRF_COOKIE_HTTPONLY = True
+SECURE_HSTS_SECONDS = 31536000
+SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+SECURE_CONTENT_TYPE_NOSNIFF = True
+X_FRAME_OPTIONS = 'DENY'
 
 # ── Login redirects (DRF browsable API) ───────────────────────────────────────
 LOGIN_REDIRECT_URL = '/api/alerts/'
@@ -211,13 +219,15 @@ EMAIL_HOST          = 'smtp.gmail.com'
 EMAIL_PORT          = 587
 EMAIL_USE_TLS       = True
 EMAIL_HOST_USER     = 'smartguardalerts01@gmail.com'
-EMAIL_HOST_PASSWORD = 'umjtbgnkstmdqkad'
+EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD', '')
 DEFAULT_FROM_EMAIL  = EMAIL_HOST_USER
 
 # ── Dev debug prints (remove in production) ───────────────────────────────────
-print(">>> USING SETTINGS FROM:", __file__)
-print(">>> LOGIN_REDIRECT_URL =", LOGIN_REDIRECT_URL)
-print(">>> LOGIN_URL =", LOGIN_URL)
+import logging
+logger = logging.getLogger(__name__)
+logger.debug(f">>> USING SETTINGS FROM: {__file__}")
+logger.debug(f">>> LOGIN_REDIRECT_URL = {LOGIN_REDIRECT_URL}")
+logger.debug(f">>> LOGIN_URL = {LOGIN_URL}")
 
 # (timedelta already imported at top)
 
@@ -244,6 +254,10 @@ MEDIA_URL  = "/media/"
 # AES-256 encryption key: set a 64-char hex string in env for production.
 # Falls back to PBKDF2 derivation from SECRET_KEY if not provided.
 EVIDENCE_ENCRYPTION_KEY  = os.environ.get("EVIDENCE_ENCRYPTION_KEY", "")
-EVIDENCE_CLIP_DURATION   = 10       # seconds per clip
+EVIDENCE_CLIP_DURATION   = 15       # seconds per clip
 EVIDENCE_RETENTION_HOURS = 48       # hours before unreviewed clips auto-delete
 EVIDENCE_CLIPS_DIR       = BASE_DIR / "media" / "evidence_clips"
+
+# Allow up to 50MB for video uploads from the worker
+DATA_UPLOAD_MAX_MEMORY_SIZE = 52428800
+FILE_UPLOAD_MAX_MEMORY_SIZE = 52428800

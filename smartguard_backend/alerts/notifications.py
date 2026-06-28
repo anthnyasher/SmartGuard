@@ -22,5 +22,5 @@ def send_email_notification(subject, message, to_list):
         message,
         settings.DEFAULT_FROM_EMAIL,
         to_list,
-        fail_silently=False,
+        fail_silently=True,
     )

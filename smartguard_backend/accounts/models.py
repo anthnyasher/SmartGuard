@@ -59,14 +59,27 @@ class CustomUser(AbstractUser):
         """Kept for API compatibility.  Always returns 0 (lock is permanent)."""
         return 0
 
+    @classmethod
+    def max_attempts(cls):
+        """
+        Failed-login limit from Settings -> Security (SystemConfig.max_failed_logins),
+        falling back to MAX_ATTEMPTS if the config row is unavailable.
+        """
+        try:
+            from config.models import SystemConfig
+            val = SystemConfig.get_solo().max_failed_logins
+            return val if val and val > 0 else cls.MAX_ATTEMPTS
+        except Exception:
+            return cls.MAX_ATTEMPTS
+
     def record_failed_attempt(self):
         """
         Increment failure counter.
-        Locks the account permanently once MAX_ATTEMPTS is reached.
+        Locks the account permanently once the configured limit is reached.
         """
         self.failed_login_attempts += 1
         self.last_failed_login     = timezone.now()
-        if self.failed_login_attempts >= self.MAX_ATTEMPTS:
+        if self.failed_login_attempts >= self.max_attempts():
             self.is_locked = True
         self.save(update_fields=['failed_login_attempts', 'last_failed_login', 'is_locked'])
 
@@ -90,7 +103,7 @@ class CustomUser(AbstractUser):
         return was_new_ip
 
     def attempts_remaining(self):
-        return max(0, self.MAX_ATTEMPTS - self.failed_login_attempts)
+        return max(0, self.max_attempts() - self.failed_login_attempts)
 
     def _clear_lockout(self, save=True):
         self.is_locked             = False
@@ -134,7 +147,8 @@ class OTPToken(models.Model):
         then generates a fresh 6-digit code.
         """
         cls.objects.filter(user=user, token_type=token_type, used=False).update(used=True)
-        code       = f"{random.randint(0, 999999):06d}"
+        import secrets
+        code       = f"{secrets.randbelow(1000000):06d}"
         expires_at = timezone.now() + timedelta(minutes=cls.OTP_LIFETIME_MINUTES)
         return cls.objects.create(
             user=user, token_type=token_type,
@@ -148,3 +162,29 @@ class OTPToken(models.Model):
     def __str__(self):
         status = 'used' if self.used else ('expired' if not self.is_valid() else 'valid')
         return f"OTP({self.user.username}, {self.token_type}, {status})"
+
+# ── Camera Access Requests ───────────────────────────────────────────────────
+# Used for STAFF role to request temporary CCTV access from Managers
+# FRS implementation for temporary 30-minute CCTV access
+
+class CameraAccessRequest(models.Model):
+    STATUS_CHOICES = [
+        ('PENDING', 'Pending'),
+        ('APPROVED', 'Approved'),
+        ('DENIED', 'Denied'),
+        ('EXPIRED', 'Expired'),
+    ]
+
+    staff_user   = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='access_requests')
+    status       = models.CharField(max_length=20, choices=STATUS_CHOICES, default='PENDING')
+    requested_at = models.DateTimeField(auto_now_add=True)
+    expires_at   = models.DateTimeField(null=True, blank=True)
+
+    def is_active(self):
+        """Returns True if approved and currently active (not expired)."""
+        if self.status != 'APPROVED' or not self.expires_at:
+            return False
+        return timezone.now() < self.expires_at
+
+    def __str__(self):
+        return f"AccessRequest({self.staff_user.username}, {self.status})"

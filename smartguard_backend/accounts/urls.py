@@ -17,10 +17,11 @@ from .views import (
     unlock_user_account,
     toggle_user_active,
     dpa_consent_view,
+    account_confirmation_view,
 )
 
 urlpatterns = [
-    # ── Authentication ─────────────────────────────────────────────────────────
+    # ── Authentication ──────────────────────────────────────────────────────────
     path("auth/login/",                   login_view,                   name="login"),
     path("auth/logout/",                  logout_view,                  name="logout"),
     path("auth/verify-otp/",             verify_otp_view,              name="verify-otp"),
@@ -30,6 +31,7 @@ urlpatterns = [
     path("auth/register/",               RegisterView.as_view(),       name="register"),
     path("auth/me/",                     UserProfileView.as_view(),    name="user-profile"),
     path("auth/consent/",                dpa_consent_view,             name="dpa-consent"),
+    path("auth/confirm-account/<str:token>/", account_confirmation_view, name="confirm-account"),
 
     # ── Admin: User Management ─────────────────────────────────────────────────
     path("users/",                         UsersListCreateView.as_view(), name="user-list-create"),

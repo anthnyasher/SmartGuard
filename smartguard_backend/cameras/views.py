@@ -58,7 +58,7 @@ def _get_source(camera: Camera):
 # that key in a loop and yields MJPEG chunks.  It never opens a
 # VideoCapture itself, so there is no webcam lock conflict.
 
-STREAM_FPS = 15   # target FPS for the MJPEG stream
+STREAM_FPS = 30   # target FPS for the MJPEG stream (matches detection_worker PUBLISH_FPS)
 
 def _mjpeg_from_redis(cam_id):
     """
@@ -163,3 +163,153 @@ def camera_stream_status(request, pk):
         "reachable": reachable,
         "source":    str(_get_source(camera)),
     })
+# -- Access Requests (Staff Workflow) ------------------------------------------
+
+from accounts.models import CameraAccessRequest
+from django.utils import timezone
+from datetime import timedelta
+
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
+def request_camera_access(request):
+    """Staff requests temporary CCTV access."""
+    if request.user.role != "STAFF":
+        return Response({"error": "Only staff can request access"}, status=403)
+    
+    active = CameraAccessRequest.objects.filter(
+        staff_user=request.user, 
+        status__in=["PENDING", "APPROVED"]
+    ).first()
+    
+    if active:
+        if active.is_active():
+            return Response({"error": "You already have active access"}, status=400)
+        elif active.status == "PENDING":
+            if timezone.now() > active.requested_at + timedelta(minutes=5):
+                active.status = "EXPIRED"
+                active.save()
+            else:
+                return Response({"error": "You already have a pending request"}, status=400)
+
+    req = CameraAccessRequest.objects.create(staff_user=request.user)
+
+    # Log the action
+    from logging_info.utils import log_audit
+    log_audit(
+        action="CAMERA_ACCESS_REQUESTED",
+        message=f"{request.user.username} requested temporary camera access",
+        category="SECURITY",
+        level="INFO",
+        user=request.user,
+        request=request,
+    )
+
+    return Response({"message": "Access requested", "id": req.id})
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def list_access_requests(request):
+    """Manager views pending access requests."""
+    if request.user.role not in ["ADMIN", "OPS_MANAGER"]:
+        return Response({"error": "Unauthorized"}, status=403)
+    
+    expiry_time = timezone.now() - timedelta(minutes=5)
+    CameraAccessRequest.objects.filter(status="PENDING", requested_at__lt=expiry_time).update(status="EXPIRED")
+    
+    pending = CameraAccessRequest.objects.filter(status="PENDING").order_by("-requested_at")
+    data = []
+    for p in pending:
+        data.append({
+            "id": p.id,
+            "staff_id": p.staff_user.id,
+            "staff_name": p.staff_user.username,
+            "requested_at": p.requested_at
+        })
+    return Response(data)
+
+from logging_info.utils import log_audit
+
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
+def approve_access_request(request, pk):
+    """Manager approves a request, granting 30-minute access."""
+    if request.user.role not in ["ADMIN", "OPS_MANAGER"]:
+        return Response({"error": "Unauthorized"}, status=403)
+    
+    try:
+        req = CameraAccessRequest.objects.get(pk=pk, status="PENDING")
+    except CameraAccessRequest.DoesNotExist:
+        return Response({"error": "Request not found or already processed"}, status=404)
+        
+    req.status = "APPROVED"
+    req.expires_at = timezone.now() + timedelta(minutes=30)
+    req.save()
+
+    # Log the action
+    log_audit(
+        action="CAMERA_ACCESS_GRANTED",
+        message=f"{request.user.username} granted 30-minute camera access to {req.staff_user.username}",
+        category="SECURITY",
+        level="INFO",
+        user=request.user,
+        request=request,
+    )
+
+    return Response({"message": "Access granted for 30 minutes"})
+
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
+def deny_access_request(request, pk):
+    """Manager denies a request."""
+    if request.user.role not in ["ADMIN", "OPS_MANAGER"]:
+        return Response({"error": "Unauthorized"}, status=403)
+    
+    try:
+        req = CameraAccessRequest.objects.get(pk=pk, status="PENDING")
+    except CameraAccessRequest.DoesNotExist:
+        return Response({"error": "Request not found or already processed"}, status=404)
+        
+    req.status = "DENIED"
+    req.save()
+
+    # Log the action
+    log_audit(
+        action="CAMERA_ACCESS_DENIED",
+        message=f"{request.user.username} denied camera access to {req.staff_user.username}",
+        category="SECURITY",
+        level="INFO",
+        user=request.user,
+        request=request,
+    )
+
+    return Response({"message": "Access denied"})
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def check_my_access(request):
+    """Staff checks if they have active access."""
+    active = CameraAccessRequest.objects.filter(
+        staff_user=request.user, 
+        status="APPROVED"
+    ).order_by("-expires_at").first()
+    
+    if active and active.is_active():
+        return Response({
+            "has_access": True,
+            "expires_at": active.expires_at
+        })
+        
+    pending = CameraAccessRequest.objects.filter(
+        staff_user=request.user, 
+        status="PENDING"
+    ).first()
+    
+    if pending:
+        if timezone.now() > pending.requested_at + timedelta(minutes=5):
+            pending.status = "EXPIRED"
+            pending.save()
+            return Response({"has_access": False, "status": "EXPIRED"})
+        return Response({"has_access": False, "status": "PENDING", "requested_at": pending.requested_at})
+        
+    return Response({"has_access": False, "status": "NONE"})
+

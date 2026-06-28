@@ -1,13 +1,13 @@
 // src/App.jsx
 import { Routes, Route, Navigate } from "react-router-dom";
 import LoginPage from "./pages/LoginPage.jsx";
+import ConfirmAccountPage from "./pages/ConfirmAccountPage.jsx";
 import { useAuth } from "./context/AuthContext.jsx";
 import AdminDashboard from "./pages/AdminDashboard.jsx";
 import OpsDashboard from "./pages/OpsDashboard.jsx";
 import OpsLivePage from "./pages/OpsLivePage.jsx";
 import OpsAlertsPage from "./pages/OpsAlertPage.jsx";
 import { OpsEvidencePage } from "./pages/OpsLivePage.jsx";
-import StaffDashboard from "./pages/StaffDashboard.jsx";
 import LiveMonitoring from "./pages/LiveMonitoring.jsx";
 import WeeklyReport from "./pages/WeeklyReport.jsx";
 import CameraManagement from "./pages/CameraManagement";
@@ -59,6 +59,7 @@ export default function App() {
   return (
     <Routes>
       <Route path="/login" element={<LoginPage />} />
+      <Route path="/confirm-account/:token" element={<ConfirmAccountPage />} />
 
       {/* ── Admin routes ────────────────────────────────────────────────── */}
       <Route path="/admin" element={<Navigate to="/admin/dashboard" replace />} />
@@ -84,11 +85,11 @@ export default function App() {
       <Route path="/ops/dashboard" element={<RequireAuth allowedRoles={OPS_ROLES}><OpsDashboard /></RequireAuth>} />
       <Route path="/ops/live" element={<RequireAuth allowedRoles={OPS_ROLES}><OpsLivePage /></RequireAuth>} />
       <Route path="/ops/alerts" element={<RequireAuth allowedRoles={OPS_ROLES}><OpsAlertsPage /></RequireAuth>} />
-      <Route path="/ops/evidence" element={<RequireAuth allowedRoles={OPS_ROLES}><OpsEvidencePage /></RequireAuth>} />
+      <Route path="/ops/evidence" element={<RequireAuth allowedRoles={OPS_ROLES}><EvidenceVault /></RequireAuth>} />
 
       {/* ── Staff routes ────────────────────────────────────────────────── */}
       <Route path="/staff/dashboard"
-        element={<RequireAuth allowedRoles={STAFF_ROLES}><StaffDashboard /></RequireAuth>}
+        element={<RequireAuth allowedRoles={STAFF_ROLES}><OpsAlertsPage /></RequireAuth>}
       />
       <Route path="/staff/live"
         element={<RequireAuth allowedRoles={STAFF_ROLES}><OpsLivePage /></RequireAuth>}

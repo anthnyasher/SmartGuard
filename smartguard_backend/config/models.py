@@ -35,7 +35,6 @@ class SystemConfig(models.Model):
     frame_rate = models.IntegerField(default=15)
     confidence_threshold = models.IntegerField(default=65)  # percentage (10-99)
     loitering_duration = models.IntegerField(default=60)  # seconds
-    concealment_zones = models.JSONField(default=list, blank=True)
     enabled_behaviors = models.JSONField(
         default=dict,
         blank=True,

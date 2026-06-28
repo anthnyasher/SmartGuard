@@ -18,10 +18,22 @@ def email_on_critical_alert(sender, instance: Alert, created, **kwargs):
     if not created:
         return
 
-    # Only for shoplifting alerts
-    # Only for high-severity alerts
-    if instance.severity not in ["HIGH", "CRITICAL"]:
-        return
+    # Respect dashboard notification settings (Settings -> Notifications).
+    try:
+        from config.models import SystemConfig
+        cfg = SystemConfig.get_solo()
+        if not cfg.email_alerts_enabled:
+            return
+        notify_map = {
+            "CRITICAL": cfg.notify_on_critical, "HIGH": cfg.notify_on_high,
+            "MEDIUM": cfg.notify_on_medium, "LOW": cfg.notify_on_low,
+        }
+        if not notify_map.get(instance.severity, False):
+            return
+    except Exception:
+        # Config unavailable — fall back to the original high-severity-only behavior
+        if instance.severity not in ["HIGH", "CRITICAL"]:
+            return
 
     # Collect recipient emails from active Staff and Operations Managers
        # Build subject
@@ -37,7 +49,7 @@ def email_on_critical_alert(sender, instance: Alert, created, **kwargs):
 
     ops_emails = list(
         CustomUser.objects.filter(
-            role="OPERATIONS_MANAGER", is_active=True
+            role="OPS_MANAGER", is_active=True
         ).exclude(email="").values_list("email", flat=True)
     )
 

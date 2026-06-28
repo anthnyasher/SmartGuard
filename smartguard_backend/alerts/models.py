@@ -11,6 +11,7 @@ class Alert(models.Model):
         ("CONCEALMENT", "Concealment"),
         ("RAPID_EXIT", "Rapid Exit"),
         ("SHOPLIFTING", "Shoplifting"),
+        ("MANUAL_TRIGGER", "Manual Trigger"),
     ]
 
     SEVERITY_CHOICES = [
@@ -70,16 +71,6 @@ class Alert(models.Model):
         blank=True,
         on_delete=models.SET_NULL,
         related_name="assigned_alerts",
-    )
-
-    acknowledged = models.BooleanField(default=False)
-    acknowledged_at = models.DateTimeField(null=True, blank=True)
-    acknowledged_by = models.ForeignKey(
-        User,
-        null=True,
-        blank=True,
-        on_delete=models.SET_NULL,
-        related_name="acknowledged_alerts",
     )
 
     reviewed_by = models.ForeignKey(

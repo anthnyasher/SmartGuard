@@ -1,6 +1,6 @@
 // src/api/authApi.js
 
-const BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8000";
+const BASE_URL = import.meta.env.VITE_API_BASE_URL || "https://smartguard.54.206.184.54.nip.io";
 
 // ── Login ─────────────────────────────────────────────────────────────────────
 export async function loginApi(identifier, password, captchaToken) {
@@ -126,4 +126,37 @@ export async function refreshTokenApi(refreshToken) {
     throw err;
   }
   return res.json();
+}
+
+// ── Account Confirmation ──────────────────────────────────────────────────────
+export async function getConfirmationDetails(token) {
+  const res = await fetch(`${BASE_URL}/api/auth/confirm-account/${token}/`, {
+    method: "GET",
+  });
+  let data = {};
+  try { data = await res.json(); } catch { /* empty */ }
+
+  if (!res.ok) {
+    const err = new Error(data?.detail || "Failed to get confirmation details");
+    err.response = { status: res.status, data };
+    throw err;
+  }
+  return data;
+}
+
+export async function submitConfirmation(token, action) {
+  const res = await fetch(`${BASE_URL}/api/auth/confirm-account/${token}/`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ action }),
+  });
+  let data = {};
+  try { data = await res.json(); } catch { /* empty */ }
+
+  if (!res.ok) {
+    const err = new Error(data?.detail || `Failed to ${action} account`);
+    err.response = { status: res.status, data };
+    throw err;
+  }
+  return data;
 }

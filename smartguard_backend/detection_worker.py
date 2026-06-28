@@ -8,11 +8,6 @@ import sys
 import time
 import threading
 import logging
-import os
-import sys
-import time
-import threading
-import logging
 import base64
 import json
 import collections
@@ -23,6 +18,60 @@ import numpy as np
 import torch
 import warnings
 warnings.filterwarnings("ignore", category=FutureWarning)
+
+# ── SSH Tunnel Manager (Auto-Reconnect) ───────────────────────────────────────
+def start_ssh_tunnel():
+    """Maintains the SSH tunnel to the AWS server for DB and Redis if running locally."""
+    # Only run on Windows (the local worker laptop)
+    if os.name != "nt":
+        return
+
+    import subprocess
+    import threading
+    import time
+    
+    # Set up basic logging if it hasn't been set up yet
+    logger = logging.getLogger("TunnelManager")
+
+    def tunnel_monitor():
+        logger.info("Starting SSH Tunnel Manager in background...")
+        while True:
+            # We use ServerAliveInterval to ensure the ssh process exits if connection drops
+            cmd = [
+                "ssh", 
+                "-i", r"C:\Users\asher\Downloads\smartguard-key.pem", 
+                "-N", 
+                "-o", "ServerAliveInterval=15", 
+                "-o", "ServerAliveCountMax=3",
+                "-o", "StrictHostKeyChecking=no",
+                "-L", "5433:localhost:5432", 
+                "-L", "6380:localhost:6379", 
+                "ubuntu@54.206.184.54"
+            ]
+            
+            try:
+                # Run the SSH command
+                process = subprocess.Popen(
+                    cmd, 
+                    stdout=subprocess.DEVNULL, 
+                    stderr=subprocess.DEVNULL
+                )
+                
+                # Wait for process to exit (it shouldn't normally, unless connection drops)
+                process.wait()
+                logger.warning("SSH tunnel disconnected (exit code %s). Reconnecting in 3 seconds...", process.returncode)
+            except Exception as e:
+                logger.error("Failed to start SSH tunnel process: %s", e)
+            
+            time.sleep(3)
+
+    t = threading.Thread(target=tunnel_monitor, daemon=True)
+    t.start()
+    
+    # Give the tunnel 2.5 seconds to establish local port bindings before Django attempts to connect to DB
+    time.sleep(2.5)
+
+start_ssh_tunnel()
 
 # ── Django setup ──────────────────────────────────────────────────────────────
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "smartguard_backend.settings")
@@ -62,11 +111,36 @@ TARGET_CLASS         = "shoplifting"   # Class name in custom best.pt model
 CLIP_DURATION        = 30         # MAX seconds of video to capture per evidence clip (Pre-roll buffer)
 AUTO_EVIDENCE        = True
 ENABLED_BEHAVIORS    = {}
+# Notification toggles (Settings -> Notifications), reloaded live from the DB.
+EMAIL_ALERTS_ENABLED = True
+SMS_ALERTS_ENABLED   = False
+NOTIFY_ON            = {"CRITICAL": True, "HIGH": True, "MEDIUM": False, "LOW": False}
 SHOW_PREVIEW         = False      # local cv2 window — keep False on Windows (big FPS hit); view via web dashboard instead
-REDIS_PUBLISH_SKIP   = 5          # publish to Redis every N non-inference frames
 JPEG_QUALITY         = 50         # JPEG quality for Redis stream (lower = less bandwidth)
+PUBLISH_FPS          = 30         # live-feed frame rate pushed to Redis (decoupled from detection rate)
 CAPTURE_WIDTH        = 640        # downscale webcam capture width
 CAPTURE_HEIGHT       = 480        # downscale webcam capture height
+
+# ── Multi-behavior detection (tracking-based) ──────────────────────────────────
+# Ultralytics tracking (ByteTrack) assigns each person a stable ID, so we can
+# reason about behavior over TIME instead of per single frame:
+#   SHOPLIFTING  (== concealment) : model "shoplifting" class, confirmed across
+#                                   several frames + a high-confidence opener.
+#   LOITERING                     : a tracked person present longer than the
+#                                   dwell threshold (Settings → loitering_duration).
+#   RAPID_EXIT  (running/outburst): a tracked person moving fast (velocity) or
+#                                   the model "running" class, sustained briefly.
+import math
+TRACKER_CFG          = "bytetrack.yaml"
+SHOPLIFT_START_CONF  = 0.80       # need one hit >= this to OPEN a shoplifting alert
+SHOPLIFT_WINDOW      = 5          # consider the last N inference frames per track
+SHOPLIFT_MIN_HITS    = 3          # require >= this many shoplifting hits in the window
+LOITERING_SECONDS    = 20         # dwell seconds before a track counts as loitering (DB-overridden)
+RUN_SPEED            = 0.45       # normalized centroid speed (frame-diagonals/sec) => running
+RUN_MIN_FRAMES       = 3          # sustain running this many tracked frames before alerting
+TRACK_STALE_SECONDS  = 5.0        # forget a track not seen for this long
+RUNNING_CLASS        = "running"  # model class name for the running pose
+_SEVERITY_RANK       = {"LOW": 1, "MEDIUM": 2, "HIGH": 3, "CRITICAL": 4}
 
 # ── Motion gate (power saving) ────────────────────────────────────────────────
 # When the scene is static (empty store, nobody around) the worker skips the
@@ -196,6 +270,10 @@ _camera_fps: dict = {}      # {camera_id: float}
 # Holds the previous downscaled grayscale frame per camera for frame-differencing.
 _prev_gray: dict = {}       # {camera_id: np.ndarray}
 
+# Most recent detection state per camera, so frames where YOLO didn't run can
+# still render a consistent HUD overlay on the live feed.
+_last_hud_state: dict = {}   # {camera_id: (detection_dict_or_None, best_conf)}
+
 def detect_motion(camera_id: int, frame_bgr) -> bool:
     """
     Cheap frame-difference motion check used to gate YOLO inference.
@@ -222,18 +300,104 @@ def detect_motion(camera_id: int, frame_bgr) -> bool:
     ratio   = changed / float(gray.shape[0] * gray.shape[1])
     return ratio >= MOTION_MIN_AREA_RATIO
 
+
+# ── Per-track behavior state (tracking-based behaviors) ────────────────────────
+# _tracks[cam_id][track_id] = {first_seen, last_seen, centroid, frames,
+#                              shoplift(deque), shoplift_open(bool), run_frames(int)}
+_tracks: dict = {}
+
+def _behavior_enabled(behavior: str) -> bool:
+    """Respect the dashboard's per-behavior on/off toggles (default ON)."""
+    return not (ENABLED_BEHAVIORS and ENABLED_BEHAVIORS.get(behavior) is False)
+
+def analyze_tracks(cam_id: int, results, frame_shape, now: float):
+    """
+    Update per-track state from one tracked inference result and decide which
+    behaviors are firing for this camera right now.
+
+    Returns (fired, live_shoplift_conf) where `fired` is {behavior_type: confidence}
+    for behaviors active THIS frame. Detection is per track; alerts are
+    deduplicated per (camera, behavior) by handle_detection downstream.
+    """
+    cam_tracks = _tracks.setdefault(cam_id, {})
+    fired: dict = {}
+    live_conf = 0.0
+
+    h, w = frame_shape[:2]
+    diag = math.hypot(w, h) or 1.0
+
+    boxes = results.boxes
+    have = boxes is not None and boxes.id is not None and len(boxes) > 0
+
+    if have:
+        names = getattr(results, "names", {})
+        ids   = boxes.id.int().tolist()
+        clses = boxes.cls.int().tolist()
+        confs = boxes.conf.tolist()
+        xywh  = boxes.xywh.tolist()
+        for tid, cls_id, conf, (cx, cy, bw, bh) in zip(ids, clses, confs, xywh):
+            cls_name = str(names.get(cls_id, cls_id)).lower()
+            st = cam_tracks.get(tid)
+            if st is None:
+                st = {"first_seen": now, "last_seen": now, "centroid": (cx, cy),
+                      "frames": 0, "shoplift": collections.deque(maxlen=SHOPLIFT_WINDOW),
+                      "shoplift_open": False, "run_frames": 0}
+                cam_tracks[tid] = st
+
+            dt = max(now - st["last_seen"], 1e-3)
+            px, py = st["centroid"]
+            speed = math.hypot(cx - px, cy - py) / diag / dt
+            st["centroid"]  = (cx, cy)
+            st["last_seen"] = now
+            st["frames"]   += 1
+            dwell = now - st["first_seen"]
+
+            # SHOPLIFTING: window confirmation + high-confidence opener (hysteresis)
+            if _behavior_enabled("SHOPLIFTING"):
+                if cls_name == TARGET_CLASS:
+                    live_conf = max(live_conf, conf)
+                is_hit = (cls_name == TARGET_CLASS and conf >= CONFIDENCE_THRESHOLD)
+                st["shoplift"].append((is_hit, conf if is_hit else 0.0))
+                hits = [c for ok, c in st["shoplift"] if ok]
+                if len(hits) >= SHOPLIFT_MIN_HITS:
+                    peak = max(hits)
+                    if st["shoplift_open"] or peak >= SHOPLIFT_START_CONF:
+                        st["shoplift_open"] = True
+                        fired["SHOPLIFTING"] = max(fired.get("SHOPLIFTING", 0.0), peak)
+                elif not hits:
+                    st["shoplift_open"] = False
+
+            # RAPID_EXIT: fast movement OR running pose, sustained a few frames
+            if _behavior_enabled("RAPID_EXIT") and conf >= CONFIDENCE_THRESHOLD:
+                running_now = speed >= RUN_SPEED or cls_name == RUNNING_CLASS
+                st["run_frames"] = st["run_frames"] + 1 if running_now else 0
+                if st["run_frames"] >= RUN_MIN_FRAMES:
+                    fired["RAPID_EXIT"] = max(fired.get("RAPID_EXIT", 0.0), min(0.99, conf))
+
+            # LOITERING: continuous presence beyond the dwell threshold
+            if _behavior_enabled("LOITERING") and conf >= CONFIDENCE_THRESHOLD and dwell >= LOITERING_SECONDS:
+                fired["LOITERING"] = max(fired.get("LOITERING", 0.0), min(0.99, conf))
+
+    # forget stale tracks (ByteTrack retires IDs; drop our state too)
+    for tid in [t for t, s in cam_tracks.items() if now - s["last_seen"] > TRACK_STALE_SECONDS]:
+        del cam_tracks[tid]
+
+    return fired, live_conf
+
+
 def handle_detection(camera: Camera, behavior_type: str, confidence: float,
                      frame_bgr=None):
     """Create or update the active incident alert for this camera."""
     now    = datetime.now(timezone.utc)
     cam_id = camera.id
-    state  = _incidents.get(cam_id)
+    key    = (cam_id, behavior_type)   # one active incident per (camera, behavior)
+    state  = _incidents.get(key)
 
     if state is None:
         severity = map_confidence_to_severity(behavior_type, confidence)
         alert_id = save_alert(camera, behavior_type, confidence, severity,
                               frame_bgr=frame_bgr)
-        _incidents[cam_id] = {
+        _incidents[key] = {
             "alert_id": alert_id,
             "last_seen": now,
             "max_conf": confidence,
@@ -261,11 +425,11 @@ def cleanup_incidents():
     """Expire incidents that haven't been seen for INCIDENT_TIMEOUT seconds."""
     now = datetime.now(timezone.utc)
     expired = [
-        cam_id for cam_id, s in _incidents.items()
+        key for key, s in _incidents.items()
         if (now - s["last_seen"]).total_seconds() > INCIDENT_TIMEOUT
     ]
-    for cam_id in expired:
-        del _incidents[cam_id]
+    for key in expired:
+        del _incidents[key]
 
 
 # ── WebSocket push ────────────────────────────────────────────────────────────
@@ -407,6 +571,12 @@ def send_alert_email(camera_name: str, behavior_type: str,
             ).exclude(phone_number="").values_list("phone_number", flat=True)
         )
 
+        # Respect dashboard channel toggles (Settings -> Notifications)
+        if not EMAIL_ALERTS_ENABLED:
+            ops_emails = staff_emails = []
+        if not SMS_ALERTS_ENABLED:
+            sms_numbers = []
+
         # ── Email: OPS + ADMIN — full technical details ───────────────────────
         if ops_emails:
             ops_subject = (
@@ -485,10 +655,17 @@ def _text(img, text, pos, scale, color, thickness=1, shadow=True):
 
 
 def _filled_rect(img, x1, y1, x2, y2, color, alpha=0.55):
-    """Semi-transparent filled rectangle."""
-    overlay = img.copy()
-    cv2.rectangle(overlay, (x1, y1), (x2, y2), color, -1)
-    cv2.addWeighted(overlay, alpha, img, 1 - alpha, 0, img)
+    """Semi-transparent filled rectangle — ROI-only blend to avoid full-frame copy."""
+    h_img, w_img = img.shape[:2]
+    # Clamp to image bounds
+    rx1, ry1 = max(x1, 0), max(y1, 0)
+    rx2, ry2 = min(x2, w_img), min(y2, h_img)
+    if rx2 <= rx1 or ry2 <= ry1:
+        return
+    roi = img[ry1:ry2, rx1:rx2]
+    overlay_roi = roi.copy()
+    cv2.rectangle(overlay_roi, (0, 0), (rx2 - rx1, ry2 - ry1), color, -1)
+    cv2.addWeighted(overlay_roi, alpha, roi, 1 - alpha, 0, roi)
 
 
 def draw_hud(frame: np.ndarray, cam_name: str, fps: float,
@@ -503,7 +680,7 @@ def draw_hud(frame: np.ndarray, cam_name: str, fps: float,
     }                                   → active detection state
     """
     h, w = frame.shape[:2]
-    out  = frame.copy()
+    out  = frame  # draw in-place — caller must pass a frame it's OK to mutate
 
     # ── Top bar — camera name + timestamp + FPS ──────────────────────────────
     bar_h = 38
@@ -680,9 +857,9 @@ def redis_publisher_thread():
             except Exception as e:
                 log.warning("Redis background publish failed for Cam %s: %s", cam_id, e)
         
-        # Sleep briefly to cap the publish rate at roughly ~10 FPS to save bandwidth
-        # (Dashboard streams don't need 30 FPS)
-        time.sleep(0.1)
+        # Pace the publisher to PUBLISH_FPS. This is the frame rate the dashboard
+        # live feed actually shows, independent of how often YOLO runs.
+        time.sleep(1.0 / PUBLISH_FPS)
 
 # ── Threaded Camera ───────────────────────────────────────────────────────────
 class ThreadedCamera:
@@ -809,14 +986,21 @@ def camera_worker(camera: Camera):
                 from config.models import SystemConfig
                 try:
                     sc = SystemConfig.get_solo()
-                    global CONFIDENCE_THRESHOLD, FRAME_SKIP, INCIDENT_TIMEOUT, AUTO_EVIDENCE, ENABLED_BEHAVIORS, MOTION_GATE_ENABLED
+                    global CONFIDENCE_THRESHOLD, FRAME_SKIP, LOITERING_SECONDS, AUTO_EVIDENCE, ENABLED_BEHAVIORS, MOTION_GATE_ENABLED, EMAIL_ALERTS_ENABLED, SMS_ALERTS_ENABLED, NOTIFY_ON
                     CONFIDENCE_THRESHOLD = sc.confidence_threshold / 100.0
                     if sc.frame_rate > 0:
                         FRAME_SKIP = max(1, 30 // sc.frame_rate)
-                    INCIDENT_TIMEOUT = sc.loitering_duration
+                    # loitering_duration now drives actual loitering dwell time
+                    LOITERING_SECONDS = sc.loitering_duration
                     AUTO_EVIDENCE = sc.auto_create_evidence
                     ENABLED_BEHAVIORS = sc.enabled_behaviors
                     MOTION_GATE_ENABLED = sc.motion_gated_detection
+                    EMAIL_ALERTS_ENABLED = sc.email_alerts_enabled
+                    SMS_ALERTS_ENABLED = sc.sms_alerts_enabled
+                    NOTIFY_ON = {
+                        "CRITICAL": sc.notify_on_critical, "HIGH": sc.notify_on_high,
+                        "MEDIUM": sc.notify_on_medium, "LOW": sc.notify_on_low,
+                    }
                     if sc.clip_duration > 0:
                         CLIP_DURATION = sc.clip_duration
                 except Exception as e:
@@ -830,8 +1014,9 @@ def camera_worker(camera: Camera):
 
             frame_count += 1
 
-            # ── Append frame to rolling evidence buffer
-            frame_buffer.append((time.time(), frame.copy()))
+            # ── Append frame to rolling evidence buffer (every 3rd frame to save CPU)
+            if frame_count % 3 == 0:
+                frame_buffer.append((time.time(), frame.copy()))
 
             # FPS tracking
             elapsed = time.time() - fps_timer
@@ -858,9 +1043,15 @@ def camera_worker(camera: Camera):
             # ── FRAME_SKIP — only run inference every N frames ────────────────
             inference_count += 1                        # ← fix A
             if inference_count % FRAME_SKIP != 0:
-                # Throttle Redis publishes on skipped frames to reduce network load
-                if inference_count % REDIS_PUBLISH_SKIP == 0:
-                    publish_frame_to_redis(cam_id, frame)
+                # Detection runs every FRAME_SKIP frames, but render the live feed
+                # on EVERY frame so it stays smooth. Reuse the latest detection
+                # state for the HUD overlay.
+                det, lconf = _last_hud_state.get(cam_id, (None, 0.0))
+                publish_frame_to_redis(
+                    cam_id,
+                    draw_hud(frame, cam_name, fps, det,
+                             live_conf=lconf, live_behavior=TARGET_CLASS),
+                )
                 continue
 
             # ── Motion gate — skip YOLO when nothing is going on ──────────────
@@ -876,6 +1067,7 @@ def camera_worker(camera: Camera):
                 if idle_for > MOTION_IDLE_GRACE and not active_incident and not recheck_due:
                     # Nothing happening — skip the expensive YOLO pass.
                     # Keep the live dashboard stream alive with an idle HUD frame.
+                    _last_hud_state[cam_id] = (None, 0.0)
                     idle_frame = draw_hud(frame, cam_name, fps, None,
                                           live_conf=0.0, live_behavior=TARGET_CLASS)
                     publish_frame_to_redis(cam_id, idle_frame)
@@ -887,7 +1079,8 @@ def camera_worker(camera: Camera):
             # ── Inference ─────────────────────────────────────────────────────
             try:
                 # Optimized inference: FP16 precision, 416 resolution
-                results_list    = model(frame, imgsz=416, half=True, verbose=False)
+                results_list    = model.track(frame, persist=True, tracker=TRACKER_CFG,
+                                              imgsz=416, half=True, verbose=False)
                 if not results_list:
                     continue
                 results         = results_list[0]
@@ -899,72 +1092,71 @@ def camera_worker(camera: Camera):
                 continue
 
             # ── Parse detections ──────────────────────────────────────────────
-            shoplifting_detected = False
-            best_conf            = 0.0
-
-            if results.boxes is not None and len(results.boxes) > 0:
-                for box in results.boxes:
-                    cls_id = int(box.cls[0])
-                    conf_val = float(box.conf[0])
-                    class_name = model.names[cls_id].lower()
-                    
-                    if class_name == TARGET_CLASS:
-                        # Always track highest confidence for the live HUD readout
-                        if conf_val > best_conf:
-                            best_conf = conf_val
-                            
-                        # If it exceeds threshold, mark as active detection
-                        if conf_val >= CONFIDENCE_THRESHOLD:
-                            # Check if this behavior is enabled
-                            behavior_enum = "SHOPLIFTING"  # Map TARGET_CLASS to enum if needed
-                            if not (ENABLED_BEHAVIORS and ENABLED_BEHAVIORS.get(behavior_enum) is False):
-                                shoplifting_detected = True
+            # ── Behavior analysis (per tracked person) ────────────────────────
+            now_evt = time.time()
+            fired, best_conf = analyze_tracks(cam_id, results, frame.shape, now_evt)
 
             current_detection = None
 
-            if shoplifting_detected:
-                # Only draw the heavy bounding boxes when we actually catch someone!
-                annotated_frame = results.plot()
-                
-                alert_id, severity, is_new = handle_detection(
-                    camera, "SHOPLIFTING", best_conf,
-                    frame_bgr=frame,
-                )
-                current_detection = {
-                    "behavior_type": "SHOPLIFTING",
-                    "confidence":    best_conf,
-                    "severity":      severity,
-                    "alert_id":      alert_id,
-                }
-                push_detection(
-                    camera_id=cam_id, camera_name=cam_name,
-                    behavior_type="SHOPLIFTING", confidence=best_conf,
-                    severity=severity, alert_id=alert_id,
-                    frame_bgr=frame,
-                )
+            if fired:
+                # Lightweight manual box drawing instead of expensive results.plot()
+                annotated_frame = frame.copy()
+                if results.boxes is not None and results.boxes.id is not None:
+                    for xyxy, tid in zip(results.boxes.xyxy.int().tolist(),
+                                         results.boxes.id.int().tolist()):
+                        x1, y1, x2, y2 = xyxy
+                        cv2.rectangle(annotated_frame, (x1, y1), (x2, y2), (0, 255, 0), 2)
+                        cv2.putText(annotated_frame, str(tid), (x1, y1 - 6),
+                                    cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 1, cv2.LINE_AA)
 
-                # ── Record evidence clip on NEW incidents ─────────────────────
-                if is_new and AUTO_EVIDENCE:
-                    try:
-                        from evidence.clip_recorder import record_evidence_clip_async
-                        alert_obj = Alert.objects.get(id=alert_id)
-                        record_evidence_clip_async(
-                            camera, alert_obj, lambda: _frame_buffers.get(cam_id), fps, pre_roll_seconds=10
-                        )
-                    except Exception as ev_err:
-                        log.error("[CAM %s] Evidence clip recording failed: %s", cam_id, ev_err)
-
-                now = time.time()
-                if severity in ("HIGH", "CRITICAL") and \
-                        now - last_alert_email_ts >= EMAIL_COOLDOWN:
+                for behavior, conf in fired.items():
+                    alert_id, severity, is_new = handle_detection(
+                        camera, behavior, conf, frame_bgr=frame,
+                    )
+                    # Push detection in background thread to avoid blocking inference loop
                     threading.Thread(
-                        target=send_alert_email,
-                        args=(cam_name, "SHOPLIFTING", best_conf, severity, alert_id),
-                        daemon=True
+                        target=push_detection,
+                        args=(cam_id, cam_name, behavior, conf, severity, alert_id),
+                        kwargs={"frame_bgr": frame.copy()},
+                        daemon=True,
                     ).start()
-                    last_alert_email_ts = now
+
+                    # Keep the most severe active behavior on the HUD readout.
+                    if (current_detection is None or
+                            _SEVERITY_RANK.get(severity, 0) >
+                            _SEVERITY_RANK.get(current_detection["severity"], 0)):
+                        current_detection = {
+                            "behavior_type": behavior,
+                            "confidence":    conf,
+                            "severity":      severity,
+                            "alert_id":      alert_id,
+                        }
+
+                    # Record an evidence clip once per NEW incident.
+                    if is_new and AUTO_EVIDENCE:
+                        try:
+                            from evidence.clip_recorder import record_evidence_clip_async
+                            alert_obj = Alert.objects.get(id=alert_id)
+                            record_evidence_clip_async(
+                                camera, alert_obj, lambda: _frame_buffers.get(cam_id), fps, pre_roll_seconds=10
+                            )
+                        except Exception as ev_err:
+                            log.error("[CAM %s] Evidence clip recording failed: %s", cam_id, ev_err)
+
+                    # Notify per dashboard settings (severity toggle + a channel on), throttled per camera.
+                    if (NOTIFY_ON.get(severity, False)
+                            and (EMAIL_ALERTS_ENABLED or SMS_ALERTS_ENABLED)
+                            and now_evt - last_alert_email_ts >= EMAIL_COOLDOWN):
+                        threading.Thread(
+                            target=send_alert_email,
+                            args=(cam_name, behavior, conf, severity, alert_id),
+                            daemon=True,
+                        ).start()
+                        last_alert_email_ts = now_evt
 
             # ── Draw HUD & Publish ────────────────────────────────────────────
+            # Cache detection state so frames where YOLO didn't run show the same HUD.
+            _last_hud_state[cam_id] = (current_detection, best_conf)
             # Create a clean HUD frame over the YOLO boxes
             hud_frame = draw_hud(annotated_frame, cam_name, fps, current_detection, live_conf=best_conf, live_behavior=TARGET_CLASS)
 
@@ -988,6 +1180,22 @@ def camera_worker(camera: Camera):
         Camera.objects.filter(pk=cam_id).update(status="OFFLINE")
         log.warning("[CAM %s] Stream closed. Reconnecting in 10s…", cam_id)
         time.sleep(10)  
+
+
+def worker_heartbeat_thread():
+    """Continuously pings Redis to indicate the AI Detection Engine is running."""
+    import redis
+    redis_host = os.environ.get("REDIS_HOST", "127.0.0.1")
+    redis_pass = os.environ.get("REDIS_PASSWORD", None)
+    
+    while True:
+        try:
+            r = redis.Redis(host=redis_host, port=int(os.environ.get("CLOUD_REDIS_PORT", 6379)), password=redis_pass)
+            # Set the heartbeat with a 15-second expiration
+            r.set("worker_heartbeat", "active", ex=15)
+        except Exception as e:
+            log.warning("Heartbeat failed: %s", e)
+        time.sleep(5)
 
 
 def manual_override_listener():
@@ -1024,8 +1232,8 @@ def manual_override_listener():
                                 log.info(f"[DEBUG] frame_bgr acquired successfully (shape: {frame_bgr.shape if hasattr(frame_bgr, 'shape') else 'None'})")
                         else:
                             log.warning(f"[DEBUG] cam_id {cam_id} NOT IN _frame_buffers")
-                        # Force a new alert by clearing any existing incident deduplication state
-                        _incidents.pop(cam_id, None)
+                        # Force a new alert by clearing any existing incident dedup state for this behavior
+                        _incidents.pop((cam_id, behavior), None)
                         alert_id, sev, is_new = handle_detection(camera, behavior, 1.0, frame_bgr)
                         
                         if is_new:
@@ -1070,6 +1278,10 @@ def main():
     # Start Redis manual override listener thread
     rt = threading.Thread(target=manual_override_listener, daemon=True, name="redis-manual-override")
     rt.start()
+
+    # Start Worker Heartbeat thread
+    hb_t = threading.Thread(target=worker_heartbeat_thread, daemon=True, name="redis-heartbeat")
+    hb_t.start()
 
     # Start Async Redis Publisher thread
     pub_t = threading.Thread(target=redis_publisher_thread, daemon=True, name="redis-async-publisher")

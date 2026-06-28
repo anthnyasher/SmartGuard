@@ -1,3 +1,4 @@
+import NotificationBell from "../components/NotificationBell.jsx";
 // src/pages/DetectionsPage.jsx
 // ── CHANGE FROM ORIGINAL: NAV_ITEMS only — all tabs now functional: true ──────
 // Everything else in this file is identical to your working version.

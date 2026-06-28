@@ -7,7 +7,7 @@ class AlertPermission(BasePermission):
       - Read + write all alerts.
     Staff:
       - Read all shoplifting alerts.
-      - PATCH only for acknowledgement/notes (serializer enforces field limits).
+      - PATCH only for notes (serializer enforces field limits).
     """
 
     def has_permission(self, request, view):
@@ -20,9 +20,9 @@ class AlertPermission(BasePermission):
         if request.method in SAFE_METHODS:
             return True
 
-        # Staff can PATCH (acknowledge) but not POST/DELETE
+        # Staff can PATCH (add notes) but not POST/DELETE
         if user.role == "STAFF":
             return request.method == "PATCH"
 
         # Admin and Ops Manager: full write
-        return user.role in ["ADMIN", "OPERATIONS_MANAGER"]
+        return user.role in ["ADMIN", "OPS_MANAGER"]

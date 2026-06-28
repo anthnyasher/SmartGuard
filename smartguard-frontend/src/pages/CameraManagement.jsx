@@ -1,3 +1,4 @@
+import NotificationBell from "../components/NotificationBell.jsx";
 // src/pages/CameraManagement.jsx
 import { useEffect, useState, useCallback } from "react";
 import { Link, useNavigate } from "react-router-dom";

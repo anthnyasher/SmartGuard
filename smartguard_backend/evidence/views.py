@@ -82,8 +82,12 @@ class EvidenceDetailView(generics.RetrieveAPIView):
     permission_classes = [IsAuthenticated]
 
 
+from accounts.authentication import QueryParameterTokenAuthentication
+from rest_framework.decorators import authentication_classes
+
 @api_view(["GET"])
-@permission_classes([IsAuthenticated, IsAdminRole])
+@authentication_classes([QueryParameterTokenAuthentication])
+@permission_classes([IsAuthenticated, IsAdminOrOpsManager])
 def evidence_download(request, pk):
     """
     GET /api/evidence/<id>/download/
@@ -94,7 +98,8 @@ def evidence_download(request, pk):
     except EvidenceClip.DoesNotExist:
         raise Http404
 
-    file_path = clip.file_path
+    file_path = clip.get_absolute_file_path()
+
     if not file_path or not os.path.exists(file_path):
         return Response(
             {"detail": "Evidence file not found on disk."},
@@ -325,6 +330,7 @@ def evidence_stats(request):
 
 
 @api_view(["GET"])
+@authentication_classes([QueryParameterTokenAuthentication])
 @permission_classes([IsAuthenticated])
 def evidence_stream(request, pk):
     """
@@ -337,27 +343,61 @@ def evidence_stream(request, pk):
     except EvidenceClip.DoesNotExist:
         raise Http404
 
-    file_path = clip.file_path
+    file_path = clip.get_absolute_file_path()
+
     if not file_path or not os.path.exists(file_path):
         return Response(
             {"detail": "Evidence file not found on disk."},
             status=status.HTTP_404_NOT_FOUND,
         )
 
+    # Log the access
+    try:
+        from logging_info.utils import log_audit
+        log_audit(
+            action="EVIDENCE_ACCESSED",
+            message=f"User '{request.user.username}' viewed evidence clip {clip.clip_id}.",
+            category="AUDIT",
+            level="INFO",
+            source="Evidence Vault",
+            user=request.user,
+            request=request,
+            extra={"evidence_id": clip.id, "clip_id": clip.clip_id},
+        )
+    except Exception:
+        pass
+
     # Decrypt if encrypted
     if clip.is_encrypted and clip.encryption_iv and clip.encryption_tag:
         try:
             from .encryption import decrypt_file
+            import tempfile
             decrypted_bytes = decrypt_file(
                 file_path, clip.encryption_iv, clip.encryption_tag,
             )
-            buffer = io.BytesIO(decrypted_bytes)
+            
+            # Write to a temp file so Django FileResponse can handle HTTP Range requests properly
+            temp_file = tempfile.NamedTemporaryFile(delete=False, suffix='.mp4')
+            temp_file.write(decrypted_bytes)
+            temp_file.close()
+            
+            file_obj = open(temp_file.name, "rb")
+            original_close = file_obj.close
+            
+            def close_and_remove():
+                original_close()
+                try:
+                    os.remove(temp_file.name)
+                except Exception:
+                    pass
+                    
+            file_obj.close = close_and_remove
+            
             response = FileResponse(
-                buffer,
+                file_obj,
                 content_type="video/mp4",
             )
             response["Content-Disposition"] = 'inline'
-            response["Accept-Ranges"] = "bytes"
             return response
         except Exception as e:
             logger.error("Failed to decrypt evidence clip %s: %s", clip.id, e)

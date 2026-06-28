@@ -1,3 +1,4 @@
+import NotificationBell from "../components/NotificationBell.jsx";
 // src/pages/LogsPage.jsx
 // Real-time audit log viewer that fetches from GET /api/logs/
 // FRS 4.A: categorized, filterable, exportable logs per user session

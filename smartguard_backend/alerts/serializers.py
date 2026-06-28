@@ -27,6 +27,8 @@ class DetectionAlertInputSerializer(serializers.Serializer):
 class AlertSerializer(serializers.ModelSerializer):
     frame_jpg_b64 = serializers.SerializerMethodField()
     camera_name   = serializers.CharField(source='camera.name', read_only=True)
+    camera_location = serializers.CharField(source='camera.location', read_only=True)
+    camera_zone   = serializers.CharField(source='camera.zone', read_only=True)
 
     class Meta:
         model = Alert
@@ -34,15 +36,14 @@ class AlertSerializer(serializers.ModelSerializer):
             'id',
             'camera',
             'camera_name',
+            'camera_location',
+            'camera_zone',
             'behavior_type',
             'confidence',
             'severity',
             'status',
             'alert_category',
             'created_at',
-            'acknowledged',
-            'acknowledged_at',
-            'acknowledged_by',
             'reviewed_by',
             'reviewed_at',
             'notes',
@@ -52,8 +53,6 @@ class AlertSerializer(serializers.ModelSerializer):
         read_only_fields = [
             'id',
             'created_at',
-            'acknowledged_at',
-            'acknowledged_by',
             'reviewed_by',
             'reviewed_at',
         ]
@@ -80,20 +79,14 @@ class AlertSerializer(serializers.ModelSerializer):
 
         user = request.user
 
-        # If Staff, only allow acknowledge + notes
+        # If Staff, only allow notes
         if user.role == "STAFF":
-            allowed_fields = {'acknowledged', 'notes'}
+            allowed_fields = {'notes'}
             for field in list(validated_data.keys()):
                 if field not in allowed_fields:
                     raise serializers.ValidationError(
-                        {"detail": "Staff can only acknowledge alerts and add notes."}
+                        {"detail": "Staff can only add notes to alerts."}
                     )
-
-            if 'acknowledged' in validated_data:
-                if validated_data['acknowledged'] and not instance.acknowledged:
-                    instance.acknowledged = True
-                    instance.acknowledged_at = timezone.now()
-                    instance.acknowledged_by = user
 
             if 'notes' in validated_data:
                 instance.notes = validated_data['notes']
@@ -102,9 +95,5 @@ class AlertSerializer(serializers.ModelSerializer):
             return instance
 
         # Non‑Staff (Admin / Operations Manager) – full update
-        if 'acknowledged' in validated_data and validated_data['acknowledged'] and not instance.acknowledged:
-            instance.acknowledged = True
-            instance.acknowledged_at = timezone.now()
-            instance.acknowledged_by = user
 
         return super().update(instance, validated_data)

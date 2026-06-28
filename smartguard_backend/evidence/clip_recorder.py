@@ -80,8 +80,9 @@ def record_evidence_clip(camera, alert, frame_buffer: list, fps: float):
         h, w = sample_frame.shape[:2]
         resolution_str = f"{w}x{h}"
 
-        # Use a sensible FPS (clamp between 5 and 30)
-        encode_fps = max(5.0, min(float(fps) if fps > 0 else 15.0, 30.0))
+        # Use the actual FPS the frames were captured at to ensure real-time playback speed.
+        # Clamp between 1.0 and 30.0 (allow down to 1 FPS for slow machines)
+        encode_fps = max(1.0, min(float(fps) if fps > 0 else 15.0, 30.0))
 
         # ── Write MP4 ────────────────────────────────────────────────────────
         clips_dir = _ensure_clips_dir()
@@ -89,7 +90,7 @@ def record_evidence_clip(camera, alert, frame_buffer: list, fps: float):
         filename = f"EVD_cam{camera.id}_alert{alert.id}_{timestamp_str}.mp4"
         mp4_path = str(clips_dir / filename)
 
-        fourcc = cv2.VideoWriter_fourcc(*"mp4v")
+        fourcc = cv2.VideoWriter_fourcc(*"avc1")
         writer = cv2.VideoWriter(mp4_path, fourcc, encode_fps, (w, h))
 
         if not writer.isOpened():
@@ -130,9 +131,16 @@ def record_evidence_clip(camera, alert, frame_buffer: list, fps: float):
         now = timezone.now()
         expires_at = now + timedelta(hours=retention_hours)
 
+        # Store relative path in database so AWS can resolve it properly
+        try:
+            rel_path = os.path.relpath(encrypted_path, settings.MEDIA_ROOT)
+        except ValueError:
+            # Fallback if encrypted_path is somehow not inside MEDIA_ROOT
+            rel_path = encrypted_path
+            
         clip = EvidenceClip.objects.create(
             alert=alert,
-            file_path=encrypted_path,
+            file_path=rel_path,
             duration_seconds=round(actual_duration, 1),
             file_size_bytes=encrypted_size,
             resolution=resolution_str,
@@ -150,8 +158,23 @@ def record_evidence_clip(camera, alert, frame_buffer: list, fps: float):
 
         logger.info(
             "[CAM %s] EvidenceClip created: id=%s clip_id=%s encrypted=%s expires=%s",
-            camera.id, clip.id, clip.clip_id, encrypted_path, expires_at,
+            camera.id, clip.id, clip.clip_id, rel_path, expires_at,
         )
+        
+        # ── Sync to AWS ────────────────────────────────────────────────────────
+        try:
+            import urllib.request
+            aws_base = os.environ.get('AWS_API_BASE_URL', f"http://{os.environ.get('DATABASE_HOST', '54.206.184.54')}:8000")
+            url = f"{aws_base}/api/alerts/upload-media/"
+            with open(encrypted_path, 'rb') as f:
+                file_bytes = f.read()
+            req = urllib.request.Request(url, data=file_bytes, method='POST')
+            req.add_header('X-Relative-Path', rel_path.replace('\\', '/'))
+            req.add_header('X-Sync-Secret', os.environ.get('MEDIA_SYNC_SECRET', ''))
+            urllib.request.urlopen(req, timeout=120)
+            logger.info("[CAM %s] Successfully synced evidence clip to AWS.", camera.id)
+        except Exception as sync_e:
+            logger.warning("[CAM %s] Failed to sync evidence clip to AWS: %s", camera.id, sync_e)
 
         # ── Audit log ────────────────────────────────────────────────────────
         try:
@@ -187,23 +210,48 @@ def record_evidence_clip(camera, alert, frame_buffer: list, fps: float):
         )
 
 
-def record_evidence_clip_async(camera, alert, frame_buffer: list, fps: float):
+def _delayed_record_evidence_clip(camera, alert, get_buffer_fn, fps, pre_roll_seconds=10):
+    # Wait 7 seconds to capture post-roll evidence
+    import time
+    time.sleep(7.0)
+    
+    # Snapshot the buffer after the delay safely (deque might be mutating)
+    import copy
+    buffer_snapshot = None
+    for _ in range(10):
+        try:
+            current_buffer = get_buffer_fn()
+            if current_buffer is not None:
+                buffer_snapshot = list(current_buffer)
+            break
+        except RuntimeError:
+            time.sleep(0.05)
+            
+    if not buffer_snapshot:
+        logger.error("[CAM %s] Failed to snapshot frame buffer due to mutation errors or empty buffer", camera.id)
+        return
+        
+    # Slice the buffer to the requested duration (pre-roll + 7s post-roll)
+    target_frames = int((pre_roll_seconds + 7.0) * fps)
+    buffer_snapshot = buffer_snapshot[-target_frames:]
+        
+    # Run the actual recording
+    record_evidence_clip(camera, alert, buffer_snapshot, fps)
+
+def record_evidence_clip_async(camera, alert, get_buffer_fn, fps: float, pre_roll_seconds: int = 10):
     """
     Spawn a background thread to record an evidence clip.
     This is the function that the detection worker should call.
     """
-    # Snapshot the buffer immediately (copy the list reference contents)
-    buffer_snapshot = list(frame_buffer)
-
     thread = threading.Thread(
-        target=record_evidence_clip,
-        args=(camera, alert, buffer_snapshot, fps),
+        target=_delayed_record_evidence_clip,
+        args=(camera, alert, get_buffer_fn, fps, pre_roll_seconds),
         name=f"evidence-recorder-cam{camera.id}-alert{alert.id}",
         daemon=True,
     )
     thread.start()
     logger.info(
-        "[CAM %s] Evidence recording thread started for alert %s.",
+        "[CAM %s] Evidence recording thread started for alert %s (waiting for post-roll).",
         camera.id, alert.id,
     )
     return thread

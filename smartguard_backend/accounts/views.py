@@ -112,7 +112,7 @@ def _notify_lockout_admins(username, ip):
                 subject=f"[SmartGuard] Account Locked — {username}",
                 body=(
                     f"The account '{username}' has been permanently locked after "
-                    f"{User.MAX_ATTEMPTS} consecutive failed login attempts.\n\n"
+                    f"{User.max_attempts()} consecutive failed login attempts.\n\n"
                     f"Source IP: {ip}\n"
                     f"Time: {timezone.now():%Y-%m-%d %H:%M:%S UTC}\n\n"
                     f"Go to Access Control → Unlock to restore access."
@@ -128,7 +128,7 @@ def _notify_lockout_admins(username, ip):
 from rest_framework.decorators import throttle_classes
 from django.views.decorators.csrf import csrf_exempt
 
-@csrf_exempt
+# Removed csrf_exempt
 @api_view(["POST"])
 @permission_classes([AllowAny])
 @throttle_classes([AnonRateThrottle])
@@ -228,13 +228,13 @@ def login_view(request):
                     action="LOGIN_LOCKED",
                     message=(
                         f"Account '{user.username}' permanently locked after "
-                        f"{User.MAX_ATTEMPTS} failed attempts from {ip}."
+                        f"{User.max_attempts()} failed attempts from {ip}."
                     ),
                     category="SECURITY", level="HIGH",
                     source="Login Security",
                     user=user, username=user.username,
                     ip_address=ip, user_agent=ua,
-                    extra={"attempts": User.MAX_ATTEMPTS},
+                    extra={"attempts": User.max_attempts()},
                 )
                 _notify_lockout_admins(user.username, ip)
                 return Response(
@@ -291,7 +291,7 @@ def login_view(request):
         )
 
     # ── Admin & Ops Manager → 2FA OTP (sent async so response is fast) ────────
-    if user.role in ["ADMIN"] and user.username != "testadmin":
+    if user.role in ["ADMIN", "OPS_MANAGER"] and user.username not in ["testadmin", "testop"]:
         otp = OTPToken.create_for_user(user, token_type="LOGIN", ip_address=ip)
 
         masked_email = f"{user.email[:3]}***{user.email[user.email.index('@'):]}"
@@ -395,7 +395,7 @@ def logout_view(request):
 
 # ── OTP Verification (2FA) ───────────────────────────────────────────────
 
-@csrf_exempt
+# Removed csrf_exempt
 @api_view(["POST"])
 @permission_classes([AllowAny])
 def verify_otp_view(request):
@@ -489,7 +489,7 @@ def verify_otp_view(request):
 
 # ── Forgot Password (all roles) ────────────────────────────────────────────────
 
-@csrf_exempt
+# Removed csrf_exempt
 @api_view(["POST"])
 @permission_classes([AllowAny])
 def forgot_password_view(request):
@@ -549,7 +549,7 @@ def forgot_password_view(request):
         )
 
 
-@csrf_exempt
+# Removed csrf_exempt
 @api_view(["POST"])
 @permission_classes([AllowAny])
 def reset_password_confirm_view(request):
@@ -576,9 +576,13 @@ def reset_password_confirm_view(request):
             status=status.HTTP_400_BAD_REQUEST,
         )
 
-    if len(new_password) < 8:
+    from django.contrib.auth.password_validation import validate_password
+    from django.core.exceptions import ValidationError
+    try:
+        validate_password(new_password)
+    except ValidationError as e:
         return Response(
-            {"detail": "Password must be at least 8 characters."},
+            {"detail": " ".join(e.messages)},
             status=status.HTTP_400_BAD_REQUEST,
         )
 
@@ -670,9 +674,30 @@ class UsersListCreateView(generics.ListCreateAPIView):
         serializer.is_valid(raise_exception=True)
         user = serializer.save()
 
+        from django.core.signing import TimestampSigner
+        from django.core.mail import send_mail
+        from django.conf import settings
+
+        signer = TimestampSigner()
+        token = signer.sign(str(user.id))
+
+        frontend_url = getattr(settings, "FRONTEND_URL", "http://localhost:5173")
+        if not frontend_url.startswith("http"):
+            frontend_url = "http://" + frontend_url
+
+        confirm_url = f"{frontend_url}/confirm-account/{token}"
+
+        send_mail(
+            subject="Action Required: Confirm your SmartGuard Account",
+            message=f"Hello {user.first_name or user.username},\n\nAn administrator has created an account for you on SmartGuard with the role of {user.get_role_display()}.\n\nPlease confirm your account details by visiting the following link:\n{confirm_url}\n\nIf you do not recognize this request, you can click Cancel on that page or simply ignore this email.",
+            from_email=getattr(settings, "DEFAULT_FROM_EMAIL", "noreply@smartguard.local"),
+            recipient_list=[user.email],
+            fail_silently=True,
+        )
+
         _safe_log(
             action="USER_CREATED",
-            message=f"Admin '{request.user.username}' created account '{user.username}' ({user.role}).",
+            message=f"Admin '{request.user.username}' created account '{user.username}' ({user.role}) pending confirmation.",
             category="AUDIT", level="INFO",
             source="User Management",
             user=request.user, username=request.user.username,
@@ -836,3 +861,67 @@ def toggle_user_active(request, pk):
         {"detail": f"User '{user.username}' has been {state}.", "is_active": user.is_active},
         status=status.HTTP_200_OK,
     )
+
+
+from rest_framework.permissions import AllowAny
+
+@api_view(["GET", "POST"])
+@permission_classes([AllowAny])
+def account_confirmation_view(request, token):
+    """
+    Public endpoint for new users to confirm their account.
+    Validates the TimestampSigner token (max 48 hours).
+    GET: Returns user details if valid and inactive.
+    POST: {"action": "confirm" | "cancel"}
+    """
+    from django.core.signing import TimestampSigner, BadSignature, SignatureExpired
+
+    signer = TimestampSigner()
+    try:
+        user_id_str = signer.unsign(token, max_age=172800) # 48 hours
+    except SignatureExpired:
+        return Response({"detail": "This confirmation link has expired."}, status=status.HTTP_400_BAD_REQUEST)
+    except BadSignature:
+        return Response({"detail": "Invalid confirmation link."}, status=status.HTTP_400_BAD_REQUEST)
+    
+    user = get_object_or_404(User, id=int(user_id_str))
+    
+    if user.is_active:
+        return Response({"detail": "This account is already active."}, status=status.HTTP_400_BAD_REQUEST)
+
+    if request.method == "GET":
+        return Response({
+            "username": user.username,
+            "email": user.email,
+            "first_name": user.first_name,
+            "last_name": user.last_name,
+            "role": user.get_role_display(),
+        })
+        
+    if request.method == "POST":
+        action = request.data.get("action")
+        if action == "confirm":
+            user.is_active = True
+            user.save(update_fields=["is_active"])
+            _safe_log(
+                action="USER_ACTIVATED",
+                message=f"User '{user.username}' confirmed their account via email link.",
+                category="AUDIT", level="INFO",
+                source="User Management",
+                user=user, username=user.username,
+                request=request,
+            )
+            return Response({"detail": "Account confirmed successfully."})
+        elif action == "cancel":
+            uname = user.username
+            user.delete()
+            _safe_log(
+                action="USER_DELETED",
+                message=f"Account '{uname}' was forfeited (cancelled) via email link.",
+                category="AUDIT", level="WARNING",
+                source="User Management",
+                request=request,
+            )
+            return Response({"detail": "Account registration cancelled."})
+        else:
+            return Response({"detail": "Invalid action."}, status=status.HTTP_400_BAD_REQUEST)

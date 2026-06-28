@@ -50,6 +50,7 @@ class RegisterSerializer(serializers.ModelSerializer):
             "username", "email", "first_name", "last_name",
             "password", "role", "phone_number",
         ]
+        read_only_fields = ["role"]
 
     def validate_phone_number(self, value):
         return validate_e164(value)
@@ -163,6 +164,8 @@ class AdminUserCreateSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         password     = validated_data.pop("password")
         phone_number = validated_data.pop("phone_number", "")
+        # Force is_active to False so the user must confirm via email link
+        validated_data["is_active"] = False
         user         = User(**validated_data)
         user.set_password(password)
         user.phone_number = phone_number

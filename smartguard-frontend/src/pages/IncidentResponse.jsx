@@ -1,3 +1,4 @@
+import NotificationBell from "../components/NotificationBell.jsx";
 // src/pages/IncidentResponse.jsx
 // ─────────────────────────────────────────────────────────────────────────────
 // FRS Module 7: Incident Response Management

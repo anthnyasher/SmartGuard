@@ -172,12 +172,23 @@ class EvidenceClip(models.Model):
         from django.utils import timezone
         return timezone.now() >= self.expires_at
 
+    def get_absolute_file_path(self):
+        if not self.file_path:
+            return ""
+        from django.conf import settings
+        # Replace backslashes with forward slashes for cross-platform compatibility
+        normalized_path = self.file_path.replace('\\', '/')
+        if not os.path.isabs(normalized_path):
+            return os.path.join(settings.MEDIA_ROOT, normalized_path)
+        return normalized_path
+
     def compute_hash(self):
         """Compute SHA-256 hash of the clip file (encrypted or plaintext)."""
-        if not self.file_path or not os.path.exists(self.file_path):
+        abs_path = self.get_absolute_file_path()
+        if not abs_path or not os.path.exists(abs_path):
             return ""
         sha256 = hashlib.sha256()
-        with open(self.file_path, "rb") as f:
+        with open(abs_path, "rb") as f:
             for chunk in iter(lambda: f.read(8192), b""):
                 sha256.update(chunk)
         return sha256.hexdigest()
@@ -198,9 +209,10 @@ class EvidenceClip(models.Model):
 
     def delete_file_from_disk(self):
         """Remove the physical evidence file from disk."""
-        if self.file_path and os.path.exists(self.file_path):
+        abs_path = self.get_absolute_file_path()
+        if abs_path and os.path.exists(abs_path):
             try:
-                os.remove(self.file_path)
+                os.remove(abs_path)
                 return True
             except OSError:
                 return False

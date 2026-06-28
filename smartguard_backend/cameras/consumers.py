@@ -44,12 +44,10 @@ class CameraDetectionConsumer(AsyncJsonWebsocketConsumer):
         # ── Auth check: only authenticated users may connect ──────────────
         # AuthMiddlewareStack in asgi.py populates scope["user"] via JWT
         # For simplicity in dev, allow all; in production enforce this.
-        user = self.scope.get("user")
-        if user is None or isinstance(user, AnonymousUser):
-            # Uncomment below to enforce auth in production:
-            # await self.close(code=4001)
-            # return
-            logger.warning("Unauthenticated WebSocket connection for camera %s", self.camera_id)
+        # user = self.scope.get("user")
+        # if user is None or isinstance(user, AnonymousUser):
+        #     await self.close(code=4001)
+        #     return
 
         # Join the per-camera group so the AI worker can broadcast to us
         await self.channel_layer.group_add(self.group_name, self.channel_name)
@@ -121,6 +119,11 @@ class GlobalAlertConsumer(AsyncJsonWebsocketConsumer):
     GROUP_NAME = "alerts_global"
 
     async def connect(self):
+        # user = self.scope.get("user")
+        # if user is None or isinstance(user, AnonymousUser):
+        #     await self.close(code=4001)
+        #     return
+
         await self.channel_layer.group_add(self.GROUP_NAME, self.channel_name)
         await self.accept()
         await self.send_json({"type": "connected", "message": "Subscribed to global alerts"})
