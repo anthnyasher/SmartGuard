@@ -70,11 +70,27 @@ class SystemHealthView(APIView):
         if cpu > 85 or mem > 90 or disk > 90:
             status_text = "Warning"
 
+        # Check if detection worker is running (via Redis heartbeat)
+        ai_engine_running = False
+        try:
+            import redis
+            from django.conf import settings
+            r = redis.Redis(
+                host=getattr(settings, 'CLOUD_REDIS_HOST', '127.0.0.1'),
+                port=getattr(settings, 'CLOUD_REDIS_PORT', 6379),
+                password=getattr(settings, 'CLOUD_REDIS_PASSWORD', None)
+            )
+            if r.get("worker_heartbeat") == b"active":
+                ai_engine_running = True
+        except Exception:
+            pass
+
         return Response({
             "status": status_text,
             "cpu": cpu,
             "memory": mem,
-            "storage": disk
+            "storage": disk,
+            "ai_engine_running": ai_engine_running
         }, status=status.HTTP_200_OK)
 
 

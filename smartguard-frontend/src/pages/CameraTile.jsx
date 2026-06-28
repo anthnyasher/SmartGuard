@@ -69,7 +69,7 @@ function CameraTile({ cam, token, onSelect, paused, onDetection, onManualAlertCl
 
       {/* Video */}
       <div className="lm-tile-video-wrap">
-        {hasStream && token && !paused ? (
+        {hasStream && isOnline && token && !paused ? (
           <AuthenticatedStream
             streamUrl={cam.stream_mjpeg_url}
             token={token}

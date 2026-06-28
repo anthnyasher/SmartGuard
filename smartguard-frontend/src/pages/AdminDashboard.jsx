@@ -466,8 +466,8 @@ function AdminDashboard() {
                   { label: "CPU Usage",           val: sysHealth ? `${sysHealth.cpu}%` : "—",       pct: sysHealth?.cpu || 0 },
                   { label: "Memory Usage",        val: sysHealth ? `${sysHealth.memory}%` : "—",    pct: sysHealth?.memory || 0 },
                   { label: "Storage",             val: sysHealth ? `${sysHealth.storage}%` : "—",   pct: sysHealth?.storage || 0 },
-                  { label: "AI Detection Engine", val: "Running", ok: true  },
-                  { label: "Alert Queue",         val: "Active",  ok: true  },
+                  { label: "AI Detection Engine", val: sysHealth?.ai_engine_running ? "Running" : "Offline", ok: sysHealth?.ai_engine_running  },
+                  { label: "Alert Queue",         val: sysHealth?.ai_engine_running ? "Active" : "Inactive",  ok: sysHealth?.ai_engine_running  },
                 ].map(row => (
                   <div key={row.label} className="sg-health-row">
                     <span className="sg-health-label">{row.label}</span>
