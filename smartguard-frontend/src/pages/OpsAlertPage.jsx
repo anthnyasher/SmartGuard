@@ -138,9 +138,6 @@ function FeedRow({ event, index, onViewSnapshot, onDelete, onEscalate }) {
         </div>
       </div>
       <div className="dp-row-actions">
-        {!isStaff && event.alert_id && event.status === "NEW" && (
-          <button className="dp-row-action-btn dp-row-action-btn--check" onClick={(e) => { e.stopPropagation(); onEscalate && onEscalate(event); }} title="Confirm Alert">✓</button>
-        )}
         <button className="dp-row-snap-btn" onClick={() => onViewSnapshot(event)} title="View snapshot">
           {event.frame_jpg_b64 ? (
             <img className="dp-row-thumb" src={`data:image/jpeg;base64,${event.frame_jpg_b64}`} alt="snapshot" />
@@ -148,9 +145,14 @@ function FeedRow({ event, index, onViewSnapshot, onDelete, onEscalate }) {
             <span className="dp-row-no-thumb">🎞</span>
           )}
         </button>
-        {!isStaff && event.alert_id && onDelete && (
-          <button className="dp-row-action-btn dp-row-action-btn--cross" onClick={(e) => { e.stopPropagation(); onDelete(event); }} title="False Positive - Delete Alert and Clip">✕</button>
-        )}
+        <div className="dp-row-action-buttons">
+          {!isStaff && event.alert_id && event.status === "NEW" && (
+            <button className="dp-row-action-btn dp-row-action-btn--check" onClick={(e) => { e.stopPropagation(); onEscalate && onEscalate(event); }} title="Confirm Alert">✓</button>
+          )}
+          {!isStaff && event.alert_id && onDelete && (
+            <button className="dp-row-action-btn dp-row-action-btn--cross" onClick={(e) => { e.stopPropagation(); onDelete(event); }} title="False Positive - Delete Alert and Clip">✕</button>
+          )}
+        </div>
       </div>
     </div>
   );
