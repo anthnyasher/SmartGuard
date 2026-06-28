@@ -12,6 +12,7 @@ import { useState, useEffect, useCallback } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext.jsx";
 import { getIncidents, createIncident, updateIncident } from "../api/incidentApi.js";
+import { getAlerts } from "../api/alertApi.js";
 import "./AdminDashboard.css";
 import "./shared-components.css";
 import "./IncidentResponse.css";
@@ -68,6 +69,13 @@ export default function IncidentResponse() {
   const [selected, setSelected]   = useState(null);
   const [showCreate, setShowCreate] = useState(false);
   const [saving, setSaving]       = useState(false);
+  const [alertsList, setAlertsList] = useState([]);
+
+  useEffect(() => {
+    if (showCreate) {
+      getAlerts(token).then(data => setAlertsList(data)).catch(err => console.error("Failed to load alerts", err));
+    }
+  }, [showCreate, token]);
 
   // ── Create form state ──────────────────────────────────────────────────────
   const [newIR, setNewIR] = useState({
@@ -114,7 +122,9 @@ export default function IncidentResponse() {
 
   // ── Create ─────────────────────────────────────────────────────────────────
   const handleCreate = async () => {
-    if (!newIR.alert) { alert("Please enter an Alert ID."); return; }
+    if (!newIR.alert) { alert("Please select an Alert ID."); return; }
+    if (!newIR.description || !newIR.description.trim()) { alert("Please provide a description of the incident."); return; }
+    if (!newIR.action_taken) { alert("Please select an action taken."); return; }
     setSaving(true);
     try {
       const result = await createIncident(token, {
@@ -332,13 +342,13 @@ export default function IncidentResponse() {
                 </select>
               </div>
               <div className="ir-field">
-                <label className="ir-field-label">Action Taken</label>
+                <label className="ir-field-label">Action Taken *</label>
                 <select className="ir-select" value={editFields.action_taken || ""} onChange={e => setEditFields(p => ({ ...p, action_taken: e.target.value }))}>
                   {ACTION_CHOICES.map(a => <option key={a.value} value={a.value}>{a.label}</option>)}
                 </select>
               </div>
               <div className="ir-field">
-                <label className="ir-field-label">Description</label>
+                <label className="ir-field-label">Description *</label>
                 <textarea className="ir-textarea" rows={3} value={editFields.description || ""} onChange={e => setEditFields(p => ({ ...p, description: e.target.value }))} placeholder="Describe the incident and response..." />
               </div>
               <div className="ir-field">
@@ -374,7 +384,14 @@ export default function IncidentResponse() {
             <div className="ir-modal-body">
               <div className="ir-field">
                 <label className="ir-field-label">Alert ID *</label>
-                <input className="ir-input" type="number" value={newIR.alert} onChange={e => setNewIR(p => ({ ...p, alert: e.target.value }))} placeholder="Enter the alert ID to respond to" />
+                <select className="ir-select" value={newIR.alert} onChange={e => setNewIR(p => ({ ...p, alert: e.target.value }))}>
+                  <option value="">Select an Alert...</option>
+                  {alertsList.map(a => (
+                    <option key={a.id} value={a.id}>
+                      Alert #{a.id} - {a.camera_name || `Camera ${a.camera}`} ({new Date(a.timestamp).toLocaleString()})
+                    </option>
+                  ))}
+                </select>
               </div>
               <div className="ir-field">
                 <label className="ir-field-label">Status</label>
@@ -383,13 +400,13 @@ export default function IncidentResponse() {
                 </select>
               </div>
               <div className="ir-field">
-                <label className="ir-field-label">Action Taken</label>
+                <label className="ir-field-label">Action Taken *</label>
                 <select className="ir-select" value={newIR.action_taken} onChange={e => setNewIR(p => ({ ...p, action_taken: e.target.value }))}>
                   {ACTION_CHOICES.map(a => <option key={a.value} value={a.value}>{a.label}</option>)}
                 </select>
               </div>
               <div className="ir-field">
-                <label className="ir-field-label">Description</label>
+                <label className="ir-field-label">Description *</label>
                 <textarea className="ir-textarea" rows={3} value={newIR.description} onChange={e => setNewIR(p => ({ ...p, description: e.target.value }))} placeholder="Describe the incident..." />
               </div>
               <div className="ir-field">
