@@ -75,22 +75,39 @@ function CameraTile({ cam, token, onSelect, paused, onDetection, onManualAlertCl
       {/* Video */}
       <div className="lm-tile-video-wrap">
         {isStaff ? (
-          <div className="lm-tile-offline-screen" style={{ background: "rgba(15, 22, 35, 0.95)" }}>
-            <span style={{ fontSize: 32, marginBottom: 12 }}>🔒</span>
-            <span className="lm-tile-offline-label" style={{ marginBottom: 12 }}>Live Feed Restricted</span>
-            <button 
-              className={`det-btn ${accessRequested ? "det-btn--ghost" : "det-btn--request"}`}
-              onClick={(e) => {
-                e.stopPropagation();
-                if (!accessRequested) {
-                  setAccessRequested(true);
-                  alert(`Access request submitted for ${cam.name}. An administrator will review your request.`);
-                }
-              }}
-            >
-              {accessRequested ? "✓ Access Requested" : "Request Access"}
-            </button>
-          </div>
+            <div className="lm-tile-offline-screen" style={{ background: "rgba(15, 22, 35, 0.95)" }}>
+              <span style={{ fontSize: 32, marginBottom: 12 }}>🔒</span>
+              <span className="lm-tile-offline-label" style={{ marginBottom: 12 }}>Live Feed Restricted</span>
+              <button 
+                className={`det-btn ${accessRequested ? "det-btn--ghost" : "det-btn--request"}`}
+                onClick={async (e) => {
+                  e.stopPropagation();
+                  if (!accessRequested) {
+                    try {
+                      const res = await fetch(`${import.meta.env.VITE_API_BASE_URL || "https://smartguard.54.206.184.54.nip.io"}/api/cameras/request-access/`, {
+                        method: "POST",
+                        headers: {
+                          "Content-Type": "application/json",
+                          Authorization: `Bearer ${token}`
+                        },
+                        body: JSON.stringify({ camera_id: cam.id })
+                      });
+                      if (res.ok) {
+                        setAccessRequested(true);
+                        alert(`Access request submitted for ${cam.name}. An administrator will review your request.`);
+                      } else {
+                        const data = await res.json();
+                        alert(`Failed to request access: ${data.error || "Unknown error"}`);
+                      }
+                    } catch (err) {
+                      alert("Network error while requesting access.");
+                    }
+                  }
+                }}
+              >
+                {accessRequested ? "✓ Access Requested" : "Request Access"}
+              </button>
+            </div>
         ) : hasStream && isOnline && token && !paused ? (
           <AuthenticatedStream
             streamUrl={cam.stream_mjpeg_url}

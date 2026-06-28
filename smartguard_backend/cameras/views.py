@@ -221,7 +221,7 @@ def list_access_requests(request):
     for p in pending:
         data.append({
             "id": p.id,
-            "camera_id": p.camera.id if p.camera else None,
+            "camera_id": None,
             "staff_id": p.staff_user.id,
             "staff_name": p.staff_user.username,
             "requested_at": p.requested_at,

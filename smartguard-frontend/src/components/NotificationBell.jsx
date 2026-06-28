@@ -171,9 +171,9 @@ export default function NotificationBell() {
                     <div key={`req-${req.id}`} className="sg-notif-item">
                       <div className="sg-notif-icon" style={{background: 'rgba(16, 185, 129, 0.1)', color: '#10b981'}}>🛡</div>
                       <div className="sg-notif-content" style={{flex: 1}}>
-                        <p className="sg-notif-title">{req.staff_name} requests access</p>
-                        <p className="sg-notif-desc">Camera {req.camera_id}</p>
-                        <span className="sg-notif-time">
+                          <p className="sg-notif-title">{req.staff_name} requests access</p>
+                          <p className="sg-notif-desc">System-wide Access</p>
+                          <span className="sg-notif-time">
                           {!statusLabel ? renderTimer(req.requested_at) : new Date(req.requested_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
                         </span>
                       </div>
