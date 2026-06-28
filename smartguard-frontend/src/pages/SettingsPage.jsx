@@ -49,7 +49,6 @@ const DEFAULT_SETTINGS = {
     frameRate:            15,
     confidenceThreshold:  65,
     loiteringDuration:    60,          // seconds before loitering alert
-    concealmentZones:     ["Zone GF — Aisle 1", "Zone GF — Aisle 2"],
     behaviors: {
       SHOPLIFTING:  true,
       CONCEALMENT:  true,
@@ -133,7 +132,6 @@ export default function SettingsPage() {
             frameRate:           data.frame_rate              || DEFAULT_SETTINGS.ai.frameRate,
             confidenceThreshold: data.confidence_threshold    || DEFAULT_SETTINGS.ai.confidenceThreshold,
             loiteringDuration:   data.loitering_duration      || DEFAULT_SETTINGS.ai.loiteringDuration,
-            concealmentZones:    data.concealment_zones       || DEFAULT_SETTINGS.ai.concealmentZones,
             behaviors:           data.enabled_behaviors       || DEFAULT_SETTINGS.ai.behaviors,
             autoCreateEvidence:  data.auto_create_evidence    ?? DEFAULT_SETTINGS.ai.autoCreateEvidence,
             motionGatedDetection: data.motion_gated_detection ?? DEFAULT_SETTINGS.ai.motionGatedDetection,
@@ -186,7 +184,6 @@ export default function SettingsPage() {
         frame_rate:               settings.ai.frameRate,
         confidence_threshold:     settings.ai.confidenceThreshold,
         loitering_duration:       settings.ai.loiteringDuration,
-        concealment_zones:        settings.ai.concealmentZones,
         enabled_behaviors:        settings.ai.behaviors,
         auto_create_evidence:     settings.ai.autoCreateEvidence,
         motion_gated_detection:   settings.ai.motionGatedDetection,
@@ -208,15 +205,6 @@ export default function SettingsPage() {
       alert("Failed to save settings. Please try again.");
     }
   };
-
-  const addConcealmentZone = () => {
-    if (!newZone.trim()) return;
-    update("ai", "concealmentZones", [...settings.ai.concealmentZones, newZone.trim()]);
-    setNewZone("");
-  };
-
-  const removeConcealmentZone = (zone) =>
-    update("ai", "concealmentZones", settings.ai.concealmentZones.filter(z => z !== zone));
 
   return (
     <div className="sg-layout">
@@ -393,26 +381,6 @@ export default function SettingsPage() {
                         value={settings.ai.loiteringDuration}
                         onChange={e => update("ai","loiteringDuration",Number(e.target.value))} />
                       <span className="set-unit">seconds</span>
-                    </div>
-                  </div>
-
-                  <div className="set-divider" />
-                  <h4 className="set-subsection-title">Concealment Zones</h4>
-                  <div className="set-hint" style={{ marginBottom: 12 }}>
-                    Define which store zones are monitored for concealment behavior (e.g. hiding items under clothing).
-                  </div>
-                  <div className="set-zone-list">
-                    {settings.ai.concealmentZones.map(z => (
-                      <div key={z} className="set-zone-item">
-                        <span>📍 {z}</span>
-                        <button className="det-btn det-btn--danger" style={{ padding: "2px 8px", fontSize: 10 }} onClick={() => removeConcealmentZone(z)}>Remove</button>
-                      </div>
-                    ))}
-                    <div className="set-input-row" style={{ marginTop: 8 }}>
-                      <input className="set-input" placeholder="e.g. Zone GF — Aisle 3"
-                        value={newZone} onChange={e => setNewZone(e.target.value)}
-                        onKeyDown={e => e.key === "Enter" && addConcealmentZone()} />
-                      <button className="det-btn det-btn--view" onClick={addConcealmentZone}>+ Add Zone</button>
                     </div>
                   </div>
 
